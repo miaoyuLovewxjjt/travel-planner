@@ -2920,7 +2920,7 @@ function buildDoc(t) {
     const lodge = s.lodge;
     const lodgeType = lodge && lodge.type && LODGE_TYPES.includes(lodge.type) ? lodge.type : '酒店';
 
-    const segRows = (day.segments || []).map(seg => {
+    const segRows = (day.segments || []).filter(s => !s.draft).map(seg => {
       const det = [];
       if (seg.vehicleNo) det.push(esc(seg.vehicleNo));
       const paxTxt = paxText(seg);
@@ -2936,7 +2936,7 @@ function buildDoc(t) {
       </tr>`;
     }).join('');
 
-    const expRows = (day.expenses || []).map(e => {
+    const expRows = (day.expenses || []).filter(e => !e.draft).map(e => {
       return `<tr>
         <td>${catEmoji(e.category)} ${esc(e.category)}</td>
         <td>${esc(e.item || '—')}</td>
@@ -2944,15 +2944,31 @@ function buildDoc(t) {
       </tr>`;
     }).join('');
 
+    // 提醒（仅已确认的，按时间排序）
+    const remRows = (day.reminders || []).filter(r => r.title && r.date && !r.draft)
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.time || '').localeCompare(String(b.time || '')))
+      .map(r => `<tr><td class="d-time">${esc(fmtDateCN(r.date))} ${esc(r.time || '')}</td><td>${esc(r.title)}</td></tr>`).join('');
+    // 今日路线总时长（含跨天接续，与详情页总览一致）
+    const tails = [];
+    for (let back = 1; back <= 7; back++) {
+      const pd = t.days[addDays(d, -back)];
+      if (!pd) continue;
+      nextDayTails(pd).forEach(tl => { if (tl.dayOffset === back) tails.push(tl); });
+    }
+    const totalMin = (day.segments || []).reduce((a, sg) => a + dayPartDuration(sg), 0)
+      + tails.reduce((a, tl) => a + tl.dur, 0);
+
     return `<section class="doc-day" id="doc-day-${d}">
       <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span></h2>
       ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次 / 座位 / 乘客</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
-      ${lodge ? `<div class="doc-lodge">${lodgeEmoji(lodgeType)} ${esc(lodgeType)} · <b>${esc(lodge.name)}</b>${lodge.location ? ' · ' + esc(lodge.location) : ''}<span class="doc-lodge-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span></div>` : ''}
+      ${lodge ? `<div class="doc-lodge">${lodgeEmoji(lodgeType)} ${esc(lodgeType)} · <b>${esc(lodge.name)}</b>${lodge.location ? ' · ' + esc(lodge.location) : ''}${lodge.notes ? ' · 💬 ' + esc(lodge.notes) : ''}<span class="doc-lodge-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span></div>` : ''}
       ${expRows ? `<table class="doc-table exp"><thead><tr><th>类别</th><th>项目</th><th>金额</th></tr></thead><tbody>${expRows}</tbody></table>` : ''}
+      ${remRows ? `<table class="doc-table rem"><thead><tr><th>提醒时间</th><th>提醒内容</th></tr></thead><tbody>${remRows}</tbody></table>` : ''}
       <div class="doc-day-sum">
         <span>当日花费：<b>${fmtMoney(s.exp)}</b></span>
-        <span>路线 ${s.segs} 段</span>
+        <span>路线 ${s.segs} 段${totalMin ? ' · 总时长 ' + fmtDur(totalMin) : ''}</span>
         ${lodge ? `<span>住宿：${esc(lodge.name || lodge.location)}</span>` : '<span>无住宿</span>'}
+        <span>出行人：${esc(travelers.join('、')) || '—'}</span>
         ${day.notes ? `<span class="doc-note">📝 ${esc(day.notes)}</span>` : ''}
       </div>
     </section>`;
