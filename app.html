@@ -464,21 +464,20 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .data-panel .dp-warn{font-size:12px;color:#e5484d;background:var(--accent-soft);border:1px solid #f3c1c3;
   border-radius:10px;padding:9px 12px;margin-top:8px;line-height:1.7}
 
-/* ============ 旅行记录（全屏页面） ============ */
-#preview{
-  position:fixed;inset:0;background:rgba(20,20,40,.6);backdrop-filter:blur(6px);z-index:300;
-  display:flex;flex-direction:column;
-}
-.preview-toolbar{display:flex;align-items:center;gap:10px;padding:14px 22px;color:#fff;flex-wrap:wrap}
-.preview-toolbar .t{font-weight:800;font-size:15px;margin-right:auto}
-.preview-toolbar .btn{background:rgba(255,255,255,.15);color:#fff;box-shadow:none;border:1px solid rgba(255,255,255,.25)}
-.preview-toolbar .btn:hover{background:rgba(255,255,255,.28)}
-#preview .diy-bar{background:rgba(255,255,255,.12);border:1.5px dashed rgba(255,255,255,.4);
-  border-radius:12px;margin:0 22px 8px;padding:10px 14px;color:#fff;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-#preview .diy-bar .diy-t{font-weight:800;font-size:13px}
-#preview .diy-bar .diy-hint{font-size:11px;opacity:.85;flex-basis:100%}
-#preview .diy-bar .btn{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35)}
-.preview-scroll{flex:1;overflow:auto;padding:20px 20px 60px;display:flex;justify-content:center}
+/* ============ 旅行记录（独立页面视图） ============ */
+#view-journal{max-width:900px;margin:0 auto;padding:0 20px 60px;min-height:100vh}
+.journal-toolbar{display:flex;align-items:center;gap:10px;padding:16px 4px;color:var(--ink);flex-wrap:wrap}
+.journal-toolbar .t{font-weight:900;font-size:16px;margin-right:auto;color:#6b4f1d;
+  font-family:'STXingkai','KaiTi','STKaiti',serif;letter-spacing:2px}
+.journal-toolbar .btn{background:#fdf6e3;color:#6b4f1d;border:1.5px solid #c9a86a;
+  box-shadow:0 2px 6px rgba(120,95,50,.12)}
+.journal-toolbar .btn:hover{background:#f4e6c8}
+#view-journal .diy-bar{background:#fdf6e3;border:1.5px dashed #c9a86a;border-radius:12px;
+  margin:0 0 14px;padding:10px 14px;color:#6b4f1d;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#view-journal .diy-bar .diy-t{font-weight:800;font-size:13px}
+#view-journal .diy-bar .diy-hint{font-size:11px;color:#9a8458;flex-basis:100%}
+#view-journal .diy-bar .btn{background:#fff;border-color:#c9a86a;color:#6b4f1d}
+.journal-scroll{padding:6px 0 30px;display:flex;justify-content:center}
 /* 照片角（宝丽来风格） */
 .post-photos{margin:10px 26px 6px}
 .post-photos .pp-title{font-size:13px;font-weight:900;color:#6b4f1d;letter-spacing:2px;margin-bottom:10px;
@@ -786,10 +785,10 @@ body.pad .seg-row select { width: 104px; }
   .block { padding: 14px 14px; }
   .block-title { margin-bottom: 10px; }
 
-  .preview-toolbar, .doc-toolbar { padding: 10px 10px; gap: 6px; }
-  .preview-toolbar .t, .doc-toolbar .t { font-size: 13px; }
-  .preview-toolbar .lbl, .doc-toolbar .lbl { display: none; }
-  .preview-toolbar .btn, .doc-toolbar .btn { padding: 8px 10px; }
+  .journal-toolbar, .doc-toolbar { padding: 10px 10px; gap: 6px; }
+  .journal-toolbar .t, .doc-toolbar .t { font-size: 13px; }
+  .journal-toolbar .lbl, .doc-toolbar .lbl { display: none; }
+  .journal-toolbar .btn, .doc-toolbar .btn { padding: 8px 10px; }
   .post { width: 100%; max-width: 470px; border-radius: 18px; }
   .post-cover { padding: 32px 22px 28px; }
   .post-cover h1 { font-size: 23px; }
@@ -817,14 +816,14 @@ body.pad .seg-row select { width: 104px; }
 /* ============ 打印 ============ */
 @media print{
   body *{visibility:hidden!important}
-  #preview,#preview *{visibility:visible!important}
+  #view-journal,#view-journal *{visibility:visible!important}
   #doc,#doc *{visibility:visible!important}
-  #preview{position:static!important;background:#fff!important}
+  #view-journal{position:static!important;background:#fff!important}
   #doc{position:static!important;background:#fff!important;display:block!important}
-  .preview-toolbar{display:none!important}
+  .journal-toolbar{display:none!important}
   .doc-toolbar{display:none!important}
   .diy-bar{display:none!important}
-  .preview-scroll{overflow:visible!important;padding:0!important;display:block!important}
+  .journal-scroll{overflow:visible!important;padding:0!important;display:block!important}
   .post{box-shadow:none!important;border-radius:0!important;width:100%!important}
   .post-map{height:420px!important}
   .post-map .map-toggle,.post-map .map-geo-status,.post-map .map-tools{display:none!important}
@@ -870,28 +869,28 @@ body.pad .seg-row select { width: 104px; }
       <div class="days-col" id="days-col"></div>
     </div>
   </section>
+
+  <!-- 视图3：旅行记录（独立页面：右上角 📖 打开，地址栏 #/trip/{id}/journal） -->
+  <section id="view-journal" class="hidden">
+    <div class="journal-toolbar">
+      <span class="t">📖 旅行记录</span>
+      <button class="btn" id="btn-diy">🖼️<span class="lbl"> DIY 贴图</span></button>
+      <button class="btn" id="btn-dl-png">⬇️<span class="lbl"> 下载 PNG</span></button>
+      <button class="btn" id="btn-print">🖨️<span class="lbl"> 打印</span></button>
+      <button class="btn" id="btn-close-preview">✕<span class="lbl"> 关闭</span></button>
+    </div>
+    <div class="diy-bar hidden" id="diy-bar">
+      <span class="diy-t">🖼️ 贴一张旅途照片</span>
+      <button class="btn" id="btn-diy-add">＋ 选择照片</button>
+      <span class="diy-hint">从本地上传照片（会自动压缩保存，电脑⇄手机同步不丢）；鼠标移到照片上可删除。</span>
+      <input type="file" id="diy-file" accept="image/*" multiple hidden>
+    </div>
+    <div class="journal-scroll"><div id="post" class="post"></div></div>
+  </section>
 </main>
 
 <!-- 通用模态（新建/编辑大行程、添加一天） -->
 <div id="modal-root" class="modal-overlay hidden"><div id="modal-box" class="modal"></div></div>
-
-<!-- 旅行记录（全屏页面：右上角 📖 打开，手机/平板一致） -->
-<div id="preview" class="hidden">
-  <div class="preview-toolbar">
-    <span class="t">📖 旅行记录</span>
-    <button class="btn" id="btn-diy">🖼️<span class="lbl"> DIY 贴图</span></button>
-    <button class="btn" id="btn-dl-png">⬇️<span class="lbl"> 下载 PNG</span></button>
-    <button class="btn" id="btn-print">🖨️<span class="lbl"> 打印</span></button>
-    <button class="btn" id="btn-close-preview">✕<span class="lbl"> 关闭</span></button>
-  </div>
-  <div class="diy-bar hidden" id="diy-bar">
-    <span class="diy-t">🖼️ 贴一张旅途照片</span>
-    <button class="btn" id="btn-diy-add">＋ 选择照片</button>
-    <span class="diy-hint">从本地上传照片（会自动压缩保存，电脑⇄手机同步不丢）；鼠标移到照片上可删除。</span>
-    <input type="file" id="diy-file" accept="image/*" multiple hidden>
-  </div>
-  <div class="preview-scroll"><div id="post" class="post"></div></div>
-</div>
 
 <div id="toast"></div>
 
@@ -1278,6 +1277,12 @@ async function geocodePlace(name) {
  * ================================================================ */
 function render() {
   const hash = location.hash;
+  // 旅行记录独立页面：#/trip/{id}/journal
+  const jm = hash.match(/^#\/trip\/([^\/]+)\/journal$/);
+  if (jm) {
+    const id = decodeURIComponent(jm[1]);
+    if (getTrip(id)) { renderJournal(id); return; }
+  }
   if (hash.startsWith('#/trip/')) {
     const id = decodeURIComponent(hash.slice(7));
     if (getTrip(id)) { renderDetail(id); return; }
@@ -1289,6 +1294,7 @@ function renderList() {
   currentTripId = null;
   $('#view-list').classList.remove('hidden');
   $('#view-detail').classList.add('hidden');
+  $('#view-journal').classList.add('hidden');
   $('#btn-back').hidden = true;
   $('#btn-preview').hidden = true;
   $('#btn-pdf').hidden = true;
@@ -1344,6 +1350,7 @@ function renderDetail(id) {
   if (!t) { location.hash = '#/'; return; }
   $('#view-list').classList.add('hidden');
   $('#view-detail').classList.remove('hidden');
+  $('#view-journal').classList.add('hidden');
   $('#btn-back').hidden = false;
   $('#btn-preview').hidden = false;
   $('#btn-pdf').hidden = false;
@@ -1401,24 +1408,39 @@ function renderDetail(id) {
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
 }
 
-/* ---------- 旅行记录（全屏页面：右上角 📖 打开） ---------- */
-function openJournal(t) {
+/* ---------- 旅行记录（独立页面：右上角 📖 打开 → #/trip/{id}/journal） ---------- */
+function renderJournal(id) {
+  const t = getTrip(id);
+  if (!t) return;
+  currentTripId = id;
   postTrip = t;
   postTripId = t.id;
+  $('#view-list').classList.add('hidden');
+  $('#view-detail').classList.add('hidden');
+  $('#view-journal').classList.remove('hidden');
+  $('#btn-back').hidden = false;
+  $('#btn-preview').hidden = true;
+  $('#btn-pdf').hidden = true;
+  $('#btn-new').hidden = true;
   // 首次打开自动标记已生成（照片等 DIY 数据跟随行程保存）
   if (!(t.journal && t.journal.rendered)) {
     t.journal = t.journal || {};
     t.journal.rendered = true;
     scheduleSave();
   }
-  $('#preview').classList.remove('hidden');
   buildPost(t);
-  const sc = document.querySelector('#preview .preview-scroll');
+  const sc = document.querySelector('#view-journal .journal-scroll');
   if (sc) sc.scrollTop = 0;
 }
-function closeJournal() { $('#preview').classList.add('hidden'); }
+function openJournal(t) {
+  location.hash = '#/trip/' + encodeURIComponent(t.id) + '/journal';
+}
+function closeJournal() {
+  if (postTripId) location.hash = '#/trip/' + encodeURIComponent(postTripId);
+  else location.hash = '#/';
+}
 
-// 顶栏 📖 按钮：打开旅行记录全屏页面
+// 顶栏 📖 按钮：跳转到旅行记录独立页面
 $('#btn-preview').addEventListener('click', () => {
   const t = getTrip(currentTripId);
   if (t) openJournal(t);
@@ -2536,7 +2558,7 @@ $('#modal-root').addEventListener('click', e => { if (e.target === $('#modal-roo
 let postMap = null, postTrip = null, postTripId = null;
 
 // 旅行记录页面内点击：DIY / 打印 / PNG / 关闭 / 照片删除
-$('#preview').addEventListener('click', async e => {
+$('#view-journal').addEventListener('click', async e => {
   const t = postTrip;
   if (!t) return;
   if (e.target.closest('#btn-close-preview')) { closeJournal(); return; }
@@ -2585,7 +2607,7 @@ $('#preview').addEventListener('click', async e => {
 });
 
 // DIY 本地上传照片（压缩后存入 trip.journal.photos）
-$('#preview').addEventListener('change', async e => {
+$('#view-journal').addEventListener('change', async e => {
   const inp = e.target.closest('#diy-file');
   if (!inp || !inp.files || !inp.files.length) return;
   const t = postTrip;
@@ -2900,7 +2922,7 @@ function initPostMap(points, color) {
   renderPostMap(points, color);
 }
 
-/* —— 导出（手账 PNG 绑定已迁移到 #preview 委托：downloadJournalPNG） —— */
+/* —— 导出（手账 PNG 绑定已迁移到 #view-journal 委托：downloadJournalPNG） —— */
 
 /* ================================================================
  * PDF 文档视图（带目录，目录标题为日期）
