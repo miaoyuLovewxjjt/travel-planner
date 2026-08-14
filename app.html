@@ -493,12 +493,23 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .post-cover .pc-travelers{margin-top:14px;display:flex;gap:7px;flex-wrap:wrap;position:relative;z-index:1}
 .post-cover .pc-travelers span{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
   padding:3px 13px;border-radius:999px;font-size:12.5px;font-weight:600;backdrop-filter:blur(4px)}
-.post-map{position:relative;margin:14px 14px 0;border-radius:20px;overflow:hidden;height:250px;
+.post-map{position:relative;margin:14px 14px 0;border-radius:20px;overflow:hidden;height:300px;
   border:1px solid var(--line);box-shadow:var(--shadow)}
 .post-map .map-label{position:absolute;top:10px;left:10px;z-index:500;background:rgba(255,255,255,.92);
   padding:4px 12px;border-radius:999px;font-size:11.5px;font-weight:800;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.post-map .map-toggle{position:absolute;top:10px;right:10px;z-index:500;background:rgba(255,255,255,.92);
+  border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:11.5px;font-weight:800;color:var(--ink);
+  box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;transition:all .15s}
+.post-map .map-toggle:hover{background:var(--accent-soft)}
+.post-map .map-toggle.lock{background:var(--accent);color:#fff;border-color:transparent}
+.post-map .map-geo-status{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(255,255,255,.92);
+  border-radius:999px;padding:3px 12px;font-size:11px;font-weight:600;color:var(--sub);box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .post-map .map-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   background:#f5f5f7;color:var(--sub);font-size:12.5px;z-index:400}
+.post-donut{display:flex;justify-content:center;padding:6px 26px 20px}
+.post-donut .donut-wrap{background:#fafafc;border:1px solid var(--line);border-radius:16px;padding:16px 22px;
+  width:100%;justify-content:center;gap:22px}
+.post-donut .donut{width:110px;height:110px}
 .post-section{padding:22px 26px 4px}
 .post-section .ps-title{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--sub);margin-bottom:4px}
 .post-day{
@@ -713,6 +724,7 @@ body.pad .seg-row select { width: 104px; }
   .doc-scroll{overflow:visible!important;padding:0!important;display:block!important}
   .post{box-shadow:none!important;border-radius:0!important;width:100%!important}
   .post-map{height:320px!important}
+  .post-map .map-toggle,.post-map .map-geo-status{display:none!important}
   .doc-body{max-width:100%!important;border-radius:0!important;box-shadow:none!important;padding:0!important;height:auto!important}
   .doc-cover{border-radius:0!important}
   .doc-table tr{page-break-inside:avoid}
@@ -1085,6 +1097,69 @@ function tripStats(trip) {
 function tripTravelers(trip) { return trip.travelers || []; }
 function dayTravelers(trip, day) { return day.travelers && day.travelers.length ? day.travelers : tripTravelers(trip); }
 function budgetColor(remain) { return remain >= 0 ? (remain < 100 ? '#FFC24B' : '#4ECB71') : '#e5484d'; }
+
+/** 每日首末点：每天第一个行程段的出发地 + 最后一个行程段的到达地 */
+function tripDayEndpoints(trip) {
+  const st = tripStats(trip);
+  const pts = [];
+  st.dates.forEach(d => {
+    const segs = (trip.days[d].segments || []).filter(s => !s.draft);
+    if (!segs.length) return;
+    const first = segs[0], last = segs[segs.length - 1];
+    if (first && first.from && first.from.trim()) pts.push({ name: first.from.trim(), date: d, no: dayNo(trip, d) });
+    if (last && last.to && last.to.trim() && !(first === last && first.from.trim() === last.to.trim()))
+      pts.push({ name: last.to.trim(), date: d, no: dayNo(trip, d) });
+  });
+  return pts;
+}
+
+/** 全行程消费构成（按类别聚合，供预览页总环形图） */
+function tripExpByCat(t) {
+  const byCat = {};
+  tripStats(t).dates.forEach(d => {
+    const s = dayStats(t.days[d]);
+    Object.entries(s.expByCat || {}).forEach(([c, v]) => { byCat[c] = (byCat[c] || 0) + v; });
+  });
+  return byCat;
+}
+
+/* —— 地理编码：根据地点文字找经纬度（免费无需 key，带本地缓存） ——
+ * 优先 Open-Meteo（城市/地名中文支持好、响应快），失败回退 Photon（OSM 点位细、限定中国范围） */
+const GEO_CACHE_KEY = 'geoCache';
+function geoCache() { try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); } catch (e) { return {}; } }
+async function geocodePlace(name) {
+  const key = String(name).trim();
+  if (!key) return null;
+  const cache = geoCache();
+  if (cache[key] !== undefined) return cache[key];
+  let r = null;
+  try {
+    const u1 = 'https://geocoding-api.open-meteo.com/v1/search?count=1&language=zh&name=' + encodeURIComponent(key);
+    const res1 = await fetch(u1, { headers: { 'Accept': 'application/json' } });
+    if (res1.ok) {
+      const d1 = await res1.json();
+      const hit1 = d1 && d1.results && d1.results[0];
+      if (hit1) r = { lat: parseFloat(hit1.latitude), lng: parseFloat(hit1.longitude) };
+    }
+  } catch (e) {}
+  if (!r) {
+    try {
+      const u2 = 'https://photon.komoot.io/api/?limit=1&bbox=73.5,18.2,135.1,53.6&q=' + encodeURIComponent(key);
+      const res2 = await fetch(u2, { headers: { 'Accept': 'application/json' } });
+      if (res2.ok) {
+        const d2 = await res2.json();
+        const hit2 = d2 && d2.features && d2.features[0];
+        if (hit2 && hit2.geometry) {
+          const c = hit2.geometry.coordinates;
+          if (c && c.length >= 2) r = { lat: parseFloat(c[1]), lng: parseFloat(c[0]) };
+        }
+      }
+    } catch (e) {}
+  }
+  cache[key] = r;
+  try { localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(cache)); } catch (e) {}
+  return r;
+}
 
 /* ================================================================
  * 渲染
@@ -2328,16 +2403,19 @@ function openPreview(trip) {
 function closePreview() { $('#preview').classList.add('hidden'); }
 
 // 预览中点击某一天 → 关闭预览并跳转到详情页当天
-$('#post').addEventListener('click', e => {
-  const day = e.target.closest('.post-day');
-  if (!day || !postTripId) return;
-  const d = day.dataset.date;
+function jumpToPostDay(d) {
+  if (!d || !postTripId) return;
   closePreview();
   if (location.hash !== '#/trip/' + postTripId) location.hash = '#/trip/' + postTripId;
   setTimeout(() => {
     const el = document.getElementById('day-' + d);
     if (el) { el.scrollIntoView({ behavior: 'smooth' }); flashDay(el); }
   }, 250);
+}
+$('#post').addEventListener('click', e => {
+  const day = e.target.closest('.post-day');
+  if (!day) return;
+  jumpToPostDay(day.dataset.date);
 });
 
 function buildPost(t) {
@@ -2347,9 +2425,14 @@ function buildPost(t) {
   const avg = st.days ? st.exp / st.days : 0;
   const grad = `linear-gradient(135deg,${t.color},${shade(t.color, -35)})`;
 
-  // 地图：全部途经点按日期连线
+  // 地图：每日首末点（第一个行程出发地 → 最后一个行程到达地）自动定位连线
+  const endPts = tripDayEndpoints(t);
+  // 手动途经点兜底（无首末点时保留原有手动 pin 数据）
   const pinData = [];
   dates.forEach(d => (t.days[d].pins || []).forEach(p => pinData.push({ ...p, date: d, no: dayNo(t, d) })));
+
+  // 全行程消费构成（总环形图）
+  const totalDonut = donutChart(tripExpByCat(t));
 
   const dayHtml = dates.map((d, i) => {
     const day = t.days[d];
@@ -2423,9 +2506,15 @@ function buildPost(t) {
       <div class="pc-dates">🗓️ ${esc(t.startDate)} — ${esc(t.endDate)} · 共 ${Math.max(1, diffDays(t.startDate, t.endDate) + 1)} 天</div>
       <div class="pc-travelers">${travelers.map(n => `<span>${esc(n)}</span>`).join('') || '<span>一个人说走就走</span>'}</div>
     </div>
-    ${pinData.length ? `<div class="post-map" id="post-map"><span class="map-label">🗺️ 全程路线</span></div>` : ''}
+    ${endPts.length || pinData.length ? `<div class="post-map" id="post-map">
+      <span class="map-label">🗺️ 全程通勤路线</span>
+      ${endPts.length ? `<button class="map-toggle" id="map-toggle" title="仅预览模式：可缩放但不跳转">🔓 可点击跳转</button>
+      <div class="map-geo-status" id="map-geo-status">🗺️ 正在定位地点…</div>` : ''}
+    </div>` : ''}
     <div class="post-section"><div class="ps-title">— 每日行程（点击某天可跳转） —</div></div>
     ${dayHtml}
+    ${totalDonut ? `<div class="post-section" style="padding-top:24px"><div class="ps-title">— 💰 总消费构成 —</div></div>
+    <div class="post-donut">${totalDonut}</div>` : ''}
     <div class="post-total">
       <div class="row"><span>行程天数</span><span>${st.days} 天</span></div>
       <div class="row"><span>路线段数</span><span>${st.segs} 段</span></div>
@@ -2436,18 +2525,96 @@ function buildPost(t) {
     </div>
     <div class="post-foot">✨ 由「我的行程」生成 · ${new Date().toLocaleDateString('zh-CN')}</div>`;
 
-  if (pinData.length) initPostMap(pinData, t.color, grad);
+  if (endPts.length) initPostMap(endPts, t.color, grad);
+  else if (pinData.length) initPostMap(pinData, t.color, grad);
 }
 
-function initPostMap(pinData, color) {
+/* —— 预览地图（自动定位每日首末点 + 折线连接 + 点击跳转 / 仅预览开关） —— */
+let postMapLocked = false;
+function renderPostMap(points, color) {
+  if (postMap) { postMap.remove(); postMap = null; }
   const box = $('#post-map');
+  postMap = L.map(box, { zoomControl: true, attributionControl: false, scrollWheelZoom: true, touchZoom: true });
+  baseTileLayer().addTo(postMap);
+
+  if (!points.length) {
+    L.marker([35.5, 105]).addTo(postMap);
+    postMap.setView([35.5, 105], 4);
+    return;
+  }
+  const mk = points.map(p => L.marker([p.lat, p.lng], {
+    icon: L.divIcon({ className: '', html: `<div style="background:${color};color:#fff;border-radius:50%;width:24px;height:24px;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff;
+      box-shadow:0 2px 6px rgba(0,0,0,.3)">${p.no === '—' ? '·' : p.no}</div>`,
+      iconSize: [24, 24], iconAnchor: [12, 12] })
+  }).addTo(postMap).bindTooltip(`${p.name} · ${p.date}`, { direction: 'top' }));
+  mk.forEach((m, i) => m.on('click', () => { if (!postMapLocked) jumpToPostDay(points[i].date); }));
+  // 折线分段渲染：每段独立可点击（跳转该段两端所属日期）
+  if (points.length > 1) {
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i], b = points[i + 1];
+      if (a.lat === b.lat && a.lng === b.lng) continue;
+      const seg = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color, weight: 3, opacity: .85 }).addTo(postMap);
+      const d = a.date > b.date ? b.date : a.date; // 跳转两端的早一天（当天行程）
+      seg.bindTooltip(`${a.name} → ${b.name}`, { direction: 'top' });
+      seg.on('click', () => { if (!postMapLocked) jumpToPostDay(d); });
+    }
+  }
+  const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
+  postMap.fitBounds(bounds.pad(0.35), { maxZoom: 11 });
+}
+
+function initPostMap(points, color) {
+  const box = $('#post-map');
+  if (!box) return;
+  // 开关（仅预览模式）
+  const toggle = $('#map-toggle');
+  postMapLocked = false;
+  if (toggle) {
+    toggle.textContent = '🔓 可点击跳转';
+    toggle.classList.remove('lock');
+    toggle.onclick = () => {
+      postMapLocked = !postMapLocked;
+      toggle.textContent = postMapLocked ? '🔒 仅预览' : '🔓 可点击跳转';
+      toggle.classList.toggle('lock', postMapLocked);
+    };
+  }
+  // 自动端点（无坐标）：异步地理编码
+  if (points.length && points[0].lat === undefined) {
+    const status = $('#map-geo-status');
+    const names = [...new Set(points.map(p => p.name))];
+    const geoMap = {};
+    let done = 0;
+    const step = async () => {
+      while (true) {
+        const i = names.findIndex(n => !(n in geoMap));
+        if (i < 0) return;
+        const n = names[i];
+        geoMap[n] = null; // 先占位，避免并发 step 重复请求同一地点
+        geoMap[n] = await geocodePlace(n);
+        done++;
+        if (status) status.textContent = `🗺️ 正在定位地点 ${done}/${names.length}…`;
+      }
+    };
+    // 并发 3 个请求 + 停顿，兼顾速度与 Nominatim 限流
+    Promise.all([step(), step(), step()]).then(() => {
+      const located = points.filter(p => geoMap[p.name]).map(p => ({ ...p, ...geoMap[p.name] }));
+      if (status) status.remove();
+      if (!located.length) {
+        box.insertAdjacentHTML('beforeend', `<div class="map-fallback">⚠️ 未能定位地点，请检查网络或补充更详细的地名</div>`);
+        return;
+      }
+      renderPostMap(located, color);
+    });
+    return;
+  }
+  // 手动 pin（已有坐标）
   if (!isMapReady()) {
-    // Leaflet 未就绪：显示加载中，就绪后自动初始化
     box.insertAdjacentHTML('beforeend', '<div class="map-fallback">🗺️ 地图加载中…</div>');
     let n = 0;
     const wait = setInterval(() => {
       n++;
-      if (isMapReady()) { clearInterval(wait); box.querySelector('.map-fallback')?.remove(); initPostMap(pinData, color); }
+      if (isMapReady()) { clearInterval(wait); box.querySelector('.map-fallback')?.remove(); renderPostMap(points, color); }
       else if (n > 40 || window.__mapFail) {
         clearInterval(wait);
         const fb = box.querySelector('.map-fallback');
@@ -2456,26 +2623,7 @@ function initPostMap(pinData, color) {
     }, 250);
     return;
   }
-  if (postMap) { postMap.remove(); postMap = null; }
-  postMap = L.map(box, { zoomControl: false, attributionControl: false, scrollWheelZoom: false, touchZoom: false });
-  baseTileLayer().addTo(postMap);
-
-  if (!pinData.length) {
-    L.marker([35.5, 105]).addTo(postMap);
-    postMap.setView([35.5, 105], 4);
-    return;
-  }
-  const mk = pinData.map(p => L.marker([p.lat, p.lng], {
-    icon: L.divIcon({ className: '', html: `<div style="background:${color};color:#fff;border-radius:50%;width:24px;height:24px;
-      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff;
-      box-shadow:0 2px 6px rgba(0,0,0,.3)">${p.no === '—' ? '·' : p.no}</div>`,
-      iconSize: [24, 24], iconAnchor: [12, 12] })
-  }).addTo(postMap).bindTooltip(`${p.name} · ${p.date}`, { direction: 'top' }));
-  if (pinData.length > 1) {
-    L.polyline(pinData.map(p => [p.lat, p.lng]), { color, weight: 3, opacity: .85, dashArray: '6 8' }).addTo(postMap);
-  }
-  const bounds = L.latLngBounds(pinData.map(p => [p.lat, p.lng]));
-  postMap.fitBounds(bounds.pad(0.35), { maxZoom: 11 });
+  renderPostMap(points, color);
 }
 
 /* —— 导出 —— */
