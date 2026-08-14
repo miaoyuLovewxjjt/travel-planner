@@ -1118,6 +1118,8 @@ function crossDays(seg) {
   return (seg.departTime && seg.arriveTime && seg.arriveTime < seg.departTime) ? 1 : 0;
 }
 const isCrossDay = seg => crossDays(seg) > 0;
+/** 跨天可编辑的交通方式（长途交通可调 +1~+4；步行/地铁/公交等默认 +1 固定） */
+const CROSS_EDITABLE = ['飞机', '高铁', '自驾', '租车'];
 /** 跨天段的后续接续段（dayOffset=1..N）：全天接续 + 到达日 00:00→到达 */
 function nextDayTails(day) {
   const tails = [];
@@ -1243,13 +1245,14 @@ function renderDayCard(t, d) {
           </div>
           <span class="seg-detail-label">花销</span>
           <input class="seg-price" type="number" min="0" data-num data-path="days.${d}.segments.${i}.price" value="${num(s.price)}" placeholder="💴 价格（元），自动计入今日花费">
+          ${CROSS_EDITABLE.includes(s.transport) ? `
           <span class="seg-detail-label">跨天</span>
           <select class="seg-cross" data-path="days.${d}.segments.${i}.crossDays">
             ${[0, 1, 2, 3, 4].map(n => {
               const v = s.crossDays !== undefined && s.crossDays !== '' ? Number(s.crossDays) : ((s.departTime && s.arriveTime && s.arriveTime < s.departTime) ? 1 : 0);
               return `<option value="${n}" ${v === n ? 'selected' : ''}>${n === 0 ? '当天到达' : '+' + n + ' 天'}</option>`;
             }).join('')}
-          </select>
+          </select>` : ''}
         </div>` : ''}
       </div>`;
     }
