@@ -1466,7 +1466,7 @@ $('#btn-preview').addEventListener('click', () => {
 /** 公共交通（显示车次/座位/乘客详情的交通方式） */
 const PUB_TRANSPORTS = ['高铁', '飞机', '地铁', '公交', '游船'];
 const LODGE_TYPES = ['酒店', '民宿', '青旅', '其他'];
-const lodgeEmoji = () => '🌙';
+const lodgeEmoji = ty => ({ '酒店': '🏨', '民宿': '🏡', '青旅': '🛏️', '其他': '🏠' })[ty] || '🏨';
 
 /** 时间段显示：优先结构化 departTime/arriveTime，兼容旧 time 文本；跨天自动标 (+N) */
 function timeRange(seg) {
