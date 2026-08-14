@@ -207,11 +207,14 @@ textarea{resize:vertical}
 /* 路线展示：一行优先（内容分组在手柄与按钮之间），放不下时第二行从时间列左对齐 */
 .seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
-.seg-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
-.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
-/* 路线固定宽度：让时间列、路线列、交通列跨段对齐（超长省略） */
-.seg-view-path{flex:none;width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 三列固定对齐：时间 | 地点(150px) | 交通；乘客/价格放第二行（不参与对齐） */
+.seg-main{display:grid;grid-template-columns:auto 150px auto;align-items:center;gap:4px 8px;flex:1;min-width:0}
+.seg-view-time{grid-column:1;grid-row:1}
+.seg-view-path{grid-column:2;grid-row:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg-view-trans{grid-column:3;grid-row:1}
+.seg-view-dets{grid-column:1/3;grid-row:2;display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+.seg-view-price{grid-column:3;grid-row:2;justify-self:end}
 /* 时间胶囊（与提醒时间同款） */
 .seg-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
