@@ -181,6 +181,8 @@ textarea{resize:vertical}
 .day-head .day-cost .lbl{font-size:11px;color:var(--sub)}
 .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .block{padding:22px 26px;border-bottom:1px solid var(--line)}
+.block.col-left{grid-column:1;border-right:1px solid var(--line)}
+.block.col-right{grid-column:2;border-right:none}
 .block.full{grid-column:1/-1;border-right:none}
 .block.lodge-block{padding:12px 18px} /* 住宿一晚上，内边距收窄让总览上移 */
 /* 左右独立列：左列（住宿+总览）紧贴，右列（记账）独立高度，互不影响 */
@@ -188,7 +190,7 @@ textarea{resize:vertical}
 .day-col .block{border-right:none}
 .day-col.col-l{border-right:1px solid var(--line)}
 @media(max-width:860px){.detail-body{grid-template-columns:1fr}.day-nav{position:static;flex-direction:row;flex-wrap:wrap}
-  .day-grid{grid-template-columns:1fr}.day-col{grid-column:1/-1}.day-col.col-l{border-right:none}}
+  .day-grid{grid-template-columns:1fr}.block.col-left,.block.col-right{grid-column:1/-1;border-right:none}.day-col{grid-column:1/-1}.day-col.col-l{border-right:none}}
 .block-title{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:1px;margin-bottom:14px;
   display:flex;align-items:center;gap:7px}
 .block-title .tag{font-size:14px;display:inline-flex;align-items:center}
@@ -360,6 +362,7 @@ textarea{resize:vertical}
 .rem-row .rem-title{flex:1;min-width:110px;padding:4px 8px;font-size:13px;border-radius:8px}
 .rem-view{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .rem-view:last-child{border-bottom:none}
+.rem-dot{width:11px;height:11px;border:2px solid var(--accent);border-radius:50%;flex-shrink:0;background:#fff}
 .rem-view-time{font-size:12px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .rem-view-title{font-size:13px;font-weight:700;color:var(--ink)}
 .rem-view-actions{display:flex;gap:2px;margin-left:auto}
@@ -906,6 +909,26 @@ function collectReminders(t) {
   });
   return list;
 }
+/** 检查通知/闹钟授权：未授权则提醒保存失败（自动删除该行） */
+async function canRemind() {
+  if (window.AndroidBridge && window.AndroidBridge.getNotifyPermission) {
+    // Android：13+ 未授权 → 发起请求并视为失败；13- 默认允许
+    if (window.AndroidBridge.getNotifyPermission() === 'denied') {
+      if (window.AndroidBridge.requestNotifyPermission) window.AndroidBridge.requestNotifyPermission();
+      return false;
+    }
+    return true;
+  }
+  if (window.Notification) {
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'default') {
+      try { return (await Notification.requestPermission()) === 'granted'; } catch (_) { return true; }
+    }
+    return false;
+  }
+  return true; // 无 Notification 支持（极老浏览器）→ 允许（页面内提示仍可用）
+}
+
 /** 同步提醒：手机 App → Android 系统闹钟；网页 → 浏览器通知（页面打开时） */
 function syncReminders(t) {
   if (!t) return;
@@ -1439,7 +1462,13 @@ function renderDayCard(t, d) {
   const transSummary = [...new Set((day.segments || []).map(s => s.transport).filter(Boolean))]
     .map(x => `${emojiOf(x)} ${x}`).join(' · ') || '—';
 
-  // 提醒列表（双态：编辑 ✓✕ / 展示 ✏️🗑）
+  // 提醒列表（自动按时间排序，草稿行排最后；双态：编辑 ✓✕ / 展示 ✏️🗑）
+  if (Array.isArray(day.reminders) && day.reminders.length > 1) {
+    const drafts = day.reminders.filter(r => r.draft);
+    const done = day.reminders.filter(r => !r.draft)
+      .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')) || String(a.time || '').localeCompare(String(b.time || '')));
+    day.reminders = [...done, ...drafts];
+  }
   const remRows = (day.reminders || []).map((r, i) => {
     if (r.draft) {
       return `<div class="rem-row">
@@ -1451,7 +1480,8 @@ function renderDayCard(t, d) {
       </div>`;
     }
     return `<div class="rem-view">
-      <span class="rem-view-time">⏰ ${fmtDateCN(r.date || '')} ${esc(r.time || '')}</span>
+      <span class="rem-dot"></span>
+      <span class="rem-view-time">${fmtDateCN(r.date || '')} ${esc(r.time || '')}</span>
       <span class="rem-view-title">${esc(r.title || '未命名提醒')}</span>
       <div class="rem-view-actions">
         <button class="icon-btn" data-action="rem-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
@@ -1506,20 +1536,20 @@ function renderDayCard(t, d) {
       <button class="icon-btn del-day" data-date="${d}" title="删除当日行程">${trashIcon()}</button>
     </div>
     <div class="day-grid">
+      <div class="block notes-box col-left">
+        <div class="block-title"><span class="tag">📝</span>备注</div>
+        <textarea data-path="days.${d}.notes" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
+      </div>
+      <div class="block col-right">
+        <div class="block-title"><span class="tag">⏰</span>提醒</div>
+        <div class="rem-list">${remRows || '<div class="lodge-none">暂无提醒，可设置抢票、出发等定时提醒</div>'}</div>
+        <button class="add-row-btn" data-action="add-rem" data-date="${d}">＋ 添加提醒</button>
+        <div class="map-hint">💡 手机 App 通过系统闹钟提醒；网页版需保持页面打开</div>
+      </div>
       <div class="block full">
         <div class="block-title"><span class="tag">🗺️</span>行程路线</div>
         <div class="seg-list">${segRows || '<div class="lodge-none">还没有路线，点击下方添加</div>'}</div>
         <button class="add-row-btn" data-action="add-seg" data-date="${d}">＋ 添加路线</button>
-      </div>
-      <div class="block notes-box full">
-        <div class="block-title"><span class="tag">📝</span>备注</div>
-        <textarea data-path="days.${d}.notes" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
-      </div>
-      <div class="block full">
-        <div class="block-title"><span class="tag">⏰</span>提醒</div>
-        <div class="rem-list">${remRows || '<div class="lodge-none">暂无提醒，可设置抢票、出发等定时提醒</div>'}</div>
-        <button class="add-row-btn" data-action="add-rem" data-date="${d}">＋ 添加提醒</button>
-        <div class="map-hint">💡 手机 App 会通过系统闹钟在设定时间提醒你；网页版需保持页面打开</div>
       </div>
       <div class="day-col col-l">
         <div class="block lodge-block">
@@ -1559,7 +1589,7 @@ function renderDayCard(t, d) {
 /* ================================================================
  * 事件：详情页（委托）
  * ================================================================ */
-$('#view-detail').addEventListener('click', e => {
+$('#view-detail').addEventListener('click', async e => {
   const t = currentTripId ? getTrip(currentTripId) : null;
   if (!t) return;
 
@@ -1672,7 +1702,8 @@ $('#view-detail').addEventListener('click', e => {
       if (act === 'rem-done') {
         const r = rems[i];
         if (!(r.title || '').trim() || !(r.date || '').trim()) rems.splice(i, 1);
-        else { delete r.draft; delete r.reminded; }
+        else if (await canRemind()) { delete r.draft; delete r.reminded; }
+        else { rems.splice(i, 1); showToast('⚠️ 未授权通知权限，提醒已取消'); }
       } else if (act === 'rem-cancel') rems.splice(i, 1);
       else if (act === 'rem-edit') { rems[i].draft = true; delete rems[i].reminded; }
       else if (act === 'rem-del') rems.splice(i, 1);
