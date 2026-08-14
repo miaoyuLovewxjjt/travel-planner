@@ -444,8 +444,9 @@ body.font-large .seg-view-price,body.font-large .exp-view-amt,body.font-large .l
 body.font-large .seg-view-sub,body.font-large .exp-view-note,body.font-large .lodge-view-sub{font-size:13.5px}
 body.font-large .btn{font-size:14.5px}
 /* 渐变壁纸 */
-body.wall-gradient{background:linear-gradient(165deg,var(--accent-soft) 0%,var(--bg) 45%)}
-body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px rgba(28,28,60,.08)}
+/* 渐变壁纸（行程级）：在行程编辑面板选择，颜色跟随该行程主题 */
+#view-detail.wall-gradient{background:linear-gradient(165deg,var(--accent-soft) 0%,var(--bg) 45%)}
+#view-detail.wall-gradient .day-card{box-shadow:0 4px 18px rgba(28,28,60,.08)}
 .data-panel .dp-row{display:flex;justify-content:space-between;align-items:center;gap:12px;
   padding:10px 2px;border-bottom:1px dashed var(--line);font-size:13.5px}
 .data-panel .dp-row span{color:var(--sub);font-weight:700;white-space:nowrap}
@@ -956,11 +957,11 @@ const DEVICE = (window.AndroidBridge && window.AndroidBridge.getDevice) ? window
   : new URLSearchParams(location.search).get('device') || 'web';
 if (DEVICE === 'pad') document.body.classList.add('pad');
 
-/** 外观偏好（字体大小 / 背景壁纸；大主题已移除，每个大行程按自己创建时选的颜色独立配色） */
+/** 外观偏好已移入行程级（主题色/渐变壁纸在行程编辑面板）；清理旧版全局设置残留 */
 (function initPrefs() {
-  localStorage.removeItem('theme'); // 清理旧版全局主题残留，避免影响行程配色
-  if (localStorage.getItem('font') === 'large') document.body.classList.add('font-large');
-  if (localStorage.getItem('wall') === 'gradient') document.body.classList.add('wall-gradient');
+  localStorage.removeItem('theme');
+  localStorage.removeItem('font');
+  localStorage.removeItem('wall');
 })();
 const CATS = [['🚆','交通'],['🍜','餐饮'],['🌌','住宿'],['🎫','门票'],['🛍️','购物'],['📌','其他']];
 const PRESET_COLORS = ['#FF6B6B','#FF9A5A','#FFC24B','#4ECB71','#4D96FF','#7B5CF0','#F0619B','#0FB5AE','#B58A5A','#5A6B8C'];
@@ -1196,7 +1197,8 @@ function tripStats(trip) {
 }
 function tripTravelers(trip) { return trip.travelers || []; }
 function dayTravelers(trip, day) { return day.travelers && day.travelers.length ? day.travelers : tripTravelers(trip); }
-function budgetColor(remain) { return remain >= 0 ? (remain < 100 ? '#FFC24B' : '#4ECB71') : '#e5484d'; }
+/** 结余颜色：正常用行程主题色（--accent），超支红色 */
+function budgetColor(remain) { return remain < 0 ? '#e5484d' : 'var(--accent)'; }
 
 /** 每日首末点：每天第一个行程段的出发地 + 最后一个行程段的到达地 */
 function tripDayEndpoints(trip) {
@@ -1281,8 +1283,9 @@ function render() {
 
 function renderList() {
   currentTripId = null;
-  // 清掉上一个行程的配色变量（避免残留影响其他视图）
+  // 清掉上一个行程的配色变量与壁纸（避免残留影响其他视图）
   $('#view-detail').removeAttribute('style');
+  $('#view-detail').classList.remove('wall-gradient');
   $('#view-journal').removeAttribute('style');
   $('#doc').removeAttribute('style');
   $('#view-list').classList.remove('hidden');
@@ -1318,7 +1321,7 @@ function renderList() {
         </div>
         <div class="trip-foot">
           <div class="budget-bar" title="花费 ${fmtMoney(st.exp)} / 预算 ${fmtMoney(st.budget)}">
-            <i style="width:${pct}%;background:${budgetColor(st.budget - st.exp)}"></i>
+            <i style="width:${pct}%;background:${t.color}"></i>
           </div>
           <span class="spend">${fmtMoney(st.exp)}${st.budget ? ' / ' + fmtMoney(st.budget) : ''}</span>
           <button class="icon-btn del-trip" data-id="${t.id}" title="删除">${trashIcon()}</button>
@@ -1361,6 +1364,7 @@ function renderDetail(id) {
   const t = getTrip(id);
   if (!t) { location.hash = '#/'; return; }
   applyTripTheme($('#view-detail'), t.color); // 行程独立配色：详情页整体跟随该行程颜色
+  $('#view-detail').classList.toggle('wall-gradient', t.wall === 'gradient'); // 行程级渐变壁纸（跟随行程主题色）
   $('#view-list').classList.add('hidden');
   $('#view-detail').classList.remove('hidden');
   $('#view-journal').classList.add('hidden');
@@ -2280,26 +2284,11 @@ function openSettingsPanel() {
   const locTxt = dataMode === 'local'
     ? '数据保存在 App 内部私有目录，卸载应用会丢失数据，请定期「导出备份」。'
     : '数据保存在电脑上的 JSON 文件中，可通过「导出/导入」迁移到手机。';
-  const curFont = localStorage.getItem('font') || 'std';
-  const curWall = localStorage.getItem('wall') || 'none';
   $('#modal-box').innerHTML = `
     <div class="data-panel">
       <h2>⚙️ 设置</h2>
       <div class="st-title">🎨 外观</div>
-      <div class="set-row">
-        <span>🔤 字体大小</span>
-        <div class="set-opts">
-          <button class="set-opt ${curFont === 'std' ? 'on' : ''}" data-font="std">标准</button>
-          <button class="set-opt ${curFont === 'large' ? 'on' : ''}" data-font="large">大</button>
-        </div>
-      </div>
-      <div class="set-row">
-        <span>🖼️ 背景壁纸</span>
-        <div class="set-opts">
-          <button class="set-opt ${curWall === 'none' ? 'on' : ''}" data-wall="none">纯净</button>
-          <button class="set-opt ${curWall === 'gradient' ? 'on' : ''}" data-wall="gradient">主题渐变</button>
-        </div>
-      </div>
+      <div class="dp-note">💡 主题色、渐变壁纸等外观选项已移入每个大行程的编辑面板，各行程独立设置。</div>
       <div class="st-title" style="margin-top:16px">💾 数据管理</div>
       <div class="dp-row"><span>存储方式</span><b>${modeTxt}</b></div>
       <div class="dp-row"><span>数据占用</span><b>${sizeTxt}（${state.trips.length} 个大行程）</b></div>
@@ -2323,23 +2312,7 @@ function openSettingsPanel() {
     </div>`;
   $('#modal-root').classList.remove('hidden');
 
-  // 外观：字体大小 / 背景壁纸 / 版本管理
-  $('#modal-box').querySelectorAll('.set-opt[data-font]').forEach(b => {
-    b.addEventListener('click', () => {
-      const v = b.dataset.font;
-      localStorage.setItem('font', v);
-      document.body.classList.toggle('font-large', v === 'large');
-      $('#modal-box').querySelectorAll('.set-opt[data-font]').forEach(x => x.classList.toggle('on', x === b));
-    });
-  });
-  $('#modal-box').querySelectorAll('.set-opt[data-wall]').forEach(b => {
-    b.addEventListener('click', () => {
-      const v = b.dataset.wall;
-      localStorage.setItem('wall', v);
-      document.body.classList.toggle('wall-gradient', v === 'gradient');
-      $('#modal-box').querySelectorAll('.set-opt[data-wall]').forEach(x => x.classList.toggle('on', x === b));
-    });
-  });
+  // 版本管理
   $('#set-version').addEventListener('click', () => {
     const d = $('#version-detail');
     if (d) d.hidden = !d.hidden;
@@ -2400,6 +2373,12 @@ function openTripModal(trip) {
       <div class="form-field"><label>结束日期</label><input type="date" id="m-end" value="${esc(t.endDate)}"></div>
       <div class="form-field"><label>出行人（逗号分隔）</label><input id="m-travelers" maxlength="30" value="${esc(t.travelers.join('，'))}" placeholder="我，小美，老王"></div>
       <div class="form-field"><label>总预算（元）</label><input id="m-budget" type="number" min="0" value="${num(t.budget)}" placeholder="0 = 不设预算"></div>
+      <div class="form-field full"><label>背景壁纸</label>
+        <div class="set-opts" id="m-wall">
+          <button class="set-opt ${(t.wall || 'none') === 'none' ? 'on' : ''}" data-wall="none">纯净</button>
+          <button class="set-opt ${t.wall === 'gradient' ? 'on' : ''}" data-wall="gradient">主题渐变</button>
+        </div>
+      </div>
       <div class="form-field full"><label>行程备注</label><textarea id="m-notes" maxlength="30" rows="2" placeholder="旅行主题、注意事项…">${esc(t.notes)}</textarea></div>
     </div>
     <div class="modal-actions">
@@ -2417,6 +2396,15 @@ function openTripModal(trip) {
     selColor = e.target.value;
     $$('#m-colors .color-dot').forEach(x => x.classList.remove('sel'));
   });
+  // 背景壁纸（纯净 / 主题渐变，跟随行程主题色）
+  let selWall = t.wall || 'none';
+  $('#m-wall').addEventListener('click', e => {
+    const b = e.target.closest('.set-opt');
+    if (b) {
+      selWall = b.dataset.wall;
+      $$('#m-wall .set-opt').forEach(x => x.classList.toggle('on', x === b));
+    }
+  });
   $('#m-cancel').addEventListener('click', closeModal);
   $('#m-ok').addEventListener('click', () => {
     const name = $('#m-name').value.trim();
@@ -2427,10 +2415,10 @@ function openTripModal(trip) {
     const travelers = $('#m-travelers').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
     if (trip) {
       Object.assign(trip, { name, emoji: $('#m-emoji').value.trim() || '🧳', startDate: start, endDate: end,
-        travelers, budget: num($('#m-budget').value), color: selColor, notes: $('#m-notes').value.trim() });
+        travelers, budget: num($('#m-budget').value), color: selColor, wall: selWall, notes: $('#m-notes').value.trim() });
     } else {
       state.trips.unshift({ id: uid(), name, emoji: $('#m-emoji').value.trim() || '🧳', startDate: start, endDate: end,
-        travelers, budget: num($('#m-budget').value), color: selColor, notes: $('#m-notes').value.trim(), days: {} });
+        travelers, budget: num($('#m-budget').value), color: selColor, wall: selWall, notes: $('#m-notes').value.trim(), days: {} });
     }
     closeModal();
     scheduleSave();
