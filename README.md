@@ -41,12 +41,20 @@ http://localhost:7788
 
 > APK 不随仓库发布，需要的人自行用 Android 工程打包。
 
-- `android-app/`：手机版（应用名「我的行程」，包名 `com.zcode.travelapp`）
-- `android-app-hd/`：平板版（应用名「我的行程HD」，包名 `com.zcode.travelapp.hd`，宽屏布局 + 大触控目标）
+## 🌿 分支说明（三端同步）
+
+| 分支 | 内容 |
+|------|------|
+| `master` | **PC 网页版**：`app.html` + `server.js`（功能单一事实源） |
+| `android` | **安卓版**：`android/android-app`（手机）+ `android/android-app-hd`（平板 HD）工程，`assets/index.html` 与 master 的 `app.html` 保持同步 |
+
+**三端同步维护流程**：新功能先在 `master` 更新 `app.html` → 切到 `android` 分支合并/同步最新页面 → `assets/index.html` 更新 → 本地打包 APK。PC 网页 / 安卓手机 / 安卓平板三端始终同一套代码。
+
+### 打包
 
 ```bash
-# 打包（需要 JDK 17 + Android SDK 34）
-cd android-app            # 或 android-app-hd
+# 需要 JDK 17 + Android SDK 34
+cd android/android-app            # 或 android-app-hd
 gradle assembleDebug
 # 产物：app/build/outputs/apk/debug/app-debug.apk
 ```
