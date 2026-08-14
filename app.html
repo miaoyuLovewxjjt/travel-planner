@@ -288,6 +288,8 @@ textarea{resize:vertical}
 .lodge-view-name{font-weight:700;font-size:14px;color:var(--ink);line-height:1.5}
 .lodge-view-price{font-size:14px;font-weight:800;color:var(--accent);margin-left:auto;white-space:nowrap;line-height:1.5}
 .lodge-view-sub{font-size:12px;color:var(--sub);padding-left:2px;line-height:1.5}
+/* 住宿备注：独立一行（无论长短），与位置行同缩进 */
+.lodge-view-note{font-size:12px;color:var(--sub);padding-left:2px;line-height:1.5}
 .lodge-view-actions{display:flex;gap:2px}
 
 /* 乘客选择面板 */
@@ -1717,9 +1719,7 @@ function renderDayCard(t, d) {
       </div>`;
   } else {
     // —— 展示态：已确认，✏️ 编辑 / 🗑️ 删除 ——
-    const subParts = [];
-    if (lodge.location) subParts.push('📍 ' + esc(lodge.location));
-    if (lodge.notes) subParts.push('💬 ' + esc(lodge.notes));
+    // 位置与备注各自独立一行（备注无论长短都独占一行），缩进与主行对齐
     lodgeHtml = `
       <div class="lodge-view">
         <div class="lodge-view-main">
@@ -1731,7 +1731,8 @@ function renderDayCard(t, d) {
             <button class="icon-btn" data-action="lodge-del" data-date="${d}" title="删除">${trashIcon()}</button>
           </div>
         </div>
-        ${subParts.length ? `<div class="lodge-view-sub">${subParts.join('　')}</div>` : ''}
+        ${lodge.location ? `<div class="lodge-view-sub">📍 ${esc(lodge.location)}</div>` : ''}
+        ${lodge.notes ? `<div class="lodge-view-note">💬 ${esc(lodge.notes)}</div>` : ''}
       </div>`;
   }
 
