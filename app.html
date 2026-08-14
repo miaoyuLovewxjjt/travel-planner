@@ -65,9 +65,8 @@ textarea{resize:vertical}
 /* 顶栏按钮纯图标（所有设备），文字隐藏；导出/导入入口在 ⚙️ 设置中 */
 #topbar .lbl{display:none}
 #btn-export,#btn-import{display:none}
-#btn-back,#btn-preview,#btn-pdf{padding:8px 12px}
-#btn-new{padding:9px 14px}
-#btn-data{padding:8px 10px}
+/* 顶栏图标按钮尺寸统一（纯图标、无文字） */
+#btn-back,#btn-preview,#btn-pdf,#btn-new,#btn-data{padding:8px 12px;font-size:13.5px}
 #topbar .spacer{flex:1}
 #save-state{font-size:12px;color:var(--sub);margin-right:6px}
 .btn{
@@ -740,8 +739,7 @@ body.pad .btn { padding: 10px 18px; }
 body.pad .btn-small { padding: 8px 14px; }
 body.pad #btn-export, body.pad #btn-import { display: none; }              /* 导出/导入在 ⚙️ 面板 */
 body.pad #btn-back .lbl, body.pad #btn-preview .lbl, body.pad #btn-pdf .lbl, body.pad #btn-new .lbl { display: none; } /* 顶栏纯图标 */
-body.pad #btn-back, body.pad #btn-preview, body.pad #btn-pdf { padding: 10px 12px; }
-body.pad #btn-new { padding: 10px 16px; }
+body.pad #btn-back, body.pad #btn-preview, body.pad #btn-pdf, body.pad #btn-new, body.pad #btn-data { padding: 10px 12px; }
 body.pad #view-list { max-width: 1200px; padding: 0 24px; }
 body.pad .trip-cover { height: 130px; }
 body.pad .stat-card { min-width: 130px; padding: 12px 20px; }
@@ -773,9 +771,7 @@ body.pad .seg-row select { width: 104px; }
   #topbar .logo { font-size: 16px; }
   #btn-export, #btn-import, #save-state { display: none; }        /* 导出/导入在 ⚙️ 数据面板中 */
   #btn-back .lbl, #btn-preview .lbl, #btn-pdf .lbl, #btn-new .lbl { display: none; } /* 顶栏图标化 */
-  #btn-back, #btn-preview, #btn-pdf { padding: 8px 10px; }
-  #btn-new { padding: 8px 12px; }
-  #btn-data { padding: 8px 10px; }
+  #btn-back, #btn-preview, #btn-pdf, #btn-new, #btn-data { padding: 8px 10px; }
 
   #view-list { margin: 14px auto; padding: 0 12px; }
   .trip-grid { gap: 14px; grid-template-columns: 1fr; }
@@ -861,7 +857,7 @@ body.pad .seg-row select { width: 104px; }
   <span id="save-state"></span>
   <button class="btn btn-ghost btn-small" id="btn-export" title="导出数据（备份/迁移）">📤 <span class="lbl">导出</span></button>
   <button class="btn btn-ghost btn-small" id="btn-import" title="导入数据">📥 <span class="lbl">导入</span></button>
-  <button class="btn btn-ghost btn-small" id="btn-data" title="设置">⚙️</button>
+  <button class="btn btn-ghost" id="btn-data" title="设置">⚙️</button>
   <button class="btn btn-ghost" id="btn-back" hidden>← <span class="lbl">返回列表</span></button>
   <button class="btn btn-ghost" id="btn-preview" hidden>📖<span class="lbl"> 旅行记录</span></button>
   <button class="btn btn-ghost" id="btn-pdf" hidden>📄<span class="lbl"> 生成 PDF 文档</span></button>
@@ -872,7 +868,6 @@ body.pad .seg-row select { width: 104px; }
   <!-- 视图1：大行程列表 -->
   <section id="view-list">
     <div class="hero">
-      <h1>我的大行程</h1>
       <p>创建一个旅行计划，自动按日期排列每天的行程。</p>
     </div>
     <div class="trip-grid" id="trip-grid"></div>
