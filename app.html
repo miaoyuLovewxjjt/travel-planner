@@ -210,7 +210,8 @@ textarea{resize:vertical}
 .seg-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
 .seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
-.seg-view-path{min-width:0}
+/* 路线固定宽度：让时间列、路线列、交通列跨段对齐（超长省略） */
+.seg-view-path{flex:none;width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 时间胶囊（与提醒时间同款） */
 .seg-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
