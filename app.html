@@ -358,7 +358,8 @@ textarea{resize:vertical}
 .ov-note{grid-column:1/-1;font-size:12px;color:var(--sub);background:#fff8f0;border-radius:10px;padding:8px 12px}
 .ov-route{grid-column:1/-1;background:#fafafc;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
 .ov-route .lbl{font-size:11px;color:var(--sub);font-weight:700}
-.block-hint{font-size:11.5px;color:var(--sub);background:#f7f7fa;border-radius:8px;padding:5px 10px;margin-bottom:10px}
+/* 记账提示：斜体小字，与标题图标左对齐，位于标题与内容之间 */
+.block-hint{font-size:12px;color:var(--sub);font-style:italic;margin:2px 0 10px;line-height:1.5}
 /* 提醒 */
 .rem-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .rem-row input[type=date]{width:132px;padding:4px 8px;font-size:13px;border-radius:8px}
@@ -1143,16 +1144,14 @@ const emptyDay = () => ({ notes: '', lodging: { name: '', location: '', pricePer
 /* —— 统计 —— */
 const CAT_COLORS = { '交通': '#4D96FF', '餐饮': 'var(--accent2)', '住宿': '#7B5CF0', '门票': '#4ECB71', '购物': '#F0619B', '其他': '#B0B0BC' };
 function dayStats(day) {
-  // 手动记账 + 路线价格（交通）+ 住宿价格（住宿）自动计入
+  // 路线价格（交通）+ 住宿价格（住宿）自动计入当日合计，但不再进消费构成环形图（路线/住宿区块已直观体现）
   const segs = day.segments || [];
   const segExp = segs.reduce((s, x) => s + num(x.price), 0);
   const lodge = day.lodging;
   const lodgeExp = (lodge && (lodge.name || lodge.location)) ? num(lodge.pricePerNight) : 0;
   const expByCat = {};
   (day.expenses || []).forEach(e => { expByCat[e.category] = (expByCat[e.category] || 0) + num(e.amount); });
-  if (segExp) expByCat['交通'] = (expByCat['交通'] || 0) + segExp;
-  if (lodgeExp) expByCat['住宿'] = (expByCat['住宿'] || 0) + lodgeExp;
-  const exp = Object.values(expByCat).reduce((a, b) => a + b, 0);
+  const exp = Object.values(expByCat).reduce((a, b) => a + b, 0) + segExp + lodgeExp;
   return {
     exp, expByCat, segs: segs.length,
     lodge: lodge && (lodge.name || lodge.location) ? lodge : null,
@@ -1177,15 +1176,10 @@ function donutChart(expByCat) {
     <div class="donut-legend">${legend}</div>
   </div>`;
 }
-/** 某类别下每一笔明细（手动记账 + 路线价格 + 住宿价格） */
+/** 某类别下每一笔明细（仅手动记账；交通/住宿在路线与住宿区块体现） */
 function catDetails(day, cat) {
   const rows = [];
   (day.expenses || []).forEach(e => { if (e.category === cat && num(e.amount)) rows.push({ label: e.item || '未命名', amt: num(e.amount) }); });
-  if (cat === '交通') (day.segments || []).forEach(s => { if (num(s.price)) rows.push({ label: `${emojiOf(s.transport)} ${(s.from || '?')}→${(s.to || '?')}`, amt: num(s.price) }); });
-  if (cat === '住宿') {
-    const lg = day.lodging;
-    if (lg && num(lg.pricePerNight)) rows.push({ label: `${lodgeEmoji(lg.type && LODGE_TYPES.includes(lg.type) ? lg.type : '酒店')} 住宿${lg.name ? ' · ' + lg.name : ''}`, amt: num(lg.pricePerNight) });
-  }
   return rows;
 }
 function tripStats(trip) {
@@ -1848,13 +1842,13 @@ function renderDayCard(t, d) {
       <div class="day-col col-r">
         <div class="block">
           <div class="block-title"><span class="tag">🧾</span>记账</div>
-          <div class="block-hint">💡 记录购物、吃饭、门票等日常消费，自动计入今日花费</div>
+          <div class="block-hint">💡 记录购物、吃饭、门票等日常消费</div>
           <div class="exp-list">${expRows || '<div class="lodge-none">还没有花销记录</div>'}</div>
           <button class="add-row-btn" data-action="add-exp" data-date="${d}">＋ 添加花销</button>
           <div class="exp-total"><span class="t">当日合计</span><span class="amt">${fmtMoney(st.exp)}</span></div>
           <div class="exp-donut">
             <div class="lbl">💰 消费构成（点击类别查看明细）</div>
-            ${donutChart(st.expByCat) || '<div class="lodge-none" style="margin:4px 0 0">今日暂无消费</div>'}
+            ${donutChart(st.expByCat) || '<div class="lodge-none" style="margin:4px 0 0">今日暂无日常消费</div>'}
             <div class="donut-detail" id="donut-detail-${d}" hidden></div>
           </div>
         </div>
