@@ -961,7 +961,7 @@ if (DEVICE === 'pad') document.body.classList.add('pad');
   if (localStorage.getItem('font') === 'large') document.body.classList.add('font-large');
   if (localStorage.getItem('wall') === 'gradient') document.body.classList.add('wall-gradient');
 })();
-const CATS = [['🚆','交通'],['🍜','餐饮'],['🌙','住宿'],['🎫','门票'],['🛍️','购物'],['📌','其他']];
+const CATS = [['🚆','交通'],['🍜','餐饮'],['🌌','住宿'],['🎫','门票'],['🛍️','购物'],['📌','其他']];
 const PRESET_COLORS = ['#FF6B6B','#FF9A5A','#FFC24B','#4ECB71','#4D96FF','#7B5CF0','#F0619B','#0FB5AE','#B58A5A','#5A6B8C'];
 const emojiOf = t => (TRANSPORTS.find(x => x[1] === t) || TRANSPORTS[9])[0];
 /** 简约垃圾桶图标（银色 SVG） */
@@ -1828,7 +1828,7 @@ function renderDayCard(t, d) {
       </div>
       <div class="day-col col-l">
         <div class="block lodge-block">
-          <div class="block-title"><span class="tag">🌙</span>住宿</div>
+          <div class="block-title"><span class="tag">🌌</span>住宿</div>
           ${lodgeHtml}
         </div>
         <div class="block">
