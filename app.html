@@ -208,8 +208,8 @@ textarea{resize:vertical}
 .seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
-/* 三列固定对齐：时间 | 地点(150px) | 交通；乘客/价格放第二行（不参与对齐） */
-.seg-main{display:grid;grid-template-columns:auto 150px auto;align-items:center;gap:4px 8px;flex:1;min-width:0}
+/* 三列头对齐：auto 列自动取最宽内容（时间|地点|交通 开头对齐，不固定宽度不拉长） */
+.seg-main{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:4px 8px;flex:1;min-width:0}
 .seg-view-time{grid-column:1;grid-row:1}
 .seg-view-path{grid-column:2;grid-row:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .seg-view-trans{grid-column:3;grid-row:1}
