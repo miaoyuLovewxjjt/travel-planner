@@ -591,18 +591,37 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .trans-badge{width:26px;height:26px;border-radius:50%;background:#fdf6e3;border:1.5px solid #c9a86a;
   display:flex;align-items:center;justify-content:center;font-size:13px;
   box-shadow:0 2px 6px rgba(0,0,0,.16);transform:translate(-50%,-50%)}
-/* 预算表情卡 + 总消费构成（合并区块） */
-.post-moneys{margin:8px 26px 0;background:linear-gradient(135deg,#fff6e8,#fdf0d5);
-  border:1.5px solid #e0c088;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.post-moneys .post-budget{margin:0;padding:0;background:none;border:none;flex:1;min-width:200px;display:flex;align-items:center;gap:14px}
-.post-moneys .post-donut{margin:0;padding:0;flex:1;min-width:240px}
-.post-moneys .post-donut .donut-wrap{background:rgba(255,255,255,.55);border-color:#e0c088}
-.post-budget .pb-face{font-size:34px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
-.post-budget .pb-txt{flex:1}
-.post-budget .pb-txt .t{font-size:11.5px;font-weight:800;color:#8a6a30;letter-spacing:1px}
-.post-budget .pb-txt .amt{font-size:19px;font-weight:900;color:#6b4f1d;margin-top:1px}
-.post-budget .pb-txt .amt em{font-style:normal;color:#c0392b}
-.post-budget .pb-txt .amt.ok{color:#2e8b57}
+/* 预算表情卡 + 总消费构成（复古账本区块） */
+.post-moneys{margin:12px 26px 0;border-radius:16px;overflow:hidden;
+  background:linear-gradient(165deg,#faf0dc,#f3e3c0);
+  border:2px solid #b99b6b;outline:3px solid #faf3e3;
+  box-shadow:0 8px 20px rgba(120,95,50,.15)}
+.post-moneys .pm-head{
+  display:flex;align-items:center;gap:12px;padding:10px 16px 8px;
+  font-family:'KaiTi','STKaiti',serif;font-weight:900;font-size:15px;color:#6b4f1d;letter-spacing:5px;
+  border-bottom:1.5px dashed #c9a86a}
+.post-moneys .pm-head::before,.post-moneys .pm-head::after{content:"";flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,#c9a86a)}
+.post-moneys .pm-body{display:flex;align-items:center;gap:22px;padding:16px 18px;flex-wrap:wrap}
+.post-moneys .post-budget{flex:1;min-width:210px;display:flex;align-items:center;gap:14px;margin:0;padding:0;background:none;border:none}
+.post-moneys .pb-face{
+  width:58px;height:58px;border-radius:50%;flex-shrink:0;font-size:30px;
+  background:radial-gradient(circle at 35% 30%,#fff8e8,#f0d9a8);
+  border:2px solid #c9a86a;box-shadow:inset 0 0 0 3px #faf3e3,0 3px 8px rgba(120,95,50,.18);
+  display:flex;align-items:center;justify-content:center;transform:rotate(-6deg)}
+.post-moneys .pb-txt{flex:1}
+.post-moneys .pb-txt .t{font-size:12px;font-weight:800;color:#8a6a30;letter-spacing:2px;
+  font-family:'KaiTi','STKaiti',serif}
+.post-moneys .pb-txt .amt{font-size:26px;font-weight:900;color:#6b4f1d;margin-top:2px;
+  font-family:'KaiTi','STKaiti',serif;text-shadow:1px 1px 0 rgba(255,255,255,.6)}
+.post-moneys .pb-txt .amt em{font-style:normal;color:#c0392b}
+.post-moneys .pb-txt .amt.ok{color:#2e8b57}
+.post-moneys .pb-txt .pb-sub{font-size:11px;color:#9a8458;margin-top:3px;letter-spacing:.5px}
+.post-moneys .post-donut{flex:1;min-width:250px;margin:0;padding:0}
+.post-moneys .post-donut .donut-wrap{background:rgba(255,255,255,.5);border:1.5px dashed #c9a86a;
+  border-radius:12px;padding:12px 16px}
+.post-moneys .donut-legend span{color:#7a6540}
+.post-moneys .donut-legend span:hover{background:#f4e6c8}
 .post-day{
   padding:20px 26px 14px;border-top:1px dashed var(--line);
 }
@@ -2738,11 +2757,11 @@ function buildPost(t) {
   const budgetCard = remain !== null
     ? (remain >= 0
         ? `<div class="post-budget"><div class="pb-face">😄</div>
-            <div class="pb-txt"><div class="t">预算结余</div><div class="amt ok">${fmtMoney(remain)}</div></div>
-            <div style="font-size:11.5px;color:#8a6a30;text-align:right">预算 ${fmtMoney(st.budget)}<br>已花 ${fmtMoney(st.exp)}</div></div>`
+            <div class="pb-txt"><div class="t">预算结余</div><div class="amt ok">${fmtMoney(remain)}</div>
+            <div class="pb-sub">预算 ${fmtMoney(st.budget)} · 已花 ${fmtMoney(st.exp)}</div></div></div>`
         : `<div class="post-budget"><div class="pb-face">😭</div>
-            <div class="pb-txt"><div class="t">预算超支</div><div class="amt"><em>${fmtMoney(-remain)}</em></div></div>
-            <div style="font-size:11.5px;color:#8a6a30;text-align:right">预算 ${fmtMoney(st.budget)}<br>已花 ${fmtMoney(st.exp)}</div></div>`)
+            <div class="pb-txt"><div class="t">预算超支</div><div class="amt"><em>${fmtMoney(-remain)}</em></div>
+            <div class="pb-sub">预算 ${fmtMoney(st.budget)} · 已花 ${fmtMoney(st.exp)}</div></div></div>`)
     : '';
 
   $('#post').innerHTML = `
@@ -2768,8 +2787,11 @@ function buildPost(t) {
       <div class="map-geo-status" id="map-geo-status">🗺️ 正在定位地点…</div>` : ''}
     </div>` : ''}
     ${(budgetCard || totalDonut) ? `<div class="post-moneys">
-      ${budgetCard}
-      ${totalDonut ? `<div class="post-donut">${totalDonut}</div>` : ''}
+      <div class="pm-head">✎ 旅途账本</div>
+      <div class="pm-body">
+        ${budgetCard}
+        ${totalDonut ? `<div class="post-donut">${totalDonut}</div>` : ''}
+      </div>
     </div>` : ''}
     ${photosHtml}
     <div class="post-total">
