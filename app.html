@@ -230,8 +230,9 @@ textarea{resize:vertical}
 .done-btn:hover{background:#d8efdb;transform:scale(1.08)}
 .done-btn.gray{background:#f2f2f7;color:var(--sub)}
 .done-btn.gray:hover{background:#e6e6ee;color:#e5484d}
-.seg-row{display:flex;align-items:center;gap:5px;padding:7px 0;border-bottom:1px dashed var(--line);flex-wrap:nowrap}
-@media(max-width:860px){.seg-row{flex-wrap:wrap}}
+.seg-row{display:flex;align-items:center;gap:5px;padding:7px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+/* 备注独占一行：输入长内容也能看全 */
+.seg-row input.seg-note-input{flex-basis:100%;width:100%!important;min-width:0}
 .seg-row:last-child{border-bottom:none}
 .seg-time{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 9px;border-radius:8px;white-space:nowrap}
 .seg-path{font-weight:700;font-size:13.5px;white-space:nowrap}
@@ -242,7 +243,6 @@ textarea{resize:vertical}
 .seg-row input{width:88px;padding:4px 6px;font-size:12.5px;border-radius:8px}
 .seg-row input[type=time]{width:80px;padding:4px 3px;font-size:13px;flex-shrink:0}
 .seg-row input.seg-time{width:80px;padding:4px 6px;font-size:13px;flex-shrink:0;text-align:center}
-.seg-row input.seg-note-input{flex:1;min-width:40px;width:auto}
 .seg-row input.seg-price{width:76px;flex-shrink:0}
 .seg-view-price{font-size:14px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .exp-note-input{flex-basis:100%;width:100%!important;padding:4px 8px;font-size:12px;border-radius:8px;border-color:#eee}
@@ -936,10 +936,12 @@ const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const pad2 = n => String(n).padStart(2, '0');
-/** 时间输入自动格式化：只保留数字并自动补冒号（0900 → 09:00；08 → 08:），无需手动输入冒号 */
+/** 时间输入自动格式化：冒号始终就位，只输数字即可（9 → 9:；0900 → 09:00）；空值显示冒号占位 */
 const fmtTimeInput = v => {
   const d = String(v).replace(/\D/g, '').slice(0, 4);
-  return d.length >= 3 ? d.slice(0, 2) + ':' + d.slice(2) : d.length === 2 ? d + ':' : d;
+  if (!d) return ':';
+  if (d.length === 1 || d.length === 2) return d + ':';
+  return d.slice(0, 2) + ':' + d.slice(2);
 };
 const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 const fmtMoney = v => '¥' + Math.round(num(v)).toLocaleString('zh-CN');
@@ -1608,9 +1610,9 @@ function renderDayCard(t, d) {
       return `<div class="seg-wrap editing">
         <div class="seg-row">
           ${pub ? `<button class="seg-toggle${(autoOpen || hasDetail) ? ' open' : ''}" data-action="toggle-seg" title="收起/展开交通详情">▸</button>` : ''}
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" placeholder="09:00" title="出发时间（直接输数字，如 0900 自动成 09:00）">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart || ':')}" placeholder="09:00" title="出发时间（直接输数字，冒号自动就位）">
           <span class="arr">→</span>
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" placeholder="12:00" title="到达时间（直接输数字，如 1230 自动成 12:30）">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive || ':')}" placeholder="12:00" title="到达时间（直接输数字，冒号自动就位）">
           <input class="seg-from" maxlength="30" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
           <input class="seg-to" maxlength="30" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
@@ -2062,9 +2064,14 @@ $('#view-detail').addEventListener('input', e => {
   if (el.dataset.path) {
     const t = getTrip(currentTripId);
     if (!t) return;
-    // 时间输入自动格式化：只输数字即可，冒号自动补
-    if (el.classList.contains('seg-time')) el.value = fmtTimeInput(el.value);
-    setByPath(t, el.dataset.path, el.dataset.num ? num(el.value) : el.value);
+    // 时间输入自动格式化：冒号自动就位；纯冒号占位不写入数据（保持空）
+    if (el.classList.contains('seg-time')) {
+      const fmt = fmtTimeInput(el.value);
+      el.value = fmt;
+      setByPath(t, el.dataset.path, fmt === ':' ? '' : fmt);
+    } else {
+      setByPath(t, el.dataset.path, el.dataset.num ? num(el.value) : el.value);
+    }
     // 出发/到达时间变化 → 同步组合 time 字段；跨天自动 +1（结束<开始时），改回当天自动清除
     const parts = el.dataset.path.split('.');
     if (parts[2] === 'segments' && (parts[4] === 'departTime' || parts[4] === 'arriveTime')) {
