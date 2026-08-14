@@ -207,7 +207,8 @@ textarea{resize:vertical}
 .seg-view-time{font-size:13px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-path{font-weight:700;font-size:14.5px;color:var(--ink)}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
-.seg-view-sub{font-size:11.5px;color:var(--sub);padding-left:2px;flex:1;min-width:70px}
+/* 备注独占一行（与花销备注一致），换行在行内展开，不影响同行元素对齐；紧凑行距 */
+.seg-view-sub{flex-basis:100%;font-size:11.5px;color:var(--sub);padding-left:2px;line-height:1.45}
 .seg-view-trans{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-chip{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-price{font-size:13px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
@@ -1629,11 +1630,11 @@ function renderDayCard(t, d) {
       </div>`;
     }
     // —— 展示态：已确认，✏️ 编辑 / 🗑️ 删除 ——
+    // 班次已并入交通徽章（🚄 高铁-G1234）；乘客/座位直接显示名字与座位号，不加冗余前缀
     const det = [];
-    if (s.vehicleNo) det.push('班次 ' + esc(s.vehicleNo));
     const paxTxt = paxText(s);
-    if (paxTxt) det.push('乘客 ' + esc(paxTxt));
-    else if (s.seat) det.push('座位 ' + esc(s.seat)); // 兼容旧数据
+    if (paxTxt) det.push(esc(paxTxt));
+    else if (s.seat) det.push(esc(s.seat)); // 兼容旧数据
     const chips = det.map(x => `<span class="seg-view-chip">${x}</span>`).join('');
     const sub = s.notes ? '💬 ' + esc(s.notes) : '';
     return `<div class="seg-wrap">
@@ -1641,7 +1642,7 @@ function renderDayCard(t, d) {
         <span class="drag-handle">≡</span>
         <span class="seg-view-time">${esc(timeRange(s))}</span>
         <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
-        <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}</span>
+        <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
         ${chips}
         ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
         ${sub ? `<div class="seg-view-sub">${sub}</div>` : ''}
@@ -2915,10 +2916,10 @@ function buildDoc(t) {
 
     const segRows = (day.segments || []).map(seg => {
       const det = [];
-      if (seg.vehicleNo) det.push('班次 ' + esc(seg.vehicleNo));
+      if (seg.vehicleNo) det.push(esc(seg.vehicleNo));
       const paxTxt = paxText(seg);
-      if (paxTxt) det.push('乘客 ' + esc(paxTxt));
-      else if (seg.seat) det.push('座位 ' + esc(seg.seat));
+      if (paxTxt) det.push(esc(paxTxt));
+      else if (seg.seat) det.push(esc(seg.seat));
       if (num(seg.price)) det.push('💴 ' + fmtMoney(seg.price));
       return `<tr>
         <td class="d-time">${esc(timeRange(seg))}</td>
