@@ -494,7 +494,11 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
   box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;
   opacity:.55;transition:opacity .15s,transform .15s}
 .post-photos .pp-item:hover .pp-del,.post-photos .pp-del:hover{opacity:1;transform:scale(1.1)}
-.post-photos .pp-empty{font-size:12px;color:#9a8458;font-style:italic;padding:4px 0 2px}
+.post-photos .pp-empty{font-size:12px;color:#9a8458;font-style:italic;padding:4px 0 10px}
+.post-photos .pp-add{display:inline-flex;align-items:center;gap:5px;margin-top:4px;color:#6b4f1d;
+  background:#fdf6e3;border:1.5px dashed #c9a86a;border-radius:999px;padding:5px 14px;
+  font-size:12px;font-weight:800;cursor:pointer;transition:all .15s}
+.post-photos .pp-add:hover{background:#f4e6c8}
 .post{
   position:relative;width:min(640px,94vw);background:#faf3e3;border-radius:24px;overflow:hidden;
   height:fit-content;
@@ -587,17 +591,12 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .trans-badge{width:26px;height:26px;border-radius:50%;background:#fdf6e3;border:1.5px solid #c9a86a;
   display:flex;align-items:center;justify-content:center;font-size:13px;
   box-shadow:0 2px 6px rgba(0,0,0,.16);transform:translate(-50%,-50%)}
-.post-donut{display:flex;justify-content:center;padding:6px 26px 8px}
-.post-donut .donut-wrap{background:#fdf6e3;border:1.5px solid #c9a86a;border-radius:14px;padding:18px 22px;
-  width:100%;justify-content:center;gap:24px}
-.post-donut .donut{width:118px;height:118px}
-.post-section{padding:22px 26px 4px}
-.post-section .ps-title{font-size:13px;font-weight:900;letter-spacing:3px;color:#6b4f1d;margin-bottom:4px;
-  font-family:'KaiTi','STKaiti',serif}
-.post-section .ps-title::before,.post-section .ps-title::after{content:"· ";opacity:.5}
-/* 预算表情卡 */
-.post-budget{display:flex;align-items:center;gap:14px;margin:8px 26px 0;padding:14px 18px;border-radius:14px;
-  background:linear-gradient(135deg,#fff6e8,#fdf0d5);border:1.5px solid #e0c088}
+/* 预算表情卡 + 总消费构成（合并区块） */
+.post-moneys{margin:8px 26px 0;background:linear-gradient(135deg,#fff6e8,#fdf0d5);
+  border:1.5px solid #e0c088;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.post-moneys .post-budget{margin:0;padding:0;background:none;border:none;flex:1;min-width:200px;display:flex;align-items:center;gap:14px}
+.post-moneys .post-donut{margin:0;padding:0;flex:1;min-width:240px}
+.post-moneys .post-donut .donut-wrap{background:rgba(255,255,255,.55);border-color:#e0c088}
 .post-budget .pb-face{font-size:34px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
 .post-budget .pb-txt{flex:1}
 .post-budget .pb-txt .t{font-size:11.5px;font-weight:800;color:#8a6a30;letter-spacing:1px}
@@ -874,10 +873,7 @@ body.pad .seg-row select { width: 104px; }
   <section id="view-journal" class="hidden">
     <div class="journal-toolbar">
       <span class="t">📖 旅行记录</span>
-      <button class="btn" id="btn-diy">🖼️<span class="lbl"> DIY 贴图</span></button>
-      <button class="btn" id="btn-dl-png">⬇️<span class="lbl"> 下载 PNG</span></button>
-      <button class="btn" id="btn-print">🖨️<span class="lbl"> 打印</span></button>
-      <button class="btn" id="btn-close-preview">✕<span class="lbl"> 关闭</span></button>
+      <button class="btn" id="btn-dl-png" title="下载整页手账为 PNG 图片">⬇️<span class="lbl"> 下载</span></button>
     </div>
     <div class="diy-bar hidden" id="diy-bar">
       <span class="diy-t">🖼️ 贴一张旅途照片</span>
@@ -2569,18 +2565,11 @@ $('#modal-root').addEventListener('click', e => { if (e.target === $('#modal-roo
  * ================================================================ */
 let postMap = null, postTrip = null, postTripId = null;
 
-// 旅行记录页面内点击：DIY / 打印 / PNG / 关闭 / 照片删除
+// 旅行记录页面内点击：下载 / 上传照片 / 删除照片
 $('#view-journal').addEventListener('click', async e => {
   const t = postTrip;
   if (!t) return;
-  if (e.target.closest('#btn-close-preview')) { closeJournal(); return; }
-  if (e.target.closest('#btn-print')) { window.print(); return; }
   if (e.target.closest('#btn-dl-png')) { downloadJournalPNG(); return; }
-  if (e.target.closest('#btn-diy')) {
-    const bar = $('#diy-bar');
-    if (bar) bar.classList.toggle('hidden');
-    return;
-  }
   if (e.target.closest('#btn-diy-add')) {
     const inp = $('#diy-file');
     if (inp) inp.click();
@@ -2608,9 +2597,11 @@ $('#view-journal').addEventListener('click', async e => {
                 <button class="pp-del" data-action="del-photo" data-idx="${i}" title="删除这张照片">✕</button>
               </div>`).join('')}
             </div>
+            <button class="pp-add" id="btn-diy-add">🖼️ 再贴一张照片</button>
           </div>`
         : `<div class="post-photos"><div class="pp-title">📷 旅途照片</div>
-            <div class="pp-empty">还没有照片，点「🖼️ DIY 贴图」上传旅途照片吧 ✨</div></div>`;
+            <div class="pp-empty">还没有照片，贴几张旅途照片，让手账更有回忆吧 ✨</div>
+            <button class="pp-add" id="btn-diy-add">🖼️ 上传照片</button></div>`;
       if (old) old.replaceWith(frag.firstElementChild);
       else post.insertAdjacentHTML('beforeend', frag.innerHTML);
     }
@@ -2736,11 +2727,13 @@ function buildPost(t) {
             <button class="pp-del" data-action="del-photo" data-idx="${i}" title="删除这张照片">✕</button>
           </div>`).join('')}
         </div>
+        <button class="pp-add" id="btn-diy-add">🖼️ 再贴一张照片</button>
       </div>`
     : `<div class="post-photos"><div class="pp-title">📷 旅途照片</div>
-        <div class="pp-empty">还没有照片，点「🖼️ DIY 贴图」上传旅途照片吧 ✨</div></div>`;
+        <div class="pp-empty">还没有照片，贴几张旅途照片，让手账更有回忆吧 ✨</div>
+        <button class="pp-add" id="btn-diy-add">🖼️ 上传照片</button></div>`;
 
-  // 预算表情：花超 😭 / 结余 😄
+  // 预算表情：花超 😭 / 结余 😄（与总消费构成环形图合并展示）
   const remain = st.budget ? st.budget - st.exp : null;
   const budgetCard = remain !== null
     ? (remain >= 0
@@ -2774,9 +2767,10 @@ function buildPost(t) {
       </div>
       <div class="map-geo-status" id="map-geo-status">🗺️ 正在定位地点…</div>` : ''}
     </div>` : ''}
-    ${budgetCard}
-    ${totalDonut ? `<div class="post-section" style="padding-top:20px"><div class="ps-title">💰 总消费构成</div></div>
-    <div class="post-donut">${totalDonut}</div>` : ''}
+    ${(budgetCard || totalDonut) ? `<div class="post-moneys">
+      ${budgetCard}
+      ${totalDonut ? `<div class="post-donut">${totalDonut}</div>` : ''}
+    </div>` : ''}
     ${photosHtml}
     <div class="post-total">
       <div class="row"><span>行程天数</span><b>${st.days} 天</b></div>
