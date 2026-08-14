@@ -936,6 +936,11 @@ const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const pad2 = n => String(n).padStart(2, '0');
+/** 时间输入自动格式化：只保留数字并自动补冒号（0900 → 09:00；08 → 08:），无需手动输入冒号 */
+const fmtTimeInput = v => {
+  const d = String(v).replace(/\D/g, '').slice(0, 4);
+  return d.length >= 3 ? d.slice(0, 2) + ':' + d.slice(2) : d.length === 2 ? d + ':' : d;
+};
 const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 const fmtMoney = v => '¥' + Math.round(num(v)).toLocaleString('zh-CN');
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
@@ -1603,9 +1608,9 @@ function renderDayCard(t, d) {
       return `<div class="seg-wrap editing">
         <div class="seg-row">
           ${pub ? `<button class="seg-toggle${(autoOpen || hasDetail) ? ' open' : ''}" data-action="toggle-seg" title="收起/展开交通详情">▸</button>` : ''}
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" placeholder="09:00" title="出发时间（手写，如 09:00）">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" placeholder="09:00" title="出发时间（直接输数字，如 0900 自动成 09:00）">
           <span class="arr">→</span>
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" placeholder="12:00" title="到达时间（手写，如 12:00）">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" placeholder="12:00" title="到达时间（直接输数字，如 1230 自动成 12:30）">
           <input class="seg-from" maxlength="30" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
           <input class="seg-to" maxlength="30" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
@@ -2057,6 +2062,8 @@ $('#view-detail').addEventListener('input', e => {
   if (el.dataset.path) {
     const t = getTrip(currentTripId);
     if (!t) return;
+    // 时间输入自动格式化：只输数字即可，冒号自动补
+    if (el.classList.contains('seg-time')) el.value = fmtTimeInput(el.value);
     setByPath(t, el.dataset.path, el.dataset.num ? num(el.value) : el.value);
     // 出发/到达时间变化 → 同步组合 time 字段；跨天自动 +1（结束<开始时），改回当天自动清除
     const parts = el.dataset.path.split('.');
