@@ -1666,16 +1666,13 @@ function renderDayCard(t, d) {
     else if (s.seat) det.push(esc(s.seat)); // 兼容旧数据
     const chips = det.map(x => `<span class="seg-view-chip">${x}</span>`).join('');
     const sub = s.notes ? '💬 ' + esc(s.notes) : '';
-    // 时间列紧凑：只显示出发时间（+跨天标记），到达时间放第二行
-    const timeTxt = s.departTime
-      ? esc(s.departTime) + (isCrossDay(s) ? ' (+' + crossDays(s) + ')' : '')
-      : esc(timeRange(s));
-    const arriveTxt = s.arriveTime ? `<span class="seg-view-arr">→ ${esc(s.arriveTime)}</span>` : '';
+    // 时间列显示完整开始-结束（含跨天标记）
+    const arriveTxt = '';
     return `<div class="seg-wrap">
       <div class="seg-view" draggable="true" data-date="${d}" data-idx="${i}" data-type="segments" title="拖动排序">
         <span class="drag-handle">≡</span>
         <div class="seg-main">
-          <span class="seg-view-time">${timeTxt}</span>
+          <span class="seg-view-time">${esc(timeRange(s))}</span>
           <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
           <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
           ${arriveTxt}
