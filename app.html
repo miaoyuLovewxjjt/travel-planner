@@ -210,14 +210,13 @@ textarea{resize:vertical}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
 /* 紧凑布局：时间胶囊统一最小宽（段间开头对齐），其余紧跟内容、不拉长不预留空隙 */
 .seg-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
-.seg-view-time{flex:none;width:118px;display:inline-flex;align-items:center;justify-content:center}
+/* 时间：黑色加粗纯文字（与地点同字号字重 14/700），无胶囊底色 */
+.seg-view-time{flex:none;width:118px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
 .seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw}
 .seg-view-trans{flex-shrink:0}
 .seg-view-arr{font-size:11.5px;color:var(--sub);white-space:nowrap;flex-shrink:0}
 .seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
 .seg-view-price{flex-shrink:0}
-/* 时间胶囊（与提醒时间同款） */
-.seg-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
 .seg-view-path{font-weight:700;font-size:14px;color:var(--ink)}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
@@ -448,8 +447,8 @@ textarea{resize:vertical}
 /* 大字体 */
 /* 大字体：所有内容字号统一 +1.5px（与标准档同比例） */
 body.font-large{font-size:15.5px}
-body.font-large .seg-view-time,body.font-large .seg-view-chip,body.font-large .seg-view-trans,body.font-large .exp-view-cat,body.font-large .rem-view-time{font-size:14px}
-body.font-large .seg-view-path,body.font-large .exp-view-item,body.font-large .lodge-view-name,body.font-large .rem-view-title{font-size:15.5px}
+body.font-large .seg-view-chip,body.font-large .seg-view-trans,body.font-large .exp-view-cat,body.font-large .rem-view-time{font-size:14px}
+body.font-large .seg-view-time,body.font-large .seg-view-path,body.font-large .exp-view-item,body.font-large .lodge-view-name,body.font-large .rem-view-title{font-size:15.5px}
 body.font-large .seg-view-price,body.font-large .exp-view-amt,body.font-large .lodge-view-price{font-size:15.5px}
 body.font-large .seg-view-sub,body.font-large .exp-view-note,body.font-large .lodge-view-sub{font-size:13.5px}
 body.font-large .btn{font-size:14.5px}
