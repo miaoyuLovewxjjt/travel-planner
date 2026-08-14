@@ -724,6 +724,8 @@ body.font-large .btn{font-size:14.5px}
 .doc-table .d-note{color:var(--sub);font-size:11.5px}
 .doc-table.exp{width:72%}
 .doc-table .d-amt{font-weight:800;text-align:right;white-space:nowrap}
+/* 路线表价格列：居中、不加粗 */
+.doc-table .d-price{text-align:center;white-space:nowrap}
 .doc-empty{color:var(--sub);font-size:12.5px;font-style:italic;margin:6px 0 12px}
 .doc-lodge{display:flex;flex-direction:column;gap:3px;background:#fff8f0;border:1px solid #ffe8cc;border-radius:12px;padding:9px 15px;font-size:12.5px;margin:4px 0 12px;width:fit-content;max-width:100%}
 .doc-lodge-main{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
@@ -2951,7 +2953,7 @@ function buildDoc(t) {
         <td>${esc(seg.vehicleNo || '—')}</td>
         <td>${esc(paxNames || '—')}</td>
         <td>${esc(seats || '—')}</td>
-        <td class="d-amt">${num(seg.price) ? fmtMoney(seg.price) : '—'}</td>
+        <td class="d-price">${num(seg.price) ? fmtMoney(seg.price) : '—'}</td>
         <td class="d-note">${esc(seg.notes || '—')}</td>
       </tr>`;
     }).join('');
