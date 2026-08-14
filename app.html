@@ -1148,7 +1148,8 @@ const emptyDay = () => ({ notes: '', lodging: { name: '', location: '', pricePer
   travelers: [], expenses: [], segments: [], pins: [] });
 
 /* —— 统计 —— */
-const CAT_COLORS = { '交通': '#4D96FF', '餐饮': 'var(--accent2)', '住宿': '#7B5CF0', '门票': '#4ECB71', '购物': '#F0619B', '其他': '#B0B0BC' };
+/* 消费构成颜色：每类固定一个颜色，不随行程主题变化 */
+const CAT_COLORS = { '交通': '#4D96FF', '餐饮': '#FF9A5A', '住宿': '#7B5CF0', '门票': '#4ECB71', '购物': '#F0619B', '其他': '#B0B0BC' };
 function dayStats(day) {
   // 路线价格（交通）+ 住宿价格（住宿）自动计入当日合计，但不再进消费构成环形图（路线/住宿区块已直观体现）
   const segs = day.segments || [];
