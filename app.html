@@ -140,10 +140,10 @@ textarea{resize:vertical}
 }
 .stat-card .num{font-size:19px;font-weight:800}
 .stat-card .lbl{font-size:11.5px;color:var(--sub)}
-/* 合并长框：总预算 / 总花费 / 预算结余 */
-.stat-card.stat-long{flex-direction:row;align-items:center;gap:26px;min-width:0;flex:1;max-width:560px}
-.stat-long .sl-item{display:flex;flex-direction:column}
-.stat-long .sl-item .num{font-size:17px}
+/* 合并长框：日期 / 天数 / 出行人 / 总预算 / 总花费 / 预算结余（内容自适应长度，窄屏自动换行） */
+.stat-card.stat-long{flex-direction:row;align-items:center;gap:14px 22px;min-width:0;flex:1 1 auto;max-width:780px;flex-wrap:wrap;width:fit-content}
+.stat-long .sl-item{display:flex;flex-direction:column;white-space:nowrap}
+.stat-long .sl-item .num{font-size:16px;max-width:230px;overflow:hidden;text-overflow:ellipsis}
 .stat-long .sl-item .lbl{font-size:11px;color:var(--sub)}
 .stat-long .sl-item .num.over{color:#e5484d}
 .stat-long .sl-div{width:1px;height:30px;background:var(--line)}
@@ -1349,7 +1349,7 @@ function renderDetail(id) {
   $('#btn-pdf').hidden = false;
   $('#btn-new').hidden = true;
 
-  // 头部
+  // 头部（日期/天数/出行人已并入下方统计长框）
   const st = tripStats(t);
   const remain = st.budget - st.exp;
   $('#detail-head').innerHTML = `
@@ -1357,19 +1357,23 @@ function renderDetail(id) {
       <h1>${t.emoji || '🧳'} ${esc(t.name)}
         <button class="icon-btn edit-trip" title="编辑大行程">${pencilIcon()}</button>
       </h1>
-      <div class="sub">🗓️ ${esc(t.startDate)} ~ ${esc(t.endDate)} &nbsp;·&nbsp; 👥 ${esc(tripTravelers(t).join(' · ') || '—')}</div>
       ${t.notes ? `<div class="sub">📝 ${esc(t.notes)}</div>` : ''}
     </div>`;
 
-  // 统计条：行程天数 + 长框（总预算 / 总花费 / 预算结余）
+  // 统计长框：日期 / 天数 / 出行人 / 总预算 / 总花费 / 预算结余（自适应长度）
   $('#stat-strip').innerHTML = `
-    <div class="stat-card"><span class="num">${st.days}</span><span class="lbl">行程天数</span></div>
     <div class="stat-card stat-long">
-      <div class="sl-item"><span class="num">${st.budget ? fmtMoney(st.budget) : '—'}</span><span class="lbl">总预算</span></div>
+      <div class="sl-item"><span class="num">🗓️ ${Number(t.startDate.slice(5,7))}/${Number(t.startDate.slice(8,10))} ~ ${Number(t.endDate.slice(5,7))}/${Number(t.endDate.slice(8,10))}</span><span class="lbl">行程日期</span></div>
       <div class="sl-div"></div>
-      <div class="sl-item"><span class="num">${fmtMoney(st.exp)}</span><span class="lbl">总花费</span></div>
+      <div class="sl-item"><span class="num">${st.days} 天</span><span class="lbl">行程天数</span></div>
       <div class="sl-div"></div>
-      <div class="sl-item"><span class="num ${remain < 0 ? 'over' : ''}" style="color:${budgetColor(remain)}">${st.budget ? fmtMoney(remain) : '—'}</span><span class="lbl">预算结余</span></div>
+      <div class="sl-item"><span class="num">${esc(tripTravelers(t).join(' · ') || '—')}</span><span class="lbl">出行人</span></div>
+      <div class="sl-div"></div>
+      <div class="sl-item" data-key="budget"><span class="num">${st.budget ? fmtMoney(st.budget) : '—'}</span><span class="lbl">总预算</span></div>
+      <div class="sl-div"></div>
+      <div class="sl-item" data-key="exp"><span class="num">${fmtMoney(st.exp)}</span><span class="lbl">总花费</span></div>
+      <div class="sl-div"></div>
+      <div class="sl-item" data-key="remain"><span class="num ${remain < 0 ? 'over' : ''}" style="color:${budgetColor(remain)}">${st.budget ? fmtMoney(remain) : '—'}</span><span class="lbl">预算结余</span></div>
     </div>`;
 
   // 日期导航：范围内所有日期 + 范围外的有数据日期
@@ -2078,13 +2082,13 @@ function updateTotalsUI(t, path) {
         `${esc(lodge.location || '')} · ${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}` : '今日无住宿';
     }
   }
-  // 顶部统计条：总花费 / 预算结余（长框内第 2、3 项）
+  // 顶部统计条：总花费 / 预算结余（长框内 data-key 定位）
   const st = tripStats(t);
-  const statExp = document.querySelector('#stat-strip .stat-long .sl-item:nth-child(3) .num');
+  const statExp = document.querySelector('#stat-strip .stat-long [data-key="exp"] .num');
   if (statExp) statExp.textContent = fmtMoney(st.exp);
   // 预算结余
   const remain = st.budget - st.exp;
-  const statRemain = document.querySelector('#stat-strip .stat-long .sl-item:nth-child(5) .num');
+  const statRemain = document.querySelector('#stat-strip .stat-long [data-key="remain"] .num');
   if (statRemain) { statRemain.textContent = st.budget ? fmtMoney(remain) : '—'; statRemain.style.color = budgetColor(remain); }
   // 日期导航按钮金额
   const navInfo = document.querySelector(`#day-nav button[data-date="${d}"] .info`);
