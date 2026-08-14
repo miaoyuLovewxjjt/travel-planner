@@ -2113,6 +2113,31 @@ $('#view-detail').addEventListener('input', e => {
   }
 });
 
+/* —— 时间选择器：点击时间框弹出系统时钟（原生 time picker），选完自动填入 —— */
+const timePicker = document.createElement('input');
+timePicker.type = 'time';
+timePicker.style.cssText = 'position:fixed;opacity:0;pointer-events:none;width:1px;height:1px;left:0;top:0';
+document.body.appendChild(timePicker);
+let activeTimeInput = null;
+timePicker.addEventListener('change', () => {
+  if (activeTimeInput) {
+    const v = timePicker.value || '';
+    activeTimeInput.value = v;
+    activeTimeInput.dispatchEvent(new Event('input', { bubbles: true }));
+    activeTimeInput = null;
+  }
+});
+$('#view-detail').addEventListener('pointerdown', e => {
+  const ti = e.target.closest('.seg-time');
+  if (!ti) return;
+  activeTimeInput = ti;
+  try {
+    // 去掉跨天标记等非时间字符，作为时钟初始值
+    timePicker.value = ti.value.replace(/[^\d:]/g, '').slice(0, 5);
+    timePicker.showPicker();
+  } catch (_) { activeTimeInput = null; } // 不支持 showPicker 的浏览器：保持手动输入
+});
+
 /** 编辑金额后局部更新当日合计 / 头部花费 / 总览 / 统计条 / 日期导航 */
 function updateTotalsUI(t, path) {
   const parts = path.split('.');
