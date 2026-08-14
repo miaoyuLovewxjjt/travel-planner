@@ -468,9 +468,12 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .preview-toolbar .btn:hover{background:rgba(255,255,255,.28)}
 .preview-scroll{flex:1;overflow:auto;padding:20px 20px 60px;display:flex;justify-content:center}
 .post{
-  width:470px;background:#fff;border-radius:26px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.35);
+  width:min(640px,94vw);background:#faf3e3;border-radius:24px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.35),0 0 0 6px #efe2c8,0 0 0 7px #d8c9a8;
   height:fit-content;
 }
+.post::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(0deg,transparent 0 26px,rgba(139,115,72,.045) 26px 27px)}
 .post-cover{
   position:relative;padding:46px 34px 40px;color:#fff;overflow:hidden;
 }
@@ -493,25 +496,50 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .post-cover .pc-travelers{margin-top:14px;display:flex;gap:7px;flex-wrap:wrap;position:relative;z-index:1}
 .post-cover .pc-travelers span{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
   padding:3px 13px;border-radius:999px;font-size:12.5px;font-weight:600;backdrop-filter:blur(4px)}
-.post-map{position:relative;margin:14px 14px 0;border-radius:20px;overflow:hidden;height:300px;
-  border:1px solid var(--line);box-shadow:var(--shadow)}
-.post-map .map-label{position:absolute;top:10px;left:10px;z-index:500;background:rgba(255,255,255,.92);
-  padding:4px 12px;border-radius:999px;font-size:11.5px;font-weight:800;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.post-map .map-toggle{position:absolute;top:10px;right:10px;z-index:500;background:rgba(255,255,255,.92);
-  border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:11.5px;font-weight:800;color:var(--ink);
-  box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;transition:all .15s}
-.post-map .map-toggle:hover{background:var(--accent-soft)}
-.post-map .map-toggle.lock{background:var(--accent);color:#fff;border-color:transparent}
-.post-map .map-geo-status{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(255,255,255,.92);
-  border-radius:999px;padding:3px 12px;font-size:11px;font-weight:600;color:var(--sub);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.post-map{position:relative;margin:16px 16px 0;border-radius:16px;overflow:hidden;
+  height:clamp(320px,46vh,480px);
+  border:2px solid #b99b6b;outline:3px solid #faf3e3;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),0 10px 26px rgba(120,95,50,.18)}
+.post-map .leaflet-tile-pane{filter:sepia(.3) saturate(.75) contrast(.94) brightness(1.04)}
+.post-map .map-label{position:absolute;top:12px;left:12px;z-index:500;background:#fdf6e3;color:#6b4f1d;
+  border:1.5px solid #c9a86a;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:800;
+  letter-spacing:2px;box-shadow:0 2px 8px rgba(0,0,0,.14);font-family:'KaiTi','STKaiti',serif}
+.post-map .map-tools{position:absolute;top:12px;right:12px;z-index:500;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.post-map .map-toggle{background:#fdf6e3;color:#6b4f1d;border:1.5px solid #c9a86a;border-radius:999px;
+  padding:4px 12px;font-size:11.5px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;transition:all .15s}
+.post-map .map-toggle:hover{background:#f4e6c8}
+.post-map .map-toggle.lock{background:#8a5a2b;color:#fff;border-color:#8a5a2b}
+.post-map .map-geo-status{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(253,246,227,.94);
+  border-radius:999px;padding:3px 12px;font-size:11px;font-weight:600;color:#6b4f1d;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .post-map .map-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:#f5f5f7;color:var(--sub);font-size:12.5px;z-index:400}
-.post-donut{display:flex;justify-content:center;padding:6px 26px 20px}
-.post-donut .donut-wrap{background:#fafafc;border:1px solid var(--line);border-radius:16px;padding:16px 22px;
-  width:100%;justify-content:center;gap:22px}
-.post-donut .donut{width:110px;height:110px}
+  background:#f5f0e0;color:#7a6540;font-size:12.5px;z-index:400}
+/* 复古图钉 */
+.pin-icon{display:flex;flex-direction:column;align-items:center;transform-origin:top center;transition:transform .15s}
+.pin-icon:hover{transform:scale(1.15)}
+.pin-icon svg{filter:drop-shadow(0 3px 3px rgba(90,60,20,.35))}
+.pin-icon .pin-tag{background:#fdf6e3;border:1.5px solid #c9a86a;border-radius:4px;font-size:10.5px;font-weight:800;
+  color:#6b4f1d;padding:1px 6px;margin-top:1px;white-space:nowrap;letter-spacing:.5px;font-family:'KaiTi','STKaiti',serif}
+.pin-icon .pin-tag b{color:#c0392b}
+/* 折线上交通徽标 */
+.trans-badge{width:26px;height:26px;border-radius:50%;background:#fdf6e3;border:1.5px solid #c9a86a;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  box-shadow:0 2px 6px rgba(0,0,0,.16);transform:translate(-50%,-50%)}
+.post-donut{display:flex;justify-content:center;padding:6px 26px 8px}
+.post-donut .donut-wrap{background:#fdf6e3;border:1.5px solid #c9a86a;border-radius:14px;padding:18px 22px;
+  width:100%;justify-content:center;gap:24px}
+.post-donut .donut{width:118px;height:118px}
 .post-section{padding:22px 26px 4px}
-.post-section .ps-title{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--sub);margin-bottom:4px}
+.post-section .ps-title{font-size:13px;font-weight:900;letter-spacing:3px;color:#6b4f1d;margin-bottom:4px;
+  font-family:'KaiTi','STKaiti',serif}
+.post-section .ps-title::before,.post-section .ps-title::after{content:"· ";opacity:.5}
+/* 预算表情卡 */
+.post-budget{display:flex;align-items:center;gap:14px;margin:8px 26px 0;padding:14px 18px;border-radius:14px;
+  background:linear-gradient(135deg,#fff6e8,#fdf0d5);border:1.5px solid #e0c088}
+.post-budget .pb-face{font-size:34px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+.post-budget .pb-txt{flex:1}
+.post-budget .pb-txt .t{font-size:11.5px;font-weight:800;color:#8a6a30;letter-spacing:1px}
+.post-budget .pb-txt .amt{font-size:19px;font-weight:900;color:#6b4f1d;margin-top:1px}
+.post-budget .pb-txt .amt em{font-style:normal;color:#c0392b}
+.post-budget .pb-txt .amt.ok{color:#2e8b57}
 .post-day{
   padding:20px 26px 14px;border-top:1px dashed var(--line);
 }
@@ -545,11 +573,13 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .post-note{font-size:12px;color:var(--sub);background:#f7f7fa;border-radius:12px;padding:9px 13px;margin-top:12px;
   font-style:italic}
 .post-note:empty{display:none}
-.post-total{background:linear-gradient(135deg,var(--ink),#3a3a52);color:#fff;padding:26px 28px;margin-top:10px}
-.post-total .row{display:flex;justify-content:space-between;font-size:13px;opacity:.85;padding:3px 0}
-.post-total .row.main{font-size:19px;font-weight:900;opacity:1;margin-top:6px;padding-top:10px;border-top:1px solid rgba(255,255,255,.2)}
-.post-total .row.main .amt{color:#FFC24B}
-.post-foot{text-align:center;padding:16px;font-size:11px;color:var(--sub);letter-spacing:1px}
+.post-total{background:linear-gradient(135deg,#6b4f1d,#4a3512);color:#fdf6e3;padding:22px 28px;margin-top:12px}
+.post-total .row{display:flex;justify-content:space-between;font-size:13px;opacity:.92;padding:3.5px 0}
+.post-total .row b{font-weight:800}
+.post-total .row.main{font-size:20px;font-weight:900;opacity:1;margin-top:8px;padding-top:10px;border-top:1px solid rgba(253,246,227,.22)}
+.post-total .row.main .amt{color:#FFD98A}
+.post-total .row.main .amt.over{color:#ff8f8f}
+.post-foot{text-align:center;padding:16px;font-size:11px;color:#9a8458;letter-spacing:1px}
 
 /* ============ 迷你地图选点 ============ */
 #pinmap-modal .modal{max-width:640px}
@@ -723,8 +753,8 @@ body.pad .seg-row select { width: 104px; }
   .preview-scroll{overflow:visible!important;padding:0!important;display:block!important}
   .doc-scroll{overflow:visible!important;padding:0!important;display:block!important}
   .post{box-shadow:none!important;border-radius:0!important;width:100%!important}
-  .post-map{height:320px!important}
-  .post-map .map-toggle,.post-map .map-geo-status{display:none!important}
+  .post-map{height:420px!important}
+  .post-map .map-toggle,.post-map .map-geo-status,.post-map .map-tools{display:none!important}
   .doc-body{max-width:100%!important;border-radius:0!important;box-shadow:none!important;padding:0!important;height:auto!important}
   .doc-cover{border-radius:0!important}
   .doc-table tr{page-break-inside:avoid}
@@ -2434,66 +2464,17 @@ function buildPost(t) {
   // 全行程消费构成（总环形图）
   const totalDonut = donutChart(tripExpByCat(t));
 
-  const dayHtml = dates.map((d, i) => {
-    const day = t.days[d];
-    const s = dayStats(day);
-    const transEmojis = [...new Set((day.segments || []).map(x => x.transport).filter(Boolean))].map(x => emojiOf(x)).join(' ');
-    const lodge = s.lodge;
-    const segs = (day.segments || []).map(seg => {
-      const tRange = timeRange(seg);
-      const extra = [];
-      if (seg.vehicleNo) extra.push('班次 ' + esc(seg.vehicleNo));
-      const paxTxt = paxText(seg);
-      if (paxTxt) extra.push('乘客 ' + esc(paxTxt));
-      else if (seg.seat) extra.push('座位 ' + esc(seg.seat));
-      if (num(seg.price)) extra.push('💴 ' + fmtMoney(seg.price));
-      return `<div class="pt-item">
-        <div class="t">${esc(tRange || '—')}</div>
-        <div class="p">${esc(seg.from || '?')} → ${esc(seg.to || '?')}</div>
-        <div class="m">${emojiOf(seg.transport)} ${esc(seg.transport || '')}${extra.length ? ' · ' + extra.join(' · ') : ''}${seg.notes ? ' · ' + esc(seg.notes) : ''}</div>
-      </div>`;
-    }).join('') || '<div class="pt-item"><div class="p" style="color:var(--sub)">今日暂无路线</div></div>';
-
-    const lodgeType = lodge && lodge.type && LODGE_TYPES.includes(lodge.type) ? lodge.type : '酒店';
-    const lodgeHtml = lodge ? `
-      <div class="post-lodge">${lodgeEmoji(lodgeType)} <span class="pl-name">${esc(lodgeType)} · ${esc(lodge.name)}</span>
-        <span style="color:var(--sub)">${esc(lodge.location || '')}</span>
-        <span class="pl-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span>
-      </div>` : '';
-
-    const expHtml = (day.expenses || []).length ? `
-      <div class="post-exp">
-        ${(day.expenses || []).map(e => {
-          let srcTxt = '';
-          if (e.source && e.source.type === 'seg') {
-            const seg = (day.segments || [])[e.source.idx] || {};
-            srcTxt = '源自 ' + (seg.from || '?') + '→' + (seg.to || '?');
-          } else if (e.source && e.source.type === 'lodge') srcTxt = '源自住宿';
-          else if (e.source && e.source.type === 'custom') srcTxt = '源自 ' + (e.source.label || '自定义');
-          return `<div class="pe-line"><span class="c">${catEmoji(e.category)}${esc(e.category)}</span>
-            <span class="i">${esc(e.item || '—')}</span>
-            ${srcTxt ? `<span style="color:var(--sub);font-size:10.5px">${esc(srcTxt)}</span>` : ''}
-            ${e.note ? `<span style="color:var(--sub);font-size:10.5px">💬 ${esc(e.note)}</span>` : ''}
-            <span class="a">${fmtMoney(e.amount)}</span></div>`;
-        }).join('')}
-        <div class="pe-total"><span>当日合计</span><span>${fmtMoney(s.exp)}</span></div>
-      </div>` : `<div class="post-exp"><div class="pe-line" style="color:var(--sub)">今日暂无花销</div></div>`;
-
-    return `<div class="post-day" data-date="${d}" title="点击跳转到当天行程">
-      <div class="post-day-head">
-        <div class="post-day-badge"><span class="n">${Number(d.slice(8,10))}</span><span class="w">${Number(d.slice(5,7))}月</span></div>
-        <div>
-          <div class="pd-t">${dayNo(t, d) === '—' ? '额外行程' : 'Day ' + dayNo(t, d)} · ${fmtDateCN(d)} <span style="color:var(--sub)">星期${weekdayCN(d)}</span></div>
-          <div class="pd-s">${esc(dayTravelers(t, day).join('、') || '无出行人')}${transEmojis ? ' · ' + transEmojis : ''}</div>
-        </div>
-        <div style="margin-left:auto;font-size:13px;font-weight:800;color:var(--accent)">${fmtMoney(s.exp)}</div>
-      </div>
-      <div class="post-timeline">${segs}</div>
-      ${lodgeHtml}
-      ${expHtml}
-      ${day.notes ? `<div class="post-note">💡 ${esc(day.notes)}</div>` : ''}
-    </div>`;
-  }).join('');
+  // 预算表情：花超 😭 / 结余 😄
+  const remain = st.budget ? st.budget - st.exp : null;
+  const budgetCard = remain !== null
+    ? (remain >= 0
+        ? `<div class="post-budget"><div class="pb-face">😄</div>
+            <div class="pb-txt"><div class="t">预算结余</div><div class="amt ok">${fmtMoney(remain)}</div></div>
+            <div style="font-size:11.5px;color:#8a6a30;text-align:right">预算 ${fmtMoney(st.budget)}<br>已花 ${fmtMoney(st.exp)}</div></div>`
+        : `<div class="post-budget"><div class="pb-face">😭</div>
+            <div class="pb-txt"><div class="t">预算超支</div><div class="amt"><em>${fmtMoney(-remain)}</em></div></div>
+            <div style="font-size:11.5px;color:#8a6a30;text-align:right">预算 ${fmtMoney(st.budget)}<br>已花 ${fmtMoney(st.exp)}</div></div>`)
+    : '';
 
   $('#post').innerHTML = `
     <div class="post-cover" style="background:${grad}">
@@ -2507,76 +2488,123 @@ function buildPost(t) {
       <div class="pc-travelers">${travelers.map(n => `<span>${esc(n)}</span>`).join('') || '<span>一个人说走就走</span>'}</div>
     </div>
     ${endPts.length || pinData.length ? `<div class="post-map" id="post-map">
-      <span class="map-label">🗺️ 全程通勤路线</span>
-      ${endPts.length ? `<button class="map-toggle" id="map-toggle" title="仅预览模式：可缩放但不跳转">🔓 可点击跳转</button>
+      <span class="map-label">✧ 行程足迹 ✧</span>
+      ${endPts.length ? `<div class="map-tools">
+        <button class="map-toggle" id="map-trans-toggle" title="显示/隐藏各段交通方式">🚇 显示交通</button>
+        <button class="map-toggle" id="map-toggle" title="仅预览模式：可缩放但不跳转">🔓 点击跳转</button>
+      </div>
       <div class="map-geo-status" id="map-geo-status">🗺️ 正在定位地点…</div>` : ''}
     </div>` : ''}
-    <div class="post-section"><div class="ps-title">— 每日行程（点击某天可跳转） —</div></div>
-    ${dayHtml}
-    ${totalDonut ? `<div class="post-section" style="padding-top:24px"><div class="ps-title">— 💰 总消费构成 —</div></div>
+    ${budgetCard}
+    ${totalDonut ? `<div class="post-section" style="padding-top:20px"><div class="ps-title">💰 总消费构成</div></div>
     <div class="post-donut">${totalDonut}</div>` : ''}
     <div class="post-total">
-      <div class="row"><span>行程天数</span><span>${st.days} 天</span></div>
-      <div class="row"><span>路线段数</span><span>${st.segs} 段</span></div>
-      <div class="row"><span>住宿晚数</span><span>${st.lodges} 晚</span></div>
-      <div class="row"><span>日均花费</span><span>${fmtMoney(avg)}</span></div>
-      ${st.budget ? `<div class="row"><span>预算</span><span>${fmtMoney(st.budget)}</span></div>
-      <div class="row main"><span>总花费</span><span class="amt">${fmtMoney(st.exp)}</span></div>` : ''}
+      <div class="row"><span>行程天数</span><b>${st.days} 天</b></div>
+      <div class="row"><span>路线段数</span><b>${st.segs} 段</b></div>
+      <div class="row"><span>住宿晚数</span><b>${st.lodges} 晚</b></div>
+      <div class="row"><span>日均花费</span><b>${fmtMoney(avg)}</b></div>
+      <div class="row main"><span>总花费</span><span class="amt${remain !== null && remain < 0 ? ' over' : ''}">${fmtMoney(st.exp)}</span></div>
     </div>
-    <div class="post-foot">✨ 由「我的行程」生成 · ${new Date().toLocaleDateString('zh-CN')}</div>`;
+    <div class="post-foot">✎ 手绘旅行地图 · 由「我的行程」生成 · ${new Date().toLocaleDateString('zh-CN')}</div>`;
 
   if (endPts.length) initPostMap(endPts, t.color, grad);
   else if (pinData.length) initPostMap(pinData, t.color, grad);
 }
 
-/* —— 预览地图（自动定位每日首末点 + 折线连接 + 点击跳转 / 仅预览开关） —— */
+/* —— 预览地图（复古手账风：图钉足迹 + 手绘折线 + 交通徽标 + 点击跳转/开关） —— */
 let postMapLocked = false;
+let postMapTransOn = true;
+let postTransMarks = [];
+const PIN_SVG = `<svg viewBox="0 0 24 24" width="28" height="28">
+  <path d="M12 1C7.6 1 4 4.6 4 9c0 5 8 14 8 14s8-9 8-14c0-4.4-3.6-8-8-8z" fill="#C0392B" stroke="#7B241C" stroke-width="1.4"/>
+  <circle cx="12" cy="9" r="3.2" fill="#FDF6E3" stroke="#7B241C" stroke-width="1"/></svg>`;
+
+function pinIcon(p) {
+  const no = p.no === '—' ? '·' : p.no;
+  const tag = `<div class="pin-tag"><b>Day ${no}</b> ${esc(p.name)}</div>`;
+  return L.divIcon({ className: '', html: `<div class="pin-icon">${PIN_SVG}${tag}</div>`, iconSize: [0, 0], iconAnchor: [14, 28] });
+}
+function transIcon(emoji) {
+  return L.divIcon({ className: '', html: `<div class="trans-badge">${emoji}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
+}
+
 function renderPostMap(points, color) {
   if (postMap) { postMap.remove(); postMap = null; }
   const box = $('#post-map');
   postMap = L.map(box, { zoomControl: true, attributionControl: false, scrollWheelZoom: true, touchZoom: true });
   baseTileLayer().addTo(postMap);
+  postTransMarks = [];
 
   if (!points.length) {
     L.marker([35.5, 105]).addTo(postMap);
     postMap.setView([35.5, 105], 4);
     return;
   }
-  const mk = points.map(p => L.marker([p.lat, p.lng], {
-    icon: L.divIcon({ className: '', html: `<div style="background:${color};color:#fff;border-radius:50%;width:24px;height:24px;
-      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff;
-      box-shadow:0 2px 6px rgba(0,0,0,.3)">${p.no === '—' ? '·' : p.no}</div>`,
-      iconSize: [24, 24], iconAnchor: [12, 12] })
-  }).addTo(postMap).bindTooltip(`${p.name} · ${p.date}`, { direction: 'top' }));
+  // 图钉足迹：每个首末点一颗复古图钉，标签显示 Day + 地点名
+  const mk = points.map(p => L.marker([p.lat, p.lng], { icon: pinIcon(p), zIndexOffset: 500 })
+    .addTo(postMap)
+    .bindTooltip(`${p.name} · ${p.date}`, { direction: 'top' }));
   mk.forEach((m, i) => m.on('click', () => { if (!postMapLocked) jumpToPostDay(points[i].date); }));
-  // 折线分段渲染：每段独立可点击（跳转该段两端所属日期）
+  // 手绘折线分段：每段独立可点击跳转 + 中点交通徽标
   if (points.length > 1) {
     for (let i = 0; i < points.length - 1; i++) {
       const a = points[i], b = points[i + 1];
       if (a.lat === b.lat && a.lng === b.lng) continue;
-      const seg = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color, weight: 3, opacity: .85 }).addTo(postMap);
+      const seg = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
+        color: '#8a5a2b', weight: 3, opacity: .9, dashArray: '2 7', lineCap: 'round', lineJoin: 'round'
+      }).addTo(postMap);
       const d = a.date > b.date ? b.date : a.date; // 跳转两端的早一天（当天行程）
       seg.bindTooltip(`${a.name} → ${b.name}`, { direction: 'top' });
       seg.on('click', () => { if (!postMapLocked) jumpToPostDay(d); });
+      // 该段交通徽标（取起点日期当天的交通方式）
+      const transEmo = postTransEmojis(a.date);
+      if (transEmo) {
+        const mTrans = L.marker([(a.lat + b.lat) / 2, (a.lng + b.lng) / 2], {
+          icon: transIcon(transEmo), interactive: false, keyboard: false, zIndexOffset: 800
+        }).addTo(postMap);
+        postTransMarks.push(mTrans);
+      }
     }
   }
+  // 交通开关状态同步
+  const transBtn = $('#map-trans-toggle');
+  if (transBtn && !postMapTransOn) postTransMarks.forEach(m => m.setOpacity(0));
   const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
   postMap.fitBounds(bounds.pad(0.35), { maxZoom: 11 });
+}
+/** 某天所有交通方式的 emoji（去重，用于折线徽标） */
+function postTransEmojis(date) {
+  const day = postTrip && postTrip.days[date];
+  if (!day) return '';
+  return [...new Set((day.segments || []).map(x => x.transport).filter(Boolean))].map(x => emojiOf(x)).join('');
 }
 
 function initPostMap(points, color) {
   const box = $('#post-map');
   if (!box) return;
-  // 开关（仅预览模式）
+  // 开关：点击跳转（仅预览模式）
   const toggle = $('#map-toggle');
   postMapLocked = false;
   if (toggle) {
-    toggle.textContent = '🔓 可点击跳转';
+    toggle.textContent = '🔓 点击跳转';
     toggle.classList.remove('lock');
     toggle.onclick = () => {
       postMapLocked = !postMapLocked;
-      toggle.textContent = postMapLocked ? '🔒 仅预览' : '🔓 可点击跳转';
+      toggle.textContent = postMapLocked ? '🔒 仅预览' : '🔓 点击跳转';
       toggle.classList.toggle('lock', postMapLocked);
+    };
+  }
+  // 开关：显示/隐藏交通徽标
+  const transBtn = $('#map-trans-toggle');
+  postMapTransOn = true;
+  if (transBtn) {
+    transBtn.textContent = '🚇 显示交通';
+    transBtn.classList.remove('lock');
+    transBtn.onclick = () => {
+      postMapTransOn = !postMapTransOn;
+      transBtn.textContent = postMapTransOn ? '🚇 显示交通' : '🚫 隐藏交通';
+      transBtn.classList.toggle('lock', !postMapTransOn);
+      postTransMarks.forEach(m => m.setOpacity(postMapTransOn ? 1 : 0));
     };
   }
   // 自动端点（无坐标）：异步地理编码
