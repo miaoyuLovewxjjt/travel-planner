@@ -34,12 +34,7 @@
   --accent:#FF6B6B; --accent2:#FF8F8F; --accent-soft:#fff0f0; --accent-border:#ffc9c9; --accent-shadow:rgba(255,107,107,.35);
   --shadow:0 2px 14px rgba(28,28,60,.07);
 }
-/* 主题切换（设置面板选择）；accent2 保持足够深，确保白字可读 */
-body.theme-blue{--accent:#2E7BE0;--accent2:#5AA0F0;--accent-soft:#eef4ff;--accent-border:#c9dcff;--accent-shadow:rgba(46,123,224,.35)}
-body.theme-green{--accent:#2FA35C;--accent2:#3EBD73;--accent-soft:#eefaf1;--accent-border:#bdecd0;--accent-shadow:rgba(47,163,92,.35)}
-body.theme-purple{--accent:#6B4DE0;--accent2:#8A6FF5;--accent-soft:#f3efff;--accent-border:#d4c8ff;--accent-shadow:rgba(107,77,224,.35)}
-body.theme-orange{--accent:#E07B2A;--accent2:#E8912E;--accent-soft:#fff4e8;--accent-border:#ffd9a8;--accent-shadow:rgba(224,123,42,.35)}
-body.theme-pink{--accent:#D94F8C;--accent2:#E85590;--accent-soft:#fff0f6;--accent-border:#ffc9de;--accent-shadow:rgba(217,79,140,.35)}
+/* 大主题已移除：默认珊瑚红为应用底色；每个大行程用自己创建时选的颜色（详情/记录/PDF 按行程独立配色） */
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
@@ -61,7 +56,6 @@ textarea{resize:vertical}
   border-bottom:1px solid var(--line);padding:12px 22px;
 }
 #topbar .logo{font-size:20px;font-weight:800;letter-spacing:.5px}
-#topbar .logo span{color:var(--accent)} /* 跟随主题色 */
 /* 顶栏按钮纯图标（所有设备），文字隐藏；导出/导入入口在 ⚙️ 设置中 */
 #topbar .lbl{display:none}
 #btn-export,#btn-import{display:none}
@@ -447,13 +441,6 @@ body.font-large .btn{font-size:14.5px}
 /* 渐变壁纸 */
 body.wall-gradient{background:linear-gradient(165deg,var(--accent-soft) 0%,var(--bg) 45%)}
 body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px rgba(28,28,60,.08)}
-.theme-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:2px 0 4px}
-.theme-dot{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent;
-  display:flex;align-items:center;justify-content:center;transition:transform .12s,box-shadow .15s;position:relative}
-.theme-dot:hover{transform:scale(1.12)}
-.theme-dot.sel{border-color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.theme-dot i{color:#fff;font-size:14px;font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,.3)}
-.theme-name{font-size:13px;font-weight:700;color:var(--sub)}
 .data-panel .dp-row{display:flex;justify-content:space-between;align-items:center;gap:12px;
   padding:10px 2px;border-bottom:1px dashed var(--line);font-size:13.5px}
 .data-panel .dp-row span{color:var(--sub);font-weight:700;white-space:nowrap}
@@ -852,7 +839,7 @@ body.pad .seg-row select { width: 104px; }
 <body>
 
 <header id="topbar">
-  <div class="logo">🌍 <span>我的行程</span></div>
+  <div class="logo">🌍</div>
   <div class="spacer"></div>
   <span id="save-state"></span>
   <button class="btn btn-ghost btn-small" id="btn-export" title="导出数据（备份/迁移）">📤 <span class="lbl">导出</span></button>
@@ -961,18 +948,9 @@ const DEVICE = (window.AndroidBridge && window.AndroidBridge.getDevice) ? window
   : new URLSearchParams(location.search).get('device') || 'web';
 if (DEVICE === 'pad') document.body.classList.add('pad');
 
-/** 主题（设置面板切换，localStorage 持久化） */
-const THEMES = [
-  { id: 'red', name: '珊瑚红', color: '#FF6B6B' },
-  { id: 'blue', name: '海盐蓝', color: '#2E7BE0' },
-  { id: 'green', name: '薄荷绿', color: '#2FA35C' },
-  { id: 'purple', name: '香芋紫', color: '#6B4DE0' },
-  { id: 'orange', name: '落日橙', color: '#E07B2A' },
-  { id: 'pink', name: '樱花粉', color: '#D94F8C' },
-];
-(function initTheme() {
-  const saved = localStorage.getItem('theme');
-  if (saved && THEMES.some(t => t.id === saved)) document.body.classList.add('theme-' + saved);
+/** 外观偏好（字体大小 / 背景壁纸；大主题已移除，每个大行程按自己创建时选的颜色独立配色） */
+(function initPrefs() {
+  localStorage.removeItem('theme'); // 清理旧版全局主题残留，避免影响行程配色
   if (localStorage.getItem('font') === 'large') document.body.classList.add('font-large');
   if (localStorage.getItem('wall') === 'gradient') document.body.classList.add('wall-gradient');
 })();
@@ -1302,6 +1280,10 @@ function render() {
 
 function renderList() {
   currentTripId = null;
+  // 清掉上一个行程的配色变量（避免残留影响其他视图）
+  $('#view-detail').removeAttribute('style');
+  $('#view-journal').removeAttribute('style');
+  $('#doc').removeAttribute('style');
   $('#view-list').classList.remove('hidden');
   $('#view-detail').classList.add('hidden');
   $('#view-journal').classList.add('hidden');
@@ -1352,12 +1334,32 @@ function shade(hex, pct) {
   const f = c => Math.max(0, Math.min(255, Math.round(c * (1 + pct / 100))));
   return '#' + [f(r), f(g), f(b)].map(x => pad2(x.toString(16))).join('');
 }
+/** 向白色混合：t=0 保持原色，t=1 纯白（生成浅色渐变端/柔和底色/描边色） */
+function mixWhite(hex, t) {
+  const n = parseInt(hex.slice(1), 16);
+  const f = c => Math.round(c + (255 - c) * t);
+  return '#' + [f((n >> 16) & 255), f((n >> 8) & 255), f(n & 255)].map(x => pad2(x.toString(16))).join('');
+}
+function hexToRgba(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+/** 按行程颜色设置整套 --accent* 变量：详情页/旅行记录/PDF 全部跟随行程色，互不影响 */
+function applyTripTheme(root, color) {
+  const c = /^#[0-9a-fA-F]{6}$/.test(color || '') ? color : '#FF6B6B';
+  root.style.setProperty('--accent', c);
+  root.style.setProperty('--accent2', mixWhite(c, 0.22));
+  root.style.setProperty('--accent-soft', mixWhite(c, 0.88));
+  root.style.setProperty('--accent-border', mixWhite(c, 0.62));
+  root.style.setProperty('--accent-shadow', hexToRgba(c, 0.35));
+}
 
 /* ---------- 详情页 ---------- */
 function renderDetail(id) {
   currentTripId = id;
   const t = getTrip(id);
   if (!t) { location.hash = '#/'; return; }
+  applyTripTheme($('#view-detail'), t.color); // 行程独立配色：详情页整体跟随该行程颜色
   $('#view-list').classList.add('hidden');
   $('#view-detail').classList.remove('hidden');
   $('#view-journal').classList.add('hidden');
@@ -1425,6 +1427,7 @@ function renderJournal(id) {
   currentTripId = id;
   postTrip = t;
   postTripId = t.id;
+  applyTripTheme($('#view-journal'), t.color); // 旅行记录页配色跟随行程
   $('#view-list').classList.add('hidden');
   $('#view-detail').classList.add('hidden');
   $('#view-journal').classList.remove('hidden');
@@ -1796,7 +1799,7 @@ function renderDayCard(t, d) {
   }
   const segDurs = segsOfDay.map(dayPartDuration);
   const totalMin = segDurs.reduce((s, x) => s + x, 0) + tails.reduce((s, x) => s + x.dur, 0);
-  const accentHex = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#FF6B6B';
+  const accentHex = t.color || '#FF6B6B';
   const barItems = [
     ...segsOfDay.map((seg, i) => ({
       dur: segDurs[i],
@@ -2310,21 +2313,12 @@ function openSettingsPanel() {
   const locTxt = dataMode === 'local'
     ? '数据保存在 App 内部私有目录，卸载应用会丢失数据，请定期「导出备份」。'
     : '数据保存在电脑上的 JSON 文件中，可通过「导出/导入」迁移到手机。';
-  const curTheme = THEMES.find(t => document.body.classList.contains('theme-' + t.id)) || THEMES[0];
   const curFont = localStorage.getItem('font') || 'std';
   const curWall = localStorage.getItem('wall') || 'none';
   $('#modal-box').innerHTML = `
     <div class="data-panel">
       <h2>⚙️ 设置</h2>
       <div class="st-title">🎨 外观</div>
-      <div class="theme-row">
-        ${THEMES.map(t => `
-          <span class="theme-dot ${t.id === curTheme.id ? 'sel' : ''}" data-theme="${t.id}"
-            style="background:${t.color}" title="${t.name}">
-            ${t.id === curTheme.id ? '<i>✓</i>' : ''}
-          </span>`).join('')}
-        <span class="theme-name" id="theme-name">${curTheme.name}</span>
-      </div>
       <div class="set-row">
         <span>🔤 字体大小</span>
         <div class="set-opts">
@@ -2361,25 +2355,6 @@ function openSettingsPanel() {
       </div>
     </div>`;
   $('#modal-root').classList.remove('hidden');
-
-  // 主题切换
-  const themeName = $('#theme-name');
-  $('#modal-box').querySelectorAll('.theme-dot').forEach(dot => {
-    dot.addEventListener('click', () => {
-      const id = dot.dataset.theme;
-      document.body.classList.forEach(c => { if (c.startsWith('theme-')) document.body.classList.remove(c); });
-      document.body.classList.add('theme-' + id);
-      localStorage.setItem('theme', id);
-      const th = THEMES.find(t => t.id === id);
-      if (th) themeName.textContent = th.name;
-      $('#modal-box').querySelectorAll('.theme-dot').forEach(x => {
-        x.classList.toggle('sel', x === dot);
-        x.innerHTML = x === dot ? '<i>✓</i>' : '';
-      });
-      render(); // 刷新视图（路线条等跟随主题色）
-      scheduleSave(); // 顺带保存（状态一致）
-    });
-  });
 
   // 外观：字体大小 / 背景壁纸 / 版本管理
   $('#modal-box').querySelectorAll('.set-opt[data-font]').forEach(b => {
@@ -2954,7 +2929,7 @@ $('#btn-pdf').addEventListener('click', () => { const t = getTrip(currentTripId)
 $('#btn-close-doc').addEventListener('click', closeDoc);
 $('#btn-doc-print').addEventListener('click', () => window.print());
 
-function openDoc(t) { $('#doc').classList.remove('hidden'); buildDoc(t); }
+function openDoc(t) { $('#doc').classList.remove('hidden'); applyTripTheme($('#doc'), t.color); buildDoc(t); }
 function closeDoc() { $('#doc').classList.add('hidden'); }
 
 function buildDoc(t) {
