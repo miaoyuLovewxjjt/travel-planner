@@ -318,20 +318,14 @@ textarea{resize:vertical}
 .exp-row{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .exp-row:last-child{border-bottom:none}
 .exp-row select{width:86px;padding:4px 6px;font-size:12.5px;border-radius:8px}
-.exp-row select.src{width:128px}
 .exp-row .item{flex:1;min-width:110px;padding:4px 8px;font-size:12.5px;border-radius:8px}
 .exp-row .amt{width:88px;padding:4px 8px;font-size:12.5px;border-radius:8px;text-align:right}
 .exp-row .when{width:64px;padding:4px 6px;font-size:12px;border-radius:8px}
-.exp-row .src-custom{width:130px;padding:4px 8px;font-size:12px;border-radius:8px;border-color:#ffd9a8}
-.exp-src-chip{display:inline-flex;align-items:center;gap:4px;background:#eef7ef;color:#2e8b57;border-radius:999px;
-  padding:2px 10px;font-size:11px;font-weight:700;margin-left:auto}
-.exp-src-chip.other{background:#f2f2f7;color:var(--sub)}
 .exp-view{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .exp-view:last-child{border-bottom:none}
 .exp-view-cat{font-size:12.5px;font-weight:800;background:#f2f2f7;padding:2px 9px;border-radius:99px;color:var(--sub);white-space:nowrap}
 .exp-view-item{font-weight:700;font-size:14px;flex:1;min-width:90px}
 .exp-view-amt{font-weight:800;color:var(--accent);white-space:nowrap;font-size:14px}
-.exp-view .exp-src-chip{margin-left:0}
 .exp-view-actions{display:flex;gap:4px}
 .exp-view[draggable="true"]{cursor:grab}
 .exp-view[draggable="true"]:active{cursor:grabbing}
@@ -1662,15 +1656,6 @@ function renderDayCard(t, d) {
   const expRows = (day.expenses || []).map((e, i) => {
     if (e.draft) {
       // —— 编辑态：填写中，✓ 确认 / ✕ 取消 ——
-      const src = e.source || null;
-      const srcVal = !src ? '' : src.type === 'seg' ? 'seg-' + src.idx : src.type === 'lodge' ? 'lodge' : 'custom';
-      const srcOptions = ['<option value="">无来源</option>'].concat(
-        (day.segments || []).map((s, si) =>
-          `<option value="seg-${si}" ${srcVal === 'seg-' + si ? 'selected' : ''}>${emojiOf(s.transport)} ${esc((s.from || '?') + '→' + (s.to || '?'))}</option>`),
-        (day.lodging && (day.lodging.name || day.lodging.location))
-          ? [`<option value="lodge" ${srcVal === 'lodge' ? 'selected' : ''}>🏨 ${esc(day.lodging.name || day.lodging.location)}</option>`] : [],
-        [`<option value="custom" ${srcVal === 'custom' ? 'selected' : ''}>✍️ 自定义来源</option>`]
-      ).join('');
       return `<div class="exp-row">
         <select data-path="days.${d}.expenses.${i}.category">
           ${CATS.map(c => `<option value="${c[1]}" ${e.category === c[1] ? 'selected' : ''}>${c[0]}${c[1]}</option>`).join('')}
@@ -1678,28 +1663,16 @@ function renderDayCard(t, d) {
         <input class="item" data-path="days.${d}.expenses.${i}.item" value="${esc(e.item)}" placeholder="项目">
         <input class="amt" type="number" min="0" data-num data-path="days.${d}.expenses.${i}.amount" value="${num(e.amount)}" placeholder="0">
         <input class="when" data-path="days.${d}.expenses.${i}.when" value="${esc(e.when)}" placeholder="时间">
-        <select class="src" data-action="exp-src" data-date="${d}" data-idx="${i}">${srcOptions}</select>
-        ${srcVal === 'custom' ? `<input class="src-custom" data-path="days.${d}.expenses.${i}.source.label" value="${esc(src ? src.label || '' : '')}" placeholder="自定义来源名称">` : ''}
         <input class="exp-note-input" data-path="days.${d}.expenses.${i}.note" value="${esc(e.note || '')}" placeholder="备注（如：和谁吃的、哪家店）">
         <button class="done-btn" data-action="exp-done" data-date="${d}" data-idx="${i}" title="确认保存">✓</button>
         <button class="done-btn gray" data-action="exp-cancel" data-date="${d}" data-idx="${i}" title="取消（删除）">✕</button>
       </div>`;
     }
     // —— 展示态：已确认，✏️ 编辑 / 🗑️ 删除 ——
-    let srcTxt = '';
-    if (e.source && e.source.type === 'seg') {
-      const seg = (day.segments || [])[e.source.idx] || {};
-      srcTxt = `${emojiOf(seg.transport)} ${(seg.from || '?') + '→' + (seg.to || '?')}`;
-    } else if (e.source && e.source.type === 'lodge') {
-      srcTxt = '🏨 ' + ((day.lodging && (day.lodging.name || day.lodging.location)) || '住宿');
-    } else if (e.source && e.source.type === 'custom') {
-      srcTxt = e.source.label || '自定义';
-    }
     return `<div class="exp-view" draggable="true" data-date="${d}" data-idx="${i}" data-type="expenses" title="拖动排序">
       <span class="drag-handle">≡</span>
       <span class="exp-view-cat">${catEmoji(e.category)}${esc(e.category)}</span>
       <span class="exp-view-item">${esc(e.item || '—')}</span>
-      ${srcTxt ? `<span class="exp-src-chip${e.source.type === 'custom' ? ' other' : ''}">源自 ${esc(srcTxt)}</span>` : ''}
       <span class="exp-view-amt">${fmtMoney(e.amount)}</span>
       ${e.note ? `<div class="exp-view-note">💬 ${esc(e.note)}</div>` : ''}
       <div class="exp-view-actions">
@@ -2037,7 +2010,7 @@ $('#view-detail').addEventListener('click', async e => {
     const act = expAction.dataset.action;
     if (act === 'exp-done') {
       const x = exps[i];
-      const empty = !(x.item || '').trim() && !num(x.amount) && !(x.when || '').trim() && !x.source && !(x.note || '').trim();
+      const empty = !(x.item || '').trim() && !num(x.amount) && !(x.when || '').trim() && !(x.note || '').trim();
       if (empty) exps.splice(i, 1);   // 空记录确认 → 直接删除
       else delete x.draft;            // 确认保存 → 展示态
     } else if (act === 'exp-cancel') exps.splice(i, 1);
@@ -2141,20 +2114,6 @@ $('#view-detail').addEventListener('change', e => {
   const el = e.target;
   const t = getTrip(currentTripId);
   if (!t) return;
-  // 花销来源选择（特殊映射，不走 setByPath）
-  if (el.dataset.action === 'exp-src') {
-    const day = t.days[el.dataset.date];
-    if (!day) return;
-    const exp = day.expenses[Number(el.dataset.idx)];
-    if (!exp) return;
-    const v = el.value;
-    if (!v) exp.source = null;
-    else if (v.startsWith('seg-')) exp.source = { type: 'seg', idx: Number(v.slice(4)) };
-    else if (v === 'lodge') exp.source = { type: 'lodge' };
-    else exp.source = { type: 'custom', label: '' };
-    saveAndRender(t);
-    return;
-  }
   if (el.dataset.path) {
     setByPath(t, el.dataset.path, el.value);
     scheduleSave();
@@ -2971,16 +2930,9 @@ function buildDoc(t) {
     }).join('');
 
     const expRows = (day.expenses || []).map(e => {
-      let srcTxt = '';
-      if (e.source && e.source.type === 'seg') {
-        const seg = (day.segments || [])[e.source.idx] || {};
-        srcTxt = '源自 ' + (seg.from || '?') + '→' + (seg.to || '?');
-      } else if (e.source && e.source.type === 'lodge') srcTxt = '源自住宿';
-      else if (e.source && e.source.type === 'custom') srcTxt = e.source.label || '自定义';
       return `<tr>
         <td>${catEmoji(e.category)} ${esc(e.category)}</td>
         <td>${esc(e.item || '—')}</td>
-        <td style="color:var(--sub);font-size:11.5px">${srcTxt ? esc(srcTxt) : '—'}</td>
         <td class="d-amt">${fmtMoney(e.amount)}</td>
       </tr>`;
     }).join('');
@@ -2989,7 +2941,7 @@ function buildDoc(t) {
       <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span></h2>
       ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次 / 座位 / 乘客</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
       ${lodge ? `<div class="doc-lodge">${lodgeEmoji(lodgeType)} ${esc(lodgeType)} · <b>${esc(lodge.name)}</b>${lodge.location ? ' · ' + esc(lodge.location) : ''}<span class="doc-lodge-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span></div>` : ''}
-      ${expRows ? `<table class="doc-table exp"><thead><tr><th>类别</th><th>项目</th><th>来源</th><th>金额</th></tr></thead><tbody>${expRows}</tbody></table>` : ''}
+      ${expRows ? `<table class="doc-table exp"><thead><tr><th>类别</th><th>项目</th><th>金额</th></tr></thead><tbody>${expRows}</tbody></table>` : ''}
       <div class="doc-day-sum">
         <span>当日花费：<b>${fmtMoney(s.exp)}</b></span>
         <span>路线 ${s.segs} 段</span>

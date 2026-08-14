@@ -55,9 +55,9 @@ function ensureDataFile() {
               lodging: { type: '酒店', name: '西湖边青年旅舍', location: '杭州西湖区', pricePerNight: 180, notes: '' },
               travelers: [],
               expenses: [
-                { category: '交通', item: '高铁 上海→杭州', amount: 73, when: '09:00', source: { type: 'seg', idx: 0 } },
-                { category: '餐饮', item: '西湖边午餐', amount: 68, when: '12:30', source: { type: 'custom', label: '西湖边小馆' } },
-                { category: '住宿', item: '青旅一晚', amount: 180, when: '20:00', source: { type: 'lodge' } },
+                { category: '交通', item: '高铁 上海→杭州', amount: 73, when: '09:00' },
+                { category: '餐饮', item: '西湖边午餐', amount: 68, when: '12:30' },
+                { category: '住宿', item: '青旅一晚', amount: 180, when: '20:00' },
               ],
               segments: [
                 { from: '上海虹桥站', to: '杭州东站', time: '09:00-10:30', transport: '高铁', notes: '', departTime: '09:00', arriveTime: '10:30', vehicleNo: 'G1345', seat: '3车5D', passengers: ['我'] },
@@ -75,8 +75,8 @@ function ensureDataFile() {
               lodging: { type: '民宿', name: '千岛湖临湖民宿', location: '杭州淳安县', pricePerNight: 420, notes: '含早餐' },
               travelers: [],
               expenses: [
-                { category: '交通', item: '打车 杭州→千岛湖', amount: 220, when: '09:00', source: { type: 'seg', idx: 0 } },
-                { category: '门票', item: '千岛湖游船', amount: 150, when: '11:00', source: { type: 'seg', idx: 1 } },
+                { category: '交通', item: '打车 杭州→千岛湖', amount: 220, when: '09:00' },
+                { category: '门票', item: '千岛湖游船', amount: 150, when: '11:00' },
               ],
               segments: [
                 { from: '杭州西湖', to: '千岛湖景区', time: '09:00-11:30', transport: '打车', notes: '约150km' },
@@ -92,7 +92,7 @@ function ensureDataFile() {
               lodging: { type: '酒店', name: '', location: '', pricePerNight: 0, notes: '' },
               travelers: [],
               expenses: [
-                { category: '交通', item: '高铁 千岛湖→上海', amount: 201, when: '14:00', source: { type: 'seg', idx: 1 } },
+                { category: '交通', item: '高铁 千岛湖→上海', amount: 201, when: '14:00' },
               ],
               segments: [
                 { from: '千岛湖', to: '杭州东站', time: '11:00-13:00', transport: '高铁', notes: '', departTime: '11:00', arriveTime: '13:00', vehicleNo: 'G1890', seat: '2车8C', passengers: ['我'] },
