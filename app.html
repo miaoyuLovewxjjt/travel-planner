@@ -203,12 +203,12 @@ textarea{resize:vertical}
 /* 路线段 */
 .seg-wrap.editing{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:8px 12px;margin:6px 0}
 .seg-view{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
-.seg-wrap .seg-view:last-child{border-bottom:none}
+.seg-wrap:last-child .seg-view{border-bottom:none}
 .seg-view-time{font-size:13px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-path{font-weight:700;font-size:14.5px;color:var(--ink)}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
-/* 备注独占一行（与花销备注一致），换行在行内展开，不影响同行元素对齐；紧凑行距 */
-.seg-view-sub{flex-basis:100%;font-size:11.5px;color:var(--sub);padding-left:2px;line-height:1.45}
+/* 备注独立于主行 flex 流：紧贴主行下方（小上间距），长备注在块内换行，不影响主行对齐 */
+.seg-view-sub{font-size:11.5px;color:var(--sub);padding:2px 2px 0;line-height:1.45}
 .seg-view-trans{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-chip{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-price{font-size:13px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
@@ -1645,12 +1645,12 @@ function renderDayCard(t, d) {
         <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
         ${chips}
         ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
-        ${sub ? `<div class="seg-view-sub">${sub}</div>` : ''}
         <div class="seg-view-actions">
           <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
           <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
         </div>
       </div>
+      ${sub ? `<div class="seg-view-sub">${sub}</div>` : ''}
     </div>`;
   }).join('');
 
