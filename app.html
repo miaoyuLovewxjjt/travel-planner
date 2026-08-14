@@ -331,14 +331,14 @@ textarea{resize:vertical}
 .exp-row .when{width:64px;padding:4px 6px;font-size:12px;border-radius:8px}
 .exp-wrap{border-bottom:1px dashed var(--line)}
 .exp-wrap:last-child{border-bottom:none}
-.exp-view{display:flex;align-items:center;gap:8px;padding:6px 2px;flex-wrap:wrap;line-height:1.5}
+.exp-view{display:flex;align-items:center;gap:8px;padding:5px 2px;flex-wrap:wrap;line-height:1.5}
 .exp-view-cat{font-size:12.5px;font-weight:600;background:#f0f0f5;padding:3px 10px;border-radius:8px;color:#55556a;white-space:nowrap}
 .exp-view-item{font-weight:700;font-size:14px;flex:1;min-width:90px}
 .exp-view-amt{font-weight:800;color:var(--accent);white-space:nowrap;font-size:14px}
 .exp-view-actions{display:flex;gap:4px}
 .exp-view[draggable="true"]{cursor:grab}
 .exp-view[draggable="true"]:active{cursor:grabbing}
-.exp-total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:2px solid var(--line)}
+.exp-total{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:7px;border-top:2px solid var(--line)}
 .exp-total .t{font-size:12px;color:var(--sub);font-weight:700}
 .exp-total .amt{font-size:16px;font-weight:800;color:var(--accent)}
 
@@ -354,12 +354,16 @@ textarea{resize:vertical}
 .overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .ov-item{background:#fafafc;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}
 .ov-item .num{font-size:15.5px;font-weight:800}
+/* 总览内图标与内容图标统一（12.5px） */
+.ov-item .num .ov-emoji{font-size:12.5px;font-style:normal}
 .ov-item .lbl{font-size:11px;color:var(--sub)}
 .ov-note{grid-column:1/-1;font-size:12px;color:var(--sub);background:#fff8f0;border-radius:10px;padding:8px 12px}
 .ov-route{grid-column:1/-1;background:#fafafc;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
 .ov-route .lbl{font-size:11px;color:var(--sub);font-weight:700}
 /* 记账提示：斜体小字，与标题图标左对齐，位于标题与内容之间 */
-.block-hint{font-size:12px;color:var(--sub);font-style:italic;margin:2px 0 10px;line-height:1.5}
+.block-hint{font-size:12px;color:var(--sub);font-style:italic;margin:0 0 6px;line-height:1.5}
+/* 记账区紧凑：标题、提示、内容间距收紧 */
+.day-col.col-r .block-title{margin-bottom:8px}
 /* 提醒 */
 .rem-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .rem-row input[type=date]{width:132px;padding:4px 8px;font-size:13px;border-radius:8px}
@@ -1830,7 +1834,7 @@ function renderDayCard(t, d) {
         <div class="block">
           <div class="block-title"><span class="tag">📊</span>行程总览</div>
           <div class="overview-grid">
-            <div class="ov-item"><span class="num">${st.lodge ? lodgeEmoji(lodgeType) + ' ' + esc(st.lodge.name || st.lodge.location) : '—'}</span><span class="lbl">${st.lodge ? esc(lodgeType) + ' · ' + esc(st.lodge.location || '') + ' · ' + (num(st.lodge.pricePerNight) ? fmtMoney(st.lodge.pricePerNight) + '/晚' : '价格未填') : '今日无住宿'}</span></div>
+            <div class="ov-item"><span class="num">${st.lodge ? `<i class="ov-emoji">${lodgeEmoji(lodgeType)}</i> ${esc(st.lodge.name || st.lodge.location)}` : '—'}</span><span class="lbl">${st.lodge ? esc(lodgeType) + ' · ' + esc(st.lodge.location || '') + ' · ' + (num(st.lodge.pricePerNight) ? fmtMoney(st.lodge.pricePerNight) + '/晚' : '价格未填') : '今日无住宿'}</span></div>
             <div class="ov-item"><span class="num">${travelers.length ? esc(travelers.join('、')) : '—'}</span><span class="lbl">出行人</span></div>
             <div class="ov-route">
               <div class="lbl">🗺️ 今日路线 · 共 ${st.segs} 段${totalMin ? ' · 总时长 ' + fmtDur(totalMin) : ''}</div>
