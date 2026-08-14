@@ -202,16 +202,20 @@ textarea{resize:vertical}
 
 /* 路线段 */
 .seg-wrap.editing{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:8px 12px;margin:6px 0}
-.seg-view{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.seg-view{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap;line-height:1.5}
 .seg-wrap:last-child .seg-view{border-bottom:none}
-.seg-view-time{font-size:13px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
-.seg-view-path{font-weight:700;font-size:14.5px;color:var(--ink)}
+/* 时间胶囊（与提醒时间同款） */
+.seg-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+/* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
+.seg-view-path{font-weight:700;font-size:14px;color:var(--ink)}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
 /* 备注独立于主行 flex 流：紧贴主行下方（小上间距），长备注在块内换行，不影响主行对齐 */
-.seg-view-sub{font-size:11.5px;color:var(--sub);padding:2px 2px 0;line-height:1.45}
-.seg-view-trans{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
-.seg-view-chip{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
-.seg-view-price{font-size:13px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-sub{font-size:12px;color:var(--sub);padding:2px 2px 0;line-height:1.5}
+/* 标签胶囊（交通/班次乘客，与花销类别同款） */
+.seg-view-trans{font-size:12.5px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-chip{font-size:12.5px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
+/* 金额（与花销金额、住宿价格同款 14/800） */
+.seg-view-price{font-size:14px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-actions{margin-left:auto;display:flex;gap:4px}
 .drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;padding:2px 4px;border-radius:6px}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
@@ -239,9 +243,9 @@ textarea{resize:vertical}
 .seg-row input.seg-time{width:80px;padding:4px 6px;font-size:13px;flex-shrink:0;text-align:center}
 .seg-row input.seg-note-input{flex:1;min-width:40px;width:auto}
 .seg-row input.seg-price{width:76px;flex-shrink:0}
-.seg-view-price{font-size:13px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-price{font-size:14px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .exp-note-input{flex-basis:100%;width:100%!important;padding:4px 8px;font-size:12px;border-radius:8px;border-color:#eee}
-.exp-view-note{flex-basis:100%;font-size:11.5px;color:var(--sub);padding-left:2px}
+.exp-view-note{flex-basis:100%;font-size:12px;color:var(--sub);padding-left:2px;line-height:1.5}
 .seg-row select{width:82px;padding:4px 4px;font-size:12.5px;border-radius:8px;flex-shrink:0}
 .seg-row .arr{flex-shrink:0}
 .seg-toggle{width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
@@ -275,14 +279,14 @@ textarea{resize:vertical}
 .lodge-grid select{width:110px;padding:4px 8px;font-size:13px;border-radius:10px}
 .lodge-notes{margin-top:6px}
 .lodge-notes input{width:100%;padding:4px 8px;font-size:13px}
-.lodge-none{color:var(--sub);font-size:12.5px;font-style:italic;margin:6px 0 12px}
+.lodge-none{color:var(--sub);font-size:12px;font-style:italic;margin:6px 0 12px}
 /* 住宿展示态（紧凑对齐版） */
 .lodge-view{display:flex;flex-direction:column;gap:3px;padding:1px 0}
 .lodge-view-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .lodge-view-type{font-size:14px;line-height:1.5;display:inline-flex;align-items:center;flex-shrink:0}
-.lodge-view-name{font-weight:800;font-size:15px;color:var(--ink);line-height:1.5}
+.lodge-view-name{font-weight:700;font-size:14px;color:var(--ink);line-height:1.5}
 .lodge-view-price{font-size:14px;font-weight:800;color:var(--accent);margin-left:auto;white-space:nowrap;line-height:1.5}
-.lodge-view-sub{font-size:13px;color:var(--sub);padding-left:2px;line-height:1.5}
+.lodge-view-sub{font-size:12px;color:var(--sub);padding-left:2px;line-height:1.5}
 .lodge-view-actions{display:flex;gap:2px}
 
 /* 乘客选择面板 */
@@ -322,9 +326,9 @@ textarea{resize:vertical}
 .exp-row .item{flex:1;min-width:110px;padding:4px 8px;font-size:12.5px;border-radius:8px}
 .exp-row .amt{width:88px;padding:4px 8px;font-size:12.5px;border-radius:8px;text-align:right}
 .exp-row .when{width:64px;padding:4px 6px;font-size:12px;border-radius:8px}
-.exp-view{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.exp-view{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap;line-height:1.5}
 .exp-view:last-child{border-bottom:none}
-.exp-view-cat{font-size:12.5px;font-weight:800;background:#f2f2f7;padding:2px 9px;border-radius:99px;color:var(--sub);white-space:nowrap}
+.exp-view-cat{font-size:12.5px;font-weight:600;background:#f0f0f5;padding:3px 10px;border-radius:8px;color:#55556a;white-space:nowrap}
 .exp-view-item{font-weight:700;font-size:14px;flex:1;min-width:90px}
 .exp-view-amt{font-weight:800;color:var(--accent);white-space:nowrap;font-size:14px}
 .exp-view-actions{display:flex;gap:4px}
@@ -356,10 +360,10 @@ textarea{resize:vertical}
 .rem-row input[type=date]{width:132px;padding:4px 8px;font-size:13px;border-radius:8px}
 .rem-row input[type=time]{width:92px;padding:4px 6px;font-size:13px;border-radius:8px}
 .rem-row .rem-title{flex:1;min-width:110px;padding:4px 8px;font-size:13px;border-radius:8px}
-.rem-view{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.rem-view{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap;line-height:1.5}
 .rem-view:last-child{border-bottom:none}
 .rem-dot{width:11px;height:11px;border:2px solid var(--accent);border-radius:50%;flex-shrink:0;background:#fff}
-.rem-view-time{font-size:13px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+.rem-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .rem-view-title{font-size:14px;font-weight:700;color:var(--ink)}
 .rem-view-actions{display:flex;gap:2px;margin-left:auto}
 .exp-donut{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
@@ -423,15 +427,12 @@ textarea{resize:vertical}
 .set-version{margin-top:8px;background:#fafafc;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
 .set-version a{color:var(--accent);font-weight:700;text-decoration:none;word-break:break-all}
 /* 大字体 */
+/* 大字体：所有内容字号统一 +1.5px（与标准档同比例） */
 body.font-large{font-size:15.5px}
-body.font-large .seg-view-time,body.font-large .seg-view-chip,body.font-large .seg-view-trans,body.font-large .seg-view-price{font-size:14px}
-body.font-large .seg-view-path{font-size:15.5px}
-body.font-large .exp-view-item{font-size:15px}
-body.font-large .exp-view-cat{font-size:13px}
-body.font-large .lodge-view-name{font-size:16px}
-body.font-large .lodge-view-sub{font-size:14px}
-body.font-large .rem-view-time{font-size:14px}
-body.font-large .rem-view-title{font-size:15px}
+body.font-large .seg-view-time,body.font-large .seg-view-chip,body.font-large .seg-view-trans,body.font-large .exp-view-cat,body.font-large .rem-view-time{font-size:14px}
+body.font-large .seg-view-path,body.font-large .exp-view-item,body.font-large .lodge-view-name,body.font-large .rem-view-title{font-size:15.5px}
+body.font-large .seg-view-price,body.font-large .exp-view-amt,body.font-large .lodge-view-price{font-size:15.5px}
+body.font-large .seg-view-sub,body.font-large .exp-view-note,body.font-large .lodge-view-sub{font-size:13.5px}
 body.font-large .btn{font-size:14.5px}
 /* 渐变壁纸 */
 body.wall-gradient{background:linear-gradient(165deg,var(--accent-soft) 0%,var(--bg) 45%)}
