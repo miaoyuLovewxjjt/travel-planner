@@ -204,15 +204,13 @@ textarea{resize:vertical}
 .seg-wrap.editing{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:8px 12px;margin:4px 0}
 .seg-wrap{border-bottom:1px dashed var(--line)}
 .seg-wrap:last-child{border-bottom:none}
-/* 路线展示：网格竖向对齐（手柄|时间|路径|按钮 第一行；交通|班次乘客|价格 第二行，同类同列） */
-.seg-view{display:grid;grid-template-columns:22px auto minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:6px 2px;line-height:1.5}
-.seg-view .drag-handle{grid-column:1;grid-row:1}
-.seg-view-time{grid-column:2;grid-row:1}
-.seg-view-path{grid-column:3;grid-row:1;min-width:0}
-.seg-view-actions{grid-column:4;grid-row:1;justify-self:end}
-.seg-view-trans{grid-column:2;grid-row:2;justify-self:start}
-.seg-view-dets{grid-column:3;grid-row:2;display:flex;gap:6px;flex-wrap:wrap;min-width:0}
-.seg-view-price{grid-column:4;grid-row:2;justify-self:end}
+/* 路线展示：一行优先（内容分组在手柄与按钮之间），放不下时第二行从时间列左对齐 */
+.seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;line-height:1.5}
+.seg-view .drag-handle{flex-shrink:0}
+.seg-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.seg-view-actions{margin-left:auto;flex-shrink:0}
+.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
+.seg-view-path{min-width:0}
 /* 时间胶囊（与提醒时间同款） */
 .seg-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
@@ -1664,11 +1662,13 @@ function renderDayCard(t, d) {
     return `<div class="seg-wrap">
       <div class="seg-view" draggable="true" data-date="${d}" data-idx="${i}" data-type="segments" title="拖动排序">
         <span class="drag-handle">≡</span>
-        <span class="seg-view-time">${esc(timeRange(s))}</span>
-        <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
-        <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
-        ${chips ? `<div class="seg-view-dets">${chips}</div>` : ''}
-        ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
+        <div class="seg-main">
+          <span class="seg-view-time">${esc(timeRange(s))}</span>
+          <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
+          <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
+          ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
+          ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
+        </div>
         <div class="seg-view-actions">
           <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
           <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
