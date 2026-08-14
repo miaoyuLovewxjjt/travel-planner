@@ -140,6 +140,13 @@ textarea{resize:vertical}
 }
 .stat-card .num{font-size:19px;font-weight:800}
 .stat-card .lbl{font-size:11.5px;color:var(--sub)}
+/* 合并长框：总预算 / 总花费 / 预算结余 */
+.stat-card.stat-long{flex-direction:row;align-items:center;gap:26px;min-width:0;flex:1;max-width:560px}
+.stat-long .sl-item{display:flex;flex-direction:column}
+.stat-long .sl-item .num{font-size:17px}
+.stat-long .sl-item .lbl{font-size:11px;color:var(--sub)}
+.stat-long .sl-item .num.over{color:#e5484d}
+.stat-long .sl-div{width:1px;height:30px;background:var(--line)}
 .detail-body{display:grid;grid-template-columns:210px 1fr;gap:26px;margin-top:20px;align-items:start}
 .day-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:8px}
 .day-nav .nav-title{font-size:12px;color:var(--sub);font-weight:700;margin:4px 0 2px;padding-left:4px}
@@ -457,29 +464,21 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .data-panel .dp-warn{font-size:12px;color:#e5484d;background:var(--accent-soft);border:1px solid #f3c1c3;
   border-radius:10px;padding:9px 12px;margin-top:8px;line-height:1.7}
 
-/* ============ 旅行记录（行程顶部常驻手账） ============ */
-#journal-area{margin-top:22px}
-/* 占位卡片 */
-.journal-placeholder{
-  background:linear-gradient(135deg,#fdf6e3,#f7ecd2);border:2px dashed #c9a86a;border-radius:20px;
-  padding:34px 26px;text-align:center;box-shadow:0 8px 24px rgba(120,95,50,.1);
+/* ============ 旅行记录（全屏页面） ============ */
+#preview{
+  position:fixed;inset:0;background:rgba(20,20,40,.6);backdrop-filter:blur(6px);z-index:300;
+  display:flex;flex-direction:column;
 }
-.journal-placeholder .jp-emoji{font-size:40px;filter:drop-shadow(0 4px 8px rgba(120,90,40,.2))}
-.journal-placeholder .jp-title{font-size:20px;font-weight:900;color:#6b4f1d;margin-top:8px;
-  font-family:'STXingkai','KaiTi','STKaiti',serif;letter-spacing:3px}
-.journal-placeholder .jp-sub{font-size:12.5px;color:#9a8458;margin:8px auto 16px;max-width:380px;line-height:1.7}
-.journal-placeholder .btn{padding:10px 26px;font-size:14px;border-radius:999px}
-/* 工具栏 */
-.journal-toolbar{display:flex;align-items:center;gap:8px;padding:10px 4px 12px;flex-wrap:wrap}
-.journal-toolbar .t{font-weight:900;font-size:16px;color:#6b4f1d;margin-right:auto;
-  font-family:'STXingkai','KaiTi','STKaiti',serif;letter-spacing:2px}
-.journal-toolbar .btn{background:#fdf6e3;color:#6b4f1d;border:1.5px solid #c9a86a;box-shadow:0 2px 6px rgba(120,95,50,.12)}
-.journal-toolbar .btn:hover{background:#f4e6c8}
-/* DIY 编辑条 */
-.diy-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 4px;padding:12px 16px;
-  background:#fdf6e3;border:1.5px dashed #c9a86a;border-radius:14px}
-.diy-bar .diy-t{font-size:13px;font-weight:800;color:#6b4f1d}
-.diy-bar .diy-hint{font-size:11px;color:#9a8458;flex-basis:100%}
+.preview-toolbar{display:flex;align-items:center;gap:10px;padding:14px 22px;color:#fff;flex-wrap:wrap}
+.preview-toolbar .t{font-weight:800;font-size:15px;margin-right:auto}
+.preview-toolbar .btn{background:rgba(255,255,255,.15);color:#fff;box-shadow:none;border:1px solid rgba(255,255,255,.25)}
+.preview-toolbar .btn:hover{background:rgba(255,255,255,.28)}
+#preview .diy-bar{background:rgba(255,255,255,.12);border:1.5px dashed rgba(255,255,255,.4);
+  border-radius:12px;margin:0 22px 8px;padding:10px 14px;color:#fff;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#preview .diy-bar .diy-t{font-weight:800;font-size:13px}
+#preview .diy-bar .diy-hint{font-size:11px;opacity:.85;flex-basis:100%}
+#preview .diy-bar .btn{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35)}
+.preview-scroll{flex:1;overflow:auto;padding:20px 20px 60px;display:flex;justify-content:center}
 /* 照片角（宝丽来风格） */
 .post-photos{margin:10px 26px 6px}
 .post-photos .pp-title{font-size:13px;font-weight:900;color:#6b4f1d;letter-spacing:2px;margin-bottom:10px;
@@ -787,10 +786,10 @@ body.pad .seg-row select { width: 104px; }
   .block { padding: 14px 14px; }
   .block-title { margin-bottom: 10px; }
 
-  .journal-toolbar, .doc-toolbar { padding: 10px 10px; gap: 6px; }
-  .journal-toolbar .t, .doc-toolbar .t { font-size: 13px; }
-  .journal-toolbar .lbl, .doc-toolbar .lbl { display: none; }
-  .journal-toolbar .btn, .doc-toolbar .btn { padding: 8px 10px; }
+  .preview-toolbar, .doc-toolbar { padding: 10px 10px; gap: 6px; }
+  .preview-toolbar .t, .doc-toolbar .t { font-size: 13px; }
+  .preview-toolbar .lbl, .doc-toolbar .lbl { display: none; }
+  .preview-toolbar .btn, .doc-toolbar .btn { padding: 8px 10px; }
   .post { width: 100%; max-width: 470px; border-radius: 18px; }
   .post-cover { padding: 32px 22px 28px; }
   .post-cover h1 { font-size: 23px; }
@@ -818,13 +817,14 @@ body.pad .seg-row select { width: 104px; }
 /* ============ 打印 ============ */
 @media print{
   body *{visibility:hidden!important}
-  #journal-area,#journal-area *{visibility:visible!important}
+  #preview,#preview *{visibility:visible!important}
   #doc,#doc *{visibility:visible!important}
-  #journal-area{position:static!important;background:#fff!important}
+  #preview{position:static!important;background:#fff!important}
   #doc{position:static!important;background:#fff!important;display:block!important}
-  .journal-toolbar{display:none!important}
+  .preview-toolbar{display:none!important}
   .doc-toolbar{display:none!important}
   .diy-bar{display:none!important}
+  .preview-scroll{overflow:visible!important;padding:0!important;display:block!important}
   .post{box-shadow:none!important;border-radius:0!important;width:100%!important}
   .post-map{height:420px!important}
   .post-map .map-toggle,.post-map .map-geo-status,.post-map .map-tools{display:none!important}
@@ -865,7 +865,6 @@ body.pad .seg-row select { width: 104px; }
   <section id="view-detail" class="hidden">
     <div class="detail-head" id="detail-head"></div>
     <div class="stat-strip" id="stat-strip"></div>
-    <div id="journal-area"></div>
     <div class="detail-body">
       <aside class="day-nav" id="day-nav"></aside>
       <div class="days-col" id="days-col"></div>
@@ -875,6 +874,24 @@ body.pad .seg-row select { width: 104px; }
 
 <!-- 通用模态（新建/编辑大行程、添加一天） -->
 <div id="modal-root" class="modal-overlay hidden"><div id="modal-box" class="modal"></div></div>
+
+<!-- 旅行记录（全屏页面：右上角 📖 打开，手机/平板一致） -->
+<div id="preview" class="hidden">
+  <div class="preview-toolbar">
+    <span class="t">📖 旅行记录</span>
+    <button class="btn" id="btn-diy">🖼️<span class="lbl"> DIY 贴图</span></button>
+    <button class="btn" id="btn-dl-png">⬇️<span class="lbl"> 下载 PNG</span></button>
+    <button class="btn" id="btn-print">🖨️<span class="lbl"> 打印</span></button>
+    <button class="btn" id="btn-close-preview">✕<span class="lbl"> 关闭</span></button>
+  </div>
+  <div class="diy-bar hidden" id="diy-bar">
+    <span class="diy-t">🖼️ 贴一张旅途照片</span>
+    <button class="btn" id="btn-diy-add">＋ 选择照片</button>
+    <span class="diy-hint">从本地上传照片（会自动压缩保存，电脑⇄手机同步不丢）；鼠标移到照片上可删除。</span>
+    <input type="file" id="diy-file" accept="image/*" multiple hidden>
+  </div>
+  <div class="preview-scroll"><div id="post" class="post"></div></div>
+</div>
 
 <div id="toast"></div>
 
@@ -1344,13 +1361,16 @@ function renderDetail(id) {
       ${t.notes ? `<div class="sub">📝 ${esc(t.notes)}</div>` : ''}
     </div>`;
 
-  // 统计条
+  // 统计条：行程天数 + 长框（总预算 / 总花费 / 预算结余）
   $('#stat-strip').innerHTML = `
     <div class="stat-card"><span class="num">${st.days}</span><span class="lbl">行程天数</span></div>
-    <div class="stat-card"><span class="num">${fmtMoney(st.exp)}</span><span class="lbl">总花费</span></div>
-    <div class="stat-card"><span class="num" style="color:${budgetColor(remain)}">${st.budget ? fmtMoney(remain) : '—'}</span><span class="lbl">预算结余</span></div>
-    <div class="stat-card"><span class="num">${st.segs}</span><span class="lbl">路线段数</span></div>
-    <div class="stat-card"><span class="num">${st.lodges}</span><span class="lbl">住宿晚数</span></div>`;
+    <div class="stat-card stat-long">
+      <div class="sl-item"><span class="num">${st.budget ? fmtMoney(st.budget) : '—'}</span><span class="lbl">总预算</span></div>
+      <div class="sl-div"></div>
+      <div class="sl-item"><span class="num">${fmtMoney(st.exp)}</span><span class="lbl">总花费</span></div>
+      <div class="sl-div"></div>
+      <div class="sl-item"><span class="num ${remain < 0 ? 'over' : ''}" style="color:${budgetColor(remain)}">${st.budget ? fmtMoney(remain) : '—'}</span><span class="lbl">预算结余</span></div>
+    </div>`;
 
   // 日期导航：范围内所有日期 + 范围外的有数据日期
   const allDates = [];
@@ -1375,65 +1395,30 @@ function renderDetail(id) {
   // 每日卡片
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
-
-  // 旅行记录（手账）：已生成则直接展示，否则占位
-  renderJournalArea(t);
 }
 
-/* ---------- 旅行记录（行程顶部手账，替代原弹窗预览） ---------- */
-let journalOpen = false;
-
-function renderJournalArea(t) {
-  const area = $('#journal-area');
-  if (!area) return;
+/* ---------- 旅行记录（全屏页面：右上角 📖 打开） ---------- */
+function openJournal(t) {
   postTrip = t;
   postTripId = t.id;
-  const hasJournal = !!(t.journal && t.journal.rendered);
-  if (hasJournal) {
-    journalOpen = true;
-    area.innerHTML = `
-      <div class="journal-toolbar">
-        <span class="t">📖 旅行记录</span>
-        <button class="btn" id="btn-diy">🖼️<span class="lbl"> DIY 贴图</span></button>
-        <button class="btn" id="btn-dl-png">⬇️<span class="lbl"> 下载 PNG</span></button>
-        <button class="btn" id="btn-print">🖨️<span class="lbl"> 打印</span></button>
-        <button class="btn" id="btn-collapse">🙈<span class="lbl"> 收起</span></button>
-      </div>
-      <div id="post" class="post"></div>
-      <div class="diy-bar hidden" id="diy-bar">
-        <span class="diy-t">🖼️ 贴一张旅途照片</span>
-        <button class="btn" id="btn-diy-add">＋ 选择照片</button>
-        <span class="diy-hint">从本地上传照片（会自动压缩保存，电脑⇄手机同步不丢）；鼠标移到照片上可删除。</span>
-        <input type="file" id="diy-file" accept="image/*" multiple hidden>
-      </div>`;
-    buildPost(t);
-  } else {
-    journalOpen = false;
-    area.innerHTML = `
-      <div class="journal-placeholder">
-        <div class="jp-emoji">📖</div>
-        <div class="jp-title">旅行记录</div>
-        <div class="jp-sub">把这次旅程做成一页复古手账：足迹地图、图钉、预算表情、旅途照片，还可以 DIY 贴上自己拍的照片。</div>
-        <button class="btn btn-primary" id="btn-journal-gen">✨ 生成旅行记录</button>
-      </div>`;
+  // 首次打开自动标记已生成（照片等 DIY 数据跟随行程保存）
+  if (!(t.journal && t.journal.rendered)) {
+    t.journal = t.journal || {};
+    t.journal.rendered = true;
+    scheduleSave();
   }
+  $('#preview').classList.remove('hidden');
+  buildPost(t);
+  const sc = document.querySelector('#preview .preview-scroll');
+  if (sc) sc.scrollTop = 0;
 }
+function closeJournal() { $('#preview').classList.add('hidden'); }
 
-function collapseJournal() {
-  journalOpen = false;
-  const t = postTrip;
-  if (t && t.journal && t.journal.rendered) {
-    // 已生成过：收起回占位（保留数据）
-    const area = $('#journal-area');
-    if (area) area.innerHTML = `
-      <div class="journal-placeholder">
-        <div class="jp-emoji">📖</div>
-        <div class="jp-title">旅行记录</div>
-        <div class="jp-sub">手账已收起来啦，点开继续看：足迹地图、图钉、预算表情、旅途照片。</div>
-        <button class="btn btn-primary" id="btn-journal-gen">✨ 打开旅行记录</button>
-      </div>`;
-  }
-}
+// 顶栏 📖 按钮：打开旅行记录全屏页面
+$('#btn-preview').addEventListener('click', () => {
+  const t = getTrip(currentTripId);
+  if (t) openJournal(t);
+});
 
 /** 公共交通（显示车次/座位/乘客详情的交通方式） */
 const PUB_TRANSPORTS = ['高铁', '飞机', '地铁', '公交', '游船'];
@@ -2093,13 +2078,13 @@ function updateTotalsUI(t, path) {
         `${esc(lodge.location || '')} · ${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}` : '今日无住宿';
     }
   }
-  // 顶部统计条：总花费
+  // 顶部统计条：总花费 / 预算结余（长框内第 2、3 项）
   const st = tripStats(t);
-  const statExp = document.querySelector('#stat-strip .stat-card:nth-child(2) .num');
+  const statExp = document.querySelector('#stat-strip .stat-long .sl-item:nth-child(3) .num');
   if (statExp) statExp.textContent = fmtMoney(st.exp);
   // 预算结余
   const remain = st.budget - st.exp;
-  const statRemain = document.querySelector('#stat-strip .stat-card:nth-child(3) .num');
+  const statRemain = document.querySelector('#stat-strip .stat-long .sl-item:nth-child(5) .num');
   if (statRemain) { statRemain.textContent = st.budget ? fmtMoney(remain) : '—'; statRemain.style.color = budgetColor(remain); }
   // 日期导航按钮金额
   const navInfo = document.querySelector(`#day-nav button[data-date="${d}"] .info`);
@@ -2255,7 +2240,7 @@ $('#trip-grid').addEventListener('click', e => {
 
 $('#btn-new').addEventListener('click', () => openTripModal(null));
 $('#btn-back').addEventListener('click', () => location.hash = '#/');
-// 顶栏 📖 按钮绑定见 renderJournalArea 下方（旅行记录区块内）
+// 顶栏 📖 按钮：打开旅行记录（绑定见 openJournal 函数上方）
 
 // 导出 / 导入（电脑 ⇄ 手机数据迁移）
 $('#btn-export').addEventListener('click', exportData);
@@ -2542,37 +2527,15 @@ function closeModal() { $('#modal-root').classList.add('hidden'); }
 $('#modal-root').addEventListener('click', e => { if (e.target === $('#modal-root')) closeModal(); });
 
 /* ================================================================
- * 旅行记录手账（原 Ins 全量预览，改为行程顶部常驻区块）
+ * 旅行记录手账（全屏页面：右上角 📖 打开）
  * ================================================================ */
 let postMap = null, postTrip = null, postTripId = null;
 
-// 顶栏 🎨 按钮：滚到行程顶部的旅行记录（未生成则先生成）
-$('#btn-preview').addEventListener('click', () => {
-  const t = getTrip(currentTripId);
-  if (!t) return;
-  if (!(t.journal && t.journal.rendered)) {
-    t.journal = t.journal || {};
-    t.journal.rendered = true;
-    scheduleSave();
-    renderJournalArea(t);
-  }
-  const area = $('#journal-area');
-  if (area) area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
-
-// 手账内点击：DIY / 生成 / 收起 / 打印 / PNG / 照片删除
-$('#journal-area').addEventListener('click', async e => {
+// 旅行记录页面内点击：DIY / 打印 / PNG / 关闭 / 照片删除
+$('#preview').addEventListener('click', async e => {
   const t = postTrip;
   if (!t) return;
-  if (e.target.closest('#btn-journal-gen')) {
-    // 占位 → 生成
-    t.journal = t.journal || {};
-    t.journal.rendered = true;
-    scheduleSave();
-    renderJournalArea(t);
-    return;
-  }
-  if (e.target.closest('#btn-collapse')) { collapseJournal(); return; }
+  if (e.target.closest('#btn-close-preview')) { closeJournal(); return; }
   if (e.target.closest('#btn-print')) { window.print(); return; }
   if (e.target.closest('#btn-dl-png')) { downloadJournalPNG(); return; }
   if (e.target.closest('#btn-diy')) {
@@ -2618,7 +2581,7 @@ $('#journal-area').addEventListener('click', async e => {
 });
 
 // DIY 本地上传照片（压缩后存入 trip.journal.photos）
-$('#journal-area').addEventListener('change', async e => {
+$('#preview').addEventListener('change', async e => {
   const inp = e.target.closest('#diy-file');
   if (!inp || !inp.files || !inp.files.length) return;
   const t = postTrip;
@@ -2696,10 +2659,10 @@ function downloadJournalPNG() {
   })();
 }
 
-// 手账地图中点击图钉/折线 → 收起手账并跳转到详情页当天
+// 手账地图中点击图钉/折线 → 关闭旅行记录页面并跳转到详情页当天
 function jumpToPostDay(d) {
   if (!d || !postTripId) return;
-  collapseJournal();
+  closeJournal();
   if (location.hash !== '#/trip/' + postTripId) location.hash = '#/trip/' + postTripId;
   setTimeout(() => {
     const el = document.getElementById('day-' + d);
@@ -2933,7 +2896,7 @@ function initPostMap(points, color) {
   renderPostMap(points, color);
 }
 
-/* —— 导出（手账 PNG 绑定已迁移到 #journal-area 委托：downloadJournalPNG） —— */
+/* —— 导出（手账 PNG 绑定已迁移到 #preview 委托：downloadJournalPNG） —— */
 
 /* ================================================================
  * PDF 文档视图（带目录，目录标题为日期）
@@ -3054,7 +3017,7 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDoc(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeJournal(); closeDoc(); } });
 loadData();
 </script>
 </body>
