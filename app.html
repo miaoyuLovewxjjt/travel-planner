@@ -709,8 +709,10 @@ body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px
 .doc-table.exp{width:72%}
 .doc-table .d-amt{font-weight:800;text-align:right;white-space:nowrap}
 .doc-empty{color:var(--sub);font-size:12.5px;font-style:italic;margin:6px 0 12px}
-.doc-lodge{display:inline-flex;align-items:center;gap:8px;background:#fff8f0;border:1px solid #ffe8cc;border-radius:12px;padding:9px 15px;font-size:12.5px;margin:4px 0 12px}
-.doc-lodge-price{color:#b0712e;font-weight:800;margin-left:8px}
+.doc-lodge{display:flex;flex-direction:column;gap:3px;background:#fff8f0;border:1px solid #ffe8cc;border-radius:12px;padding:9px 15px;font-size:12.5px;margin:4px 0 12px;width:fit-content;max-width:100%}
+.doc-lodge-main{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.doc-lodge-note{font-size:11.5px;color:var(--sub)}
+.doc-lodge-price{color:#b0712e;font-weight:800;margin-left:auto}
 .doc-day-sum{display:flex;flex-wrap:wrap;gap:8px 18px;background:#fafafc;border-radius:12px;padding:10px 15px;font-size:12.5px;color:var(--sub);margin-top:6px}
 .doc-day-sum b{color:var(--accent)}
 .doc-note{font-style:italic;color:var(--sub);flex-basis:100%}
@@ -2961,7 +2963,10 @@ function buildDoc(t) {
     return `<section class="doc-day" id="doc-day-${d}">
       <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span></h2>
       ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次 / 座位 / 乘客</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
-      ${lodge ? `<div class="doc-lodge">${lodgeEmoji(lodgeType)} ${esc(lodgeType)} · <b>${esc(lodge.name)}</b>${lodge.location ? ' · ' + esc(lodge.location) : ''}${lodge.notes ? ' · 💬 ' + esc(lodge.notes) : ''}<span class="doc-lodge-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span></div>` : ''}
+      ${lodge ? `<div class="doc-lodge">
+        <div class="doc-lodge-main">${lodgeEmoji(lodgeType)} ${esc(lodgeType)} · <b>${esc(lodge.name)}</b>${lodge.location ? ' · ' + esc(lodge.location) : ''}<span class="doc-lodge-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span></div>
+        ${lodge.notes ? `<div class="doc-lodge-note">💬 ${esc(lodge.notes)}</div>` : ''}
+      </div>` : ''}
       ${expRows ? `<table class="doc-table exp"><thead><tr><th>类别</th><th>项目</th><th>金额</th></tr></thead><tbody>${expRows}</tbody></table>` : ''}
       ${remRows ? `<table class="doc-table rem"><thead><tr><th>提醒时间</th><th>提醒内容</th></tr></thead><tbody>${remRows}</tbody></table>` : ''}
       <div class="doc-day-sum">
