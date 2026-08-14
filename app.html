@@ -208,13 +208,14 @@ textarea{resize:vertical}
 .seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
-/* 三列头对齐：auto 列自动取最宽内容（时间|地点|交通 开头对齐，不固定宽度不拉长） */
-.seg-main{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:4px 8px;flex:1;min-width:0}
-.seg-view-time{grid-column:1;grid-row:1}
-.seg-view-path{grid-column:2;grid-row:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.seg-view-trans{grid-column:3;grid-row:1}
-.seg-view-dets{grid-column:1/3;grid-row:2;display:flex;gap:6px;flex-wrap:wrap;min-width:0}
-.seg-view-price{grid-column:3;grid-row:2;justify-self:end}
+/* 紧凑布局：时间胶囊统一最小宽（段间开头对齐），其余紧跟内容、不拉长不预留空隙 */
+.seg-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.seg-view-time{flex:none;min-width:62px;display:inline-flex;align-items:center;justify-content:center}
+.seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw}
+.seg-view-trans{flex-shrink:0}
+.seg-view-arr{font-size:11.5px;color:var(--sub);white-space:nowrap;flex-shrink:0}
+.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
+.seg-view-price{flex-shrink:0}
 /* 时间胶囊（与提醒时间同款） */
 .seg-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
@@ -1665,13 +1666,19 @@ function renderDayCard(t, d) {
     else if (s.seat) det.push(esc(s.seat)); // 兼容旧数据
     const chips = det.map(x => `<span class="seg-view-chip">${x}</span>`).join('');
     const sub = s.notes ? '💬 ' + esc(s.notes) : '';
+    // 时间列紧凑：只显示出发时间（+跨天标记），到达时间放第二行
+    const timeTxt = s.departTime
+      ? esc(s.departTime) + (isCrossDay(s) ? ' (+' + crossDays(s) + ')' : '')
+      : esc(timeRange(s));
+    const arriveTxt = s.arriveTime ? `<span class="seg-view-arr">→ ${esc(s.arriveTime)}</span>` : '';
     return `<div class="seg-wrap">
       <div class="seg-view" draggable="true" data-date="${d}" data-idx="${i}" data-type="segments" title="拖动排序">
         <span class="drag-handle">≡</span>
         <div class="seg-main">
-          <span class="seg-view-time">${esc(timeRange(s))}</span>
+          <span class="seg-view-time">${timeTxt}</span>
           <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
           <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
+          ${arriveTxt}
           ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
           ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
         </div>
