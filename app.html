@@ -1599,20 +1599,20 @@ function renderDayCard(t, d) {
           <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" placeholder="09:00" title="出发时间（手写，如 09:00）">
           <span class="arr">→</span>
           <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" placeholder="12:00" title="到达时间（手写，如 12:00）">
-          <input class="seg-from" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
+          <input class="seg-from" maxlength="30" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
-          <input class="seg-to" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
+          <input class="seg-to" maxlength="30" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
           <select class="seg-trans" data-path="days.${d}.segments.${i}.transport">
             ${TRANSPORTS.map(x => `<option value="${x[1]}" ${s.transport === x[1] ? 'selected' : ''}>${x[0]} ${x[1]}</option>`).join('')}
           </select>
-          <input class="seg-note-input" data-path="days.${d}.segments.${i}.notes" value="${esc(s.notes)}" placeholder="备注（可选）">
+          <input class="seg-note-input" maxlength="30" data-path="days.${d}.segments.${i}.notes" value="${esc(s.notes)}" placeholder="备注（可选）">
           <button class="done-btn" data-action="seg-done" data-date="${d}" data-idx="${i}" title="确认保存">✓</button>
           <button class="done-btn gray" data-action="seg-cancel" data-date="${d}" data-idx="${i}" title="取消（删除）">✕</button>
         </div>
         ${pub ? `
         <div class="seg-detail${detailCls}">
           <span class="seg-detail-label">班次/车次</span>
-          <input class="small" data-path="days.${d}.segments.${i}.vehicleNo" value="${esc(s.vehicleNo || '')}" placeholder="如 G1234">
+          <input class="small" maxlength="30" data-path="days.${d}.segments.${i}.vehicleNo" value="${esc(s.vehicleNo || '')}" placeholder="如 G1234">
           <span class="seg-detail-label">乘客 · 座位</span>
           <div class="seg-pax-chips">
             ${paxChips || '<span class="lodge-none">未选乘客</span>'}
@@ -1663,10 +1663,10 @@ function renderDayCard(t, d) {
         <select data-path="days.${d}.expenses.${i}.category">
           ${CATS.map(c => `<option value="${c[1]}" ${e.category === c[1] ? 'selected' : ''}>${c[0]}${c[1]}</option>`).join('')}
         </select>
-        <input class="item" data-path="days.${d}.expenses.${i}.item" value="${esc(e.item)}" placeholder="项目">
+        <input class="item" maxlength="30" data-path="days.${d}.expenses.${i}.item" value="${esc(e.item)}" placeholder="项目">
         <input class="amt" type="number" min="0" data-num data-path="days.${d}.expenses.${i}.amount" value="${num(e.amount)}" placeholder="0">
-        <input class="when" data-path="days.${d}.expenses.${i}.when" value="${esc(e.when)}" placeholder="时间">
-        <input class="exp-note-input" data-path="days.${d}.expenses.${i}.note" value="${esc(e.note || '')}" placeholder="备注（如：和谁吃的、哪家店）">
+        <input class="when" maxlength="30" data-path="days.${d}.expenses.${i}.when" value="${esc(e.when)}" placeholder="时间">
+        <input class="exp-note-input" maxlength="30" data-path="days.${d}.expenses.${i}.note" value="${esc(e.note || '')}" placeholder="备注（如：和谁吃的、哪家店）">
         <button class="done-btn" data-action="exp-done" data-date="${d}" data-idx="${i}" title="确认保存">✓</button>
         <button class="done-btn gray" data-action="exp-cancel" data-date="${d}" data-idx="${i}" title="取消（删除）">✕</button>
       </div>`;
@@ -1703,10 +1703,10 @@ function renderDayCard(t, d) {
             ${LODGE_TYPES.map(x => `<option ${lodgeType === x ? 'selected' : ''}>${x}</option>`).join('')}
           </select>
         </div>
-        <div class="f"><label>${lodgeType}名</label><input data-path="days.${d}.lodging.name" value="${esc(lodge.name)}" placeholder="如：西湖边青旅"></div>
-        <div class="f"><label>位置</label><input data-path="days.${d}.lodging.location" value="${esc(lodge.location)}" placeholder="如：杭州西湖区"></div>
+        <div class="f"><label>${lodgeType}名</label><input maxlength="30" data-path="days.${d}.lodging.name" value="${esc(lodge.name)}" placeholder="如：西湖边青旅"></div>
+        <div class="f"><label>位置</label><input maxlength="30" data-path="days.${d}.lodging.location" value="${esc(lodge.location)}" placeholder="如：杭州西湖区"></div>
         <div class="f"><label>每晚价格（元）</label><input class="amount" type="number" min="0" data-num data-path="days.${d}.lodging.pricePerNight" value="${num(lodge.pricePerNight)}"></div>
-        <div class="f" style="grid-column:1/-1"><label>备注</label><input data-path="days.${d}.lodging.notes" value="${esc(lodge.notes)}" placeholder="如：含早餐"></div>
+        <div class="f" style="grid-column:1/-1"><label>备注</label><input maxlength="30" data-path="days.${d}.lodging.notes" value="${esc(lodge.notes)}" placeholder="如：含早餐"></div>
       </div>
       <div class="lodge-actions" style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
         <button class="done-btn" data-action="lodge-done" data-date="${d}" title="确认保存">✓</button>
@@ -1747,7 +1747,7 @@ function renderDayCard(t, d) {
       return `<div class="rem-row">
         <input type="date" data-path="days.${d}.reminders.${i}.date" value="${esc(r.date || '')}" title="提醒日期">
         <input type="time" data-path="days.${d}.reminders.${i}.time" value="${esc(r.time || '')}" title="提醒时间">
-        <input class="rem-title" data-path="days.${d}.reminders.${i}.title" value="${esc(r.title || '')}" placeholder="提醒内容，如：9点抢票">
+        <input class="rem-title" maxlength="30" data-path="days.${d}.reminders.${i}.title" value="${esc(r.title || '')}" placeholder="提醒内容，如：9点抢票">
         <button class="done-btn" data-action="rem-done" data-date="${d}" data-idx="${i}" title="确认保存">✓</button>
         <button class="done-btn gray" data-action="rem-cancel" data-date="${d}" data-idx="${i}" title="取消（删除）">✕</button>
       </div>`;
@@ -1810,7 +1810,7 @@ function renderDayCard(t, d) {
     <div class="day-grid">
       <div class="block notes-box col-left">
         <div class="block-title"><span class="tag">📝</span>备注</div>
-        <textarea data-path="days.${d}.notes" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
+        <textarea maxlength="80" data-path="days.${d}.notes" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
       </div>
       <div class="block col-right">
         <div class="block-title"><span class="tag">⏰</span>提醒</div>
@@ -2143,7 +2143,7 @@ function openPaxPanel(t, date, idx) {
           : '<span class="lodge-none">大行程还没有出行人，可以直接在下方输入乘客名字</span>'}
       </div>
       <div class="pax-custom">
-        <input id="pax-custom-name" placeholder="输入其他乘客姓名">
+        <input id="pax-custom-name" maxlength="30" placeholder="输入其他乘客姓名">
         <button class="btn btn-ghost" id="pax-add-custom">＋ 添加</button>
       </div>
       <div class="pax-seats" id="pax-seats"></div>
@@ -2160,7 +2160,7 @@ function openPaxPanel(t, date, idx) {
     seatsBox.innerHTML = [...sel.entries()].map(([name, seat]) => `
       <div class="pax-seat-row">
         <span class="pax-seat-name">👤 ${esc(name)}</span>
-        <input class="pax-seat-input" data-name="${esc(name)}" value="${esc(seat)}" placeholder="座位号，如 3车5D">
+        <input class="pax-seat-input" maxlength="30" data-name="${esc(name)}" value="${esc(seat)}" placeholder="座位号，如 3车5D">
         <button class="done-btn gray" data-rm="${esc(name)}" title="移除">✕</button>
       </div>`).join('') || '<span class="lodge-none">尚未选择乘客</span>';
   }
@@ -2385,17 +2385,17 @@ function openTripModal(trip) {
   $('#modal-box').innerHTML = `
     <h2>${trip ? '✏️ 编辑大行程' : '✨ 新建大行程'}</h2>
     <div class="form-grid">
-      <div class="form-field full"><label>行程名称 *</label><input id="m-name" value="${esc(t.name)}" placeholder="如：2026 国庆川西自驾"></div>
-      <div class="form-field"><label>封面表情</label><input id="m-emoji" value="${esc(t.emoji)}" placeholder="🧳"></div>
+      <div class="form-field full"><label>行程名称 *</label><input id="m-name" maxlength="30" value="${esc(t.name)}" placeholder="如：2026 国庆川西自驾"></div>
+      <div class="form-field"><label>封面表情</label><input id="m-emoji" maxlength="30" value="${esc(t.emoji)}" placeholder="🧳"></div>
       <div class="form-field"><label>主题色</label><div class="color-row" id="m-colors">
         ${PRESET_COLORS.map(c => `<span class="color-dot ${c === t.color ? 'sel' : ''}" style="background:${c}" data-c="${c}"></span>`).join('')}
         <input type="color" id="m-color-custom" value="${esc(t.color)}" style="width:30px;height:30px;border-radius:50%;padding:0;border:1px solid var(--line)">
       </div></div>
       <div class="form-field"><label>开始日期</label><input type="date" id="m-start" value="${esc(t.startDate)}"></div>
       <div class="form-field"><label>结束日期</label><input type="date" id="m-end" value="${esc(t.endDate)}"></div>
-      <div class="form-field"><label>出行人（逗号分隔）</label><input id="m-travelers" value="${esc(t.travelers.join('，'))}" placeholder="我，小美，老王"></div>
+      <div class="form-field"><label>出行人（逗号分隔）</label><input id="m-travelers" maxlength="30" value="${esc(t.travelers.join('，'))}" placeholder="我，小美，老王"></div>
       <div class="form-field"><label>总预算（元）</label><input id="m-budget" type="number" min="0" value="${num(t.budget)}" placeholder="0 = 不设预算"></div>
-      <div class="form-field full"><label>行程备注</label><textarea id="m-notes" rows="2" placeholder="旅行主题、注意事项…">${esc(t.notes)}</textarea></div>
+      <div class="form-field full"><label>行程备注</label><textarea id="m-notes" maxlength="30" rows="2" placeholder="旅行主题、注意事项…">${esc(t.notes)}</textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="m-cancel">取消</button>
