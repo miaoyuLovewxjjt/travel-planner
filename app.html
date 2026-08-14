@@ -82,8 +82,8 @@ textarea{resize:vertical}
 .btn-danger{background:#fff;color:#e5484d;border:1px solid #f3c1c3}
 .btn-small{padding:4px 10px;font-size:12px;border-radius:999px}
 .icon-btn{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
-  color:var(--sub);transition:background .15s,color .15s}
-.icon-btn:hover{background:#f0f0f5;color:var(--ink)}
+  color:#55556a;transition:background .15s,color .15s}
+.icon-btn:hover{background:#e8e8ef;color:var(--ink)}
 .icon-btn:hover .trash-icon{stroke:#e5484d}
 .icon-btn:hover .pencil-icon{stroke:#3d5af1}
 .trash-icon,.pencil-icon{display:block;flex-shrink:0}
@@ -174,9 +174,9 @@ textarea{resize:vertical}
 .day-badge .n{font-size:20px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 .day-badge .w{font-size:11px;opacity:.95;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 .day-head .day-info{flex:1}
-.day-head .day-info h3{font-size:17px;font-weight:800}
+.day-head .day-info h3{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .day-head .day-info .day-sub{font-size:12.5px;color:var(--sub)}
-.day-head .day-cost{text-align:right}
+.day-head .day-cost{text-align:right;align-self:flex-end;padding-bottom:2px}
 .day-head .day-cost .amt{font-size:18px;font-weight:800;color:var(--accent)}
 .day-head .day-cost .lbl{font-size:11px;color:var(--sub)}
 .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
@@ -196,7 +196,7 @@ textarea{resize:vertical}
 .block-title .tag{font-size:14px;display:inline-flex;align-items:center}
 .add-row-btn{
   display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:12.5px;font-weight:700;
-  padding:6px 12px;border-radius:999px;border:1.5px dashed var(--accent-border);transition:all .15s;margin-top:4px;
+  padding:6px 12px;border-radius:999px;border:1.5px dashed var(--accent-border);transition:all .15s;margin:8px 0 2px;
 }
 .add-row-btn:hover{background:var(--accent-soft)}
 
@@ -204,13 +204,13 @@ textarea{resize:vertical}
 .seg-wrap.editing{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:8px 12px;margin:6px 0}
 .seg-view{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .seg-wrap .seg-view:last-child{border-bottom:none}
-.seg-view-time{font-size:12px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
-.seg-view-path{font-weight:700;font-size:13.5px;color:var(--ink)}
+.seg-view-time{font-size:13px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-path{font-weight:700;font-size:14.5px;color:var(--ink)}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
 .seg-view-sub{font-size:11.5px;color:var(--sub);padding-left:2px;flex:1;min-width:70px}
-.seg-view-trans{font-size:12px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
-.seg-view-chip{font-size:12px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
-.seg-view-price{font-size:12px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-trans{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-chip{font-size:13px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-price{font-size:13px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .seg-view-actions{margin-left:auto;display:flex;gap:4px}
 .drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;padding:2px 4px;border-radius:6px}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
@@ -234,10 +234,11 @@ textarea{resize:vertical}
   background:var(--ink);padding:2px 10px;border-radius:999px;white-space:nowrap}
 .seg-note{font-size:12px;color:var(--sub);flex:1;min-width:80px}
 .seg-row input{width:88px;padding:4px 6px;font-size:12.5px;border-radius:8px}
-.seg-row input[type=time]{width:80px;padding:4px 3px;font-size:12px;flex-shrink:0}
+.seg-row input[type=time]{width:80px;padding:4px 3px;font-size:13px;flex-shrink:0}
+.seg-row input.seg-time{width:80px;padding:4px 6px;font-size:13px;flex-shrink:0;text-align:center}
 .seg-row input.seg-note-input{flex:1;min-width:40px;width:auto}
 .seg-row input.seg-price{width:76px;flex-shrink:0}
-.seg-view-price{font-size:12px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-price{font-size:13px;font-weight:800;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 .exp-note-input{flex-basis:100%;width:100%!important;padding:4px 8px;font-size:12px;border-radius:8px;border-color:#eee}
 .exp-view-note{flex-basis:100%;font-size:11.5px;color:var(--sub);padding-left:2px}
 .seg-row select{width:82px;padding:4px 4px;font-size:12.5px;border-radius:8px;flex-shrink:0}
@@ -327,9 +328,9 @@ textarea{resize:vertical}
 .exp-src-chip.other{background:#f2f2f7;color:var(--sub)}
 .exp-view{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .exp-view:last-child{border-bottom:none}
-.exp-view-cat{font-size:11px;font-weight:800;background:#f2f2f7;padding:2px 9px;border-radius:99px;color:var(--sub);white-space:nowrap}
-.exp-view-item{font-weight:700;font-size:13px;flex:1;min-width:90px}
-.exp-view-amt{font-weight:800;color:var(--accent);white-space:nowrap}
+.exp-view-cat{font-size:12.5px;font-weight:800;background:#f2f2f7;padding:2px 9px;border-radius:99px;color:var(--sub);white-space:nowrap}
+.exp-view-item{font-weight:700;font-size:14px;flex:1;min-width:90px}
+.exp-view-amt{font-weight:800;color:var(--accent);white-space:nowrap;font-size:14px}
 .exp-view .exp-src-chip{margin-left:0}
 .exp-view-actions{display:flex;gap:4px}
 .exp-view[draggable="true"]{cursor:grab}
@@ -363,8 +364,8 @@ textarea{resize:vertical}
 .rem-view{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .rem-view:last-child{border-bottom:none}
 .rem-dot{width:11px;height:11px;border:2px solid var(--accent);border-radius:50%;flex-shrink:0;background:#fff}
-.rem-view-time{font-size:12px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
-.rem-view-title{font-size:13px;font-weight:700;color:var(--ink)}
+.rem-view-time{font-size:13px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
+.rem-view-title{font-size:14px;font-weight:700;color:var(--ink)}
 .rem-view-actions{display:flex;gap:2px;margin-left:auto}
 .exp-donut{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
 .exp-donut .lbl{font-size:11px;color:var(--sub);font-weight:700;margin-bottom:2px}
@@ -415,6 +416,31 @@ textarea{resize:vertical}
 
 /* 数据管理面板 */
 .st-title{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:1px;margin-bottom:10px}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 2px;
+  border-bottom:1px dashed var(--line);font-size:14px;font-weight:600}
+.set-row.clickable{cursor:pointer}
+.set-row.clickable:hover{background:#fafafc;border-radius:8px;padding-left:6px;padding-right:6px}
+.set-opts{display:flex;gap:6px}
+.set-opt{padding:5px 14px;border-radius:999px;font-size:13px;font-weight:700;color:var(--sub);
+  background:#f2f2f7;border:1.5px solid transparent;transition:all .15s}
+.set-opt:hover{border-color:var(--accent-border)}
+.set-opt.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.set-version{margin-top:8px;background:#fafafc;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.set-version a{color:var(--accent);font-weight:700;text-decoration:none;word-break:break-all}
+/* 大字体 */
+body.font-large{font-size:15.5px}
+body.font-large .seg-view-time,body.font-large .seg-view-chip,body.font-large .seg-view-trans,body.font-large .seg-view-price{font-size:14px}
+body.font-large .seg-view-path{font-size:15.5px}
+body.font-large .exp-view-item{font-size:15px}
+body.font-large .exp-view-cat{font-size:13px}
+body.font-large .lodge-view-name{font-size:16px}
+body.font-large .lodge-view-sub{font-size:14px}
+body.font-large .rem-view-time{font-size:14px}
+body.font-large .rem-view-title{font-size:15px}
+body.font-large .btn{font-size:14.5px}
+/* 渐变壁纸 */
+body.wall-gradient{background:linear-gradient(165deg,var(--accent-soft) 0%,var(--bg) 45%)}
+body.wall-gradient .trip-card,body.wall-gradient .day-card{box-shadow:0 4px 18px rgba(28,28,60,.08)}
 .theme-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:2px 0 4px}
 .theme-dot{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent;
   display:flex;align-items:center;justify-content:center;transition:transform .12s,box-shadow .15s;position:relative}
@@ -793,6 +819,10 @@ const dayNo = (trip, d) => isInRange(trip, d) ? diffDays(trip.startDate, d) + 1 
 
 const TRANSPORTS = [['🚇','地铁'],['✈️','飞机'],['🚕','打车'],['🚌','公交'],['🚶','步行'],['🚄','高铁'],['🚗','自驾'],['🚙','租车'],['🛥️','游船'],['🚲','骑行'],['🧭','其他']];
 
+/** 版本信息（设置 → 额外设置 → 版本管理） */
+const APP_VERSION = '1.8';
+const GITHUB_URL = 'https://github.com/miaoyuLovewxjjt/travel-planner';
+
 /** 设备模式：'pad'（平板版 App）| 'phone'（手机版 App）| 'web'（浏览器）；支持 ?device=pad 模拟（调试用） */
 const DEVICE = (window.AndroidBridge && window.AndroidBridge.getDevice) ? window.AndroidBridge.getDevice()
   : new URLSearchParams(location.search).get('device') || 'web';
@@ -810,14 +840,16 @@ const THEMES = [
 (function initTheme() {
   const saved = localStorage.getItem('theme');
   if (saved && THEMES.some(t => t.id === saved)) document.body.classList.add('theme-' + saved);
+  if (localStorage.getItem('font') === 'large') document.body.classList.add('font-large');
+  if (localStorage.getItem('wall') === 'gradient') document.body.classList.add('wall-gradient');
 })();
 const CATS = [['🚆','交通'],['🍜','餐饮'],['🏨','住宿'],['🎫','门票'],['🛍️','购物'],['📌','其他']];
 const PRESET_COLORS = ['#FF6B6B','#FF9A5A','#FFC24B','#4ECB71','#4D96FF','#7B5CF0','#F0619B','#0FB5AE','#B58A5A','#5A6B8C'];
 const emojiOf = t => (TRANSPORTS.find(x => x[1] === t) || TRANSPORTS[9])[0];
 /** 简约垃圾桶图标（银色 SVG） */
-const trashIcon = () => '<svg class="trash-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#9e9e9e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+const trashIcon = () => '<svg class="trash-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#757585" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 /** 简约铅笔图标（SVG，与垃圾桶同规格） */
-const pencilIcon = () => '<svg class="pencil-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#9e9e9e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
+const pencilIcon = () => '<svg class="pencil-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#757585" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
 const catEmoji = c => (CATS.find(x => x[1] === c) || CATS[5])[0];
 
 /** 地图库是否已就绪（Leaflet 为异步动态加载） */
@@ -1307,9 +1339,9 @@ function renderDayCard(t, d) {
       return `<div class="seg-wrap editing">
         <div class="seg-row">
           ${pub ? `<button class="seg-toggle${(autoOpen || hasDetail) ? ' open' : ''}" data-action="toggle-seg" title="收起/展开交通详情">▸</button>` : ''}
-          <input type="time" class="seg-time" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" title="出发时间">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" placeholder="09:00" title="出发时间（手写，如 09:00）">
           <span class="arr">→</span>
-          <input type="time" class="seg-time" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" title="到达时间">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" placeholder="12:00" title="到达时间（手写，如 12:00）">
           <input class="seg-from" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
           <input class="seg-to" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
@@ -1537,8 +1569,7 @@ function renderDayCard(t, d) {
       <div class="day-cost">
         <div class="amt">${fmtMoney(st.exp)}</div>
         <div class="lbl">今日花费</div>
-      </div>
-      <button class="icon-btn del-day" data-date="${d}" title="删除当日行程">${trashIcon()}</button>
+      </div>      <button class="icon-btn del-day" data-date="${d}" title="删除当日行程">${trashIcon()}</button>
     </div>
     <div class="day-grid">
       <div class="block notes-box col-left">
@@ -1549,7 +1580,6 @@ function renderDayCard(t, d) {
         <div class="block-title"><span class="tag">⏰</span>提醒</div>
         <div class="rem-list">${remRows || '<div class="lodge-none">暂无提醒，可设置抢票、出发等定时提醒</div>'}</div>
         <button class="add-row-btn" data-action="add-rem" data-date="${d}">＋ 添加提醒</button>
-        <div class="map-hint">💡 手机 App 通过系统闹钟提醒；网页版需保持页面打开</div>
       </div>
       <div class="block full">
         <div class="block-title"><span class="tag">🗺️</span>行程路线</div>
@@ -2021,10 +2051,12 @@ function openSettingsPanel() {
     ? '数据保存在 App 内部私有目录，卸载应用会丢失数据，请定期「导出备份」。'
     : '数据保存在电脑上的 JSON 文件中，可通过「导出/导入」迁移到手机。';
   const curTheme = THEMES.find(t => document.body.classList.contains('theme-' + t.id)) || THEMES[0];
+  const curFont = localStorage.getItem('font') || 'std';
+  const curWall = localStorage.getItem('wall') || 'none';
   $('#modal-box').innerHTML = `
     <div class="data-panel">
       <h2>⚙️ 设置</h2>
-      <div class="st-title">🎨 主题颜色</div>
+      <div class="st-title">🎨 外观</div>
       <div class="theme-row">
         ${THEMES.map(t => `
           <span class="theme-dot ${t.id === curTheme.id ? 'sel' : ''}" data-theme="${t.id}"
@@ -2032,6 +2064,20 @@ function openSettingsPanel() {
             ${t.id === curTheme.id ? '<i>✓</i>' : ''}
           </span>`).join('')}
         <span class="theme-name" id="theme-name">${curTheme.name}</span>
+      </div>
+      <div class="set-row">
+        <span>🔤 字体大小</span>
+        <div class="set-opts">
+          <button class="set-opt ${curFont === 'std' ? 'on' : ''}" data-font="std">标准</button>
+          <button class="set-opt ${curFont === 'large' ? 'on' : ''}" data-font="large">大</button>
+        </div>
+      </div>
+      <div class="set-row">
+        <span>🖼️ 背景壁纸</span>
+        <div class="set-opts">
+          <button class="set-opt ${curWall === 'none' ? 'on' : ''}" data-wall="none">纯净</button>
+          <button class="set-opt ${curWall === 'gradient' ? 'on' : ''}" data-wall="gradient">主题渐变</button>
+        </div>
       </div>
       <div class="st-title" style="margin-top:16px">💾 数据管理</div>
       <div class="dp-row"><span>存储方式</span><b>${modeTxt}</b></div>
@@ -2043,6 +2089,15 @@ function openSettingsPanel() {
         <button class="btn btn-ghost" id="dp-export">📤 导出备份</button>
         <button class="btn btn-ghost" id="dp-import">📥 导入数据</button>
         <button class="btn btn-danger" id="dp-clear">${trashIcon()} 一键清理数据</button>
+      </div>
+      <div class="st-title" style="margin-top:16px">ℹ️ 额外设置</div>
+      <div class="set-row clickable" id="set-version">
+        <span>📌 版本管理</span><b style="color:var(--accent)">v${APP_VERSION} ›</b>
+      </div>
+      <div id="version-detail" class="set-version" hidden>
+        <div class="dp-row"><span>版本</span><b>v${APP_VERSION}</b></div>
+        <div class="dp-row"><span>开源地址</span><b style="font-size:11.5px;word-break:break-all;text-align:right"><a href="${GITHUB_URL}" target="_blank" rel="noopener">${GITHUB_URL}</a></b></div>
+        <div class="dp-note">💡 欢迎在 GitHub 上提交 Issue 反馈问题或建议。</div>
       </div>
     </div>`;
   $('#modal-root').classList.remove('hidden');
@@ -2064,6 +2119,28 @@ function openSettingsPanel() {
       render(); // 刷新视图（路线条等跟随主题色）
       scheduleSave(); // 顺带保存（状态一致）
     });
+  });
+
+  // 外观：字体大小 / 背景壁纸 / 版本管理
+  $('#modal-box').querySelectorAll('.set-opt[data-font]').forEach(b => {
+    b.addEventListener('click', () => {
+      const v = b.dataset.font;
+      localStorage.setItem('font', v);
+      document.body.classList.toggle('font-large', v === 'large');
+      $('#modal-box').querySelectorAll('.set-opt[data-font]').forEach(x => x.classList.toggle('on', x === b));
+    });
+  });
+  $('#modal-box').querySelectorAll('.set-opt[data-wall]').forEach(b => {
+    b.addEventListener('click', () => {
+      const v = b.dataset.wall;
+      localStorage.setItem('wall', v);
+      document.body.classList.toggle('wall-gradient', v === 'gradient');
+      $('#modal-box').querySelectorAll('.set-opt[data-wall]').forEach(x => x.classList.toggle('on', x === b));
+    });
+  });
+  $('#set-version').addEventListener('click', () => {
+    const d = $('#version-detail');
+    if (d) d.hidden = !d.hidden;
   });
 
   // 显示真实存储路径
