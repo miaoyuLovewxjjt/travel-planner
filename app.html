@@ -1658,8 +1658,8 @@ $('#view-detail').addEventListener('click', e => {
     return;
   }
 
-  // 提醒：✓ 确认 / ✕ 取消 / ✏️ 编辑 / 🗑️ 删除
-  const remAction = e.target.closest('[data-action^="rem-"]');
+  // 提醒：＋ 添加 / ✓ 确认 / ✕ 取消 / ✏️ 编辑 / 🗑️ 删除
+  const remAction = e.target.closest('[data-action="add-rem"], [data-action^="rem-"]');
   if (remAction) {
     const d = remAction.dataset.date, i = Number(remAction.dataset.idx);
     const rems = t.days[d] ? t.days[d].reminders : null;
