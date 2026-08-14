@@ -1408,7 +1408,7 @@ function renderDetail(id) {
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
 }
 
-/* ---------- 旅行记录（独立页面：右上角 📖 打开 → #/trip/{id}/journal） ---------- */
+/* ---------- 旅行记录（独立页面：📖 新开标签页 → #/trip/{id}/journal） ---------- */
 function renderJournal(id) {
   const t = getTrip(id);
   if (!t) return;
@@ -1432,15 +1432,23 @@ function renderJournal(id) {
   const sc = document.querySelector('#view-journal .journal-scroll');
   if (sc) sc.scrollTop = 0;
 }
+/** 打开旅行记录：新开浏览器标签页（原页面不动）；WebView 等不支持新窗口时降级为同页跳转 */
 function openJournal(t) {
-  location.hash = '#/trip/' + encodeURIComponent(t.id) + '/journal';
+  const url = location.pathname + '?v=' + Date.now() + '#/trip/' + encodeURIComponent(t.id) + '/journal';
+  const w = window.open(url, '_blank');
+  if (!w) {
+    location.hash = '#/trip/' + encodeURIComponent(t.id) + '/journal';
+    showToast('📖 已在当前页打开旅行记录');
+  }
 }
+/** 关闭旅行记录：新标签页（有 opener）关闭自己；否则同页返回详情 */
 function closeJournal() {
+  if (window.opener) { window.close(); return; }
   if (postTripId) location.hash = '#/trip/' + encodeURIComponent(postTripId);
   else location.hash = '#/';
 }
 
-// 顶栏 📖 按钮：跳转到旅行记录独立页面
+// 顶栏 📖 按钮：新开标签页打开旅行记录
 $('#btn-preview').addEventListener('click', () => {
   const t = getTrip(currentTripId);
   if (t) openJournal(t);
@@ -2265,7 +2273,11 @@ $('#trip-grid').addEventListener('click', e => {
 });
 
 $('#btn-new').addEventListener('click', () => openTripModal(null));
-$('#btn-back').addEventListener('click', () => location.hash = '#/');
+$('#btn-back').addEventListener('click', () => {
+  // 旅行记录页：关闭标签页（新开标签页场景）或回详情页
+  if (location.hash.includes('/journal')) { closeJournal(); return; }
+  location.hash = '#/';
+});
 // 顶栏 📖 按钮：打开旅行记录（绑定见 openJournal 函数上方）
 
 // 导出 / 导入（电脑 ⇄ 手机数据迁移）
@@ -2685,11 +2697,11 @@ function downloadJournalPNG() {
   })();
 }
 
-// 手账地图中点击图钉/折线 → 关闭旅行记录页面并跳转到详情页当天
+// 手账地图中点击图钉/折线 → 跳转到详情页当天（旅行记录页内切换，原标签页不动）
 function jumpToPostDay(d) {
   if (!d || !postTripId) return;
-  closeJournal();
-  if (location.hash !== '#/trip/' + postTripId) location.hash = '#/trip/' + postTripId;
+  // 从旅行记录页切到详情页（同标签页内），滚动到当天并高亮
+  location.hash = '#/trip/' + encodeURIComponent(postTripId);
   setTimeout(() => {
     const el = document.getElementById('day-' + d);
     if (el) { el.scrollIntoView({ behavior: 'smooth' }); flashDay(el); }
