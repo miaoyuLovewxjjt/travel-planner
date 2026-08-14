@@ -1197,8 +1197,6 @@ function tripStats(trip) {
 }
 function tripTravelers(trip) { return trip.travelers || []; }
 function dayTravelers(trip, day) { return day.travelers && day.travelers.length ? day.travelers : tripTravelers(trip); }
-/** 结余颜色：正常用行程主题色（--accent），超支红色 */
-function budgetColor(remain) { return remain < 0 ? '#e5484d' : 'var(--accent)'; }
 
 /** 每日首末点：每天第一个行程段的出发地 + 最后一个行程段的到达地 */
 function tripDayEndpoints(trip) {
@@ -1387,7 +1385,7 @@ function renderDetail(id) {
   // 统计长框：日期 / 天数 / 出行人 / 总预算 / 总花费 / 预算结余（自适应长度）
   $('#stat-strip').innerHTML = `
     <div class="stat-card stat-long">
-      <div class="sl-item"><span class="num">🗓️ ${Number(t.startDate.slice(5,7))}/${Number(t.startDate.slice(8,10))} ~ ${Number(t.endDate.slice(5,7))}/${Number(t.endDate.slice(8,10))}</span><span class="lbl">行程日期</span></div>
+      <div class="sl-item"><span class="num">${Number(t.startDate.slice(5,7))}/${Number(t.startDate.slice(8,10))} ~ ${Number(t.endDate.slice(5,7))}/${Number(t.endDate.slice(8,10))}</span><span class="lbl">行程日期</span></div>
       <div class="sl-div"></div>
       <div class="sl-item"><span class="num">${st.days} 天</span><span class="lbl">行程天数</span></div>
       <div class="sl-div"></div>
@@ -1397,7 +1395,7 @@ function renderDetail(id) {
       <div class="sl-div"></div>
       <div class="sl-item" data-key="exp"><span class="num">${fmtMoney(st.exp)}</span><span class="lbl">总花费</span></div>
       <div class="sl-div"></div>
-      <div class="sl-item" data-key="remain"><span class="num ${remain < 0 ? 'over' : ''}" style="color:${budgetColor(remain)}">${st.budget ? fmtMoney(remain) : '—'}</span><span class="lbl">预算结余</span></div>
+      <div class="sl-item" data-key="remain"><span class="num ${remain < 0 ? 'over' : ''}">${st.budget ? fmtMoney(remain) : '—'}</span><span class="lbl">预算结余</span></div>
     </div>`;
 
   // 日期导航：范围内所有日期 + 范围外的有数据日期
@@ -2117,7 +2115,7 @@ function updateTotalsUI(t, path) {
   // 预算结余
   const remain = st.budget - st.exp;
   const statRemain = document.querySelector('#stat-strip .stat-long [data-key="remain"] .num');
-  if (statRemain) { statRemain.textContent = st.budget ? fmtMoney(remain) : '—'; statRemain.style.color = budgetColor(remain); }
+  if (statRemain) { statRemain.textContent = st.budget ? fmtMoney(remain) : '—'; statRemain.classList.toggle('over', remain < 0); }
   // 日期导航按钮金额
   const navInfo = document.querySelector(`#day-nav button[data-date="${d}"] .info`);
   if (navInfo) navInfo.textContent = fmt;
