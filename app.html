@@ -950,7 +950,7 @@ if (DEVICE === 'pad') document.body.classList.add('pad');
   if (localStorage.getItem('font') === 'large') document.body.classList.add('font-large');
   if (localStorage.getItem('wall') === 'gradient') document.body.classList.add('wall-gradient');
 })();
-const CATS = [['🚆','交通'],['🍜','餐饮'],['🏨','住宿'],['🎫','门票'],['🛍️','购物'],['📌','其他']];
+const CATS = [['🚆','交通'],['🍜','餐饮'],['🌙','住宿'],['🎫','门票'],['🛍️','购物'],['📌','其他']];
 const PRESET_COLORS = ['#FF6B6B','#FF9A5A','#FFC24B','#4ECB71','#4D96FF','#7B5CF0','#F0619B','#0FB5AE','#B58A5A','#5A6B8C'];
 const emojiOf = t => (TRANSPORTS.find(x => x[1] === t) || TRANSPORTS[9])[0];
 /** 简约垃圾桶图标（银色 SVG） */
@@ -1466,7 +1466,7 @@ $('#btn-preview').addEventListener('click', () => {
 /** 公共交通（显示车次/座位/乘客详情的交通方式） */
 const PUB_TRANSPORTS = ['高铁', '飞机', '地铁', '公交', '游船'];
 const LODGE_TYPES = ['酒店', '民宿', '青旅', '其他'];
-const lodgeEmoji = ty => ({ '酒店': '🏨', '民宿': '🏡', '青旅': '🛏️', '其他': '🏠' })[ty] || '🏨';
+const lodgeEmoji = () => '🌙';
 
 /** 时间段显示：优先结构化 departTime/arriveTime，兼容旧 time 文本；跨天自动标 (+N) */
 function timeRange(seg) {
@@ -1823,7 +1823,7 @@ function renderDayCard(t, d) {
       </div>
       <div class="day-col col-l">
         <div class="block lodge-block">
-          <div class="block-title"><span class="tag">🏨</span>住宿</div>
+          <div class="block-title"><span class="tag">🌙</span>住宿</div>
           ${lodgeHtml}
         </div>
         <div class="block">
