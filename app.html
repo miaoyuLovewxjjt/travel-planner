@@ -204,7 +204,15 @@ textarea{resize:vertical}
 .seg-wrap.editing{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:8px 12px;margin:4px 0}
 .seg-wrap{border-bottom:1px dashed var(--line)}
 .seg-wrap:last-child{border-bottom:none}
-.seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;flex-wrap:wrap;line-height:1.5}
+/* 路线展示：网格竖向对齐（手柄|时间|路径|按钮 第一行；交通|班次乘客|价格 第二行，同类同列） */
+.seg-view{display:grid;grid-template-columns:22px auto minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:6px 2px;line-height:1.5}
+.seg-view .drag-handle{grid-column:1;grid-row:1}
+.seg-view-time{grid-column:2;grid-row:1}
+.seg-view-path{grid-column:3;grid-row:1;min-width:0}
+.seg-view-actions{grid-column:4;grid-row:1;justify-self:end}
+.seg-view-trans{grid-column:2;grid-row:2;justify-self:start}
+.seg-view-dets{grid-column:3;grid-row:2;display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+.seg-view-price{grid-column:4;grid-row:2;justify-self:end}
 /* 时间胶囊（与提醒时间同款） */
 .seg-view-time{font-size:12.5px;font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:8px;white-space:nowrap}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
@@ -1659,7 +1667,7 @@ function renderDayCard(t, d) {
         <span class="seg-view-time">${esc(timeRange(s))}</span>
         <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
         <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
-        ${chips}
+        ${chips ? `<div class="seg-view-dets">${chips}</div>` : ''}
         ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
         <div class="seg-view-actions">
           <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
@@ -2928,18 +2936,19 @@ function buildDoc(t) {
     const lodgeType = lodge && lodge.type && LODGE_TYPES.includes(lodge.type) ? lodge.type : '酒店';
 
     const segRows = (day.segments || []).filter(s => !s.draft).map(seg => {
-      const det = [];
-      if (seg.vehicleNo) det.push(esc(seg.vehicleNo));
-      const paxTxt = paxText(seg);
-      if (paxTxt) det.push(esc(paxTxt));
-      else if (seg.seat) det.push(esc(seg.seat));
-      if (num(seg.price)) det.push('💴 ' + fmtMoney(seg.price));
+      // 班次 / 乘客 / 座位 / 价格 分四列；空值显示 -
+      const paxs = normPax(seg);
+      const paxNames = paxs.map(p => p.name).join('、');
+      const seats = paxs.map(p => p.seat).filter(Boolean).join('、') || seg.seat || '';
       return `<tr>
         <td class="d-time">${esc(timeRange(seg))}</td>
         <td class="d-path">${esc(seg.from || '?')} → ${esc(seg.to || '?')}</td>
-        <td class="d-trans">${emojiOf(seg.transport)} ${esc(seg.transport || '')}</td>
-        <td class="d-det">${det.join(' · ') || '—'}</td>
-        <td class="d-note">${esc(seg.notes || '')}</td>
+        <td class="d-trans">${emojiOf(seg.transport)} ${esc(seg.transport || '—')}</td>
+        <td>${esc(seg.vehicleNo || '—')}</td>
+        <td>${esc(paxNames || '—')}</td>
+        <td>${esc(seats || '—')}</td>
+        <td class="d-amt">${num(seg.price) ? fmtMoney(seg.price) : '—'}</td>
+        <td class="d-note">${esc(seg.notes || '—')}</td>
       </tr>`;
     }).join('');
 
@@ -2969,7 +2978,7 @@ function buildDoc(t) {
       <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span></h2>
       ${day.notes ? `<div class="doc-day-note">📝 ${esc(day.notes)}</div>` : ''}
       ${remRows ? `<table class="doc-table rem"><thead><tr><th>提醒时间</th><th>提醒内容</th></tr></thead><tbody>${remRows}</tbody></table>` : ''}
-      ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次 / 座位 / 乘客</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
+      ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次</th><th>乘客</th><th>座位</th><th>价格</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
       ${lodge ? `<div class="doc-lodge">
         <div class="doc-lodge-main">${lodgeEmoji(lodgeType)} ${esc(lodgeType)} · <b>${esc(lodge.name)}</b>${lodge.location ? ' · ' + esc(lodge.location) : ''}<span class="doc-lodge-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span></div>
         ${lodge.notes ? `<div class="doc-lodge-note">💬 ${esc(lodge.notes)}</div>` : ''}
