@@ -2882,7 +2882,12 @@ function initPostMap(points, color) {
  * ================================================================ */
 $('#btn-pdf').addEventListener('click', () => { const t = getTrip(currentTripId); if (t) openDoc(t); });
 $('#btn-close-doc').addEventListener('click', closeDoc);
-$('#btn-doc-print').addEventListener('click', () => window.print());
+// 打印前重新生成文档，确保打印内容与最新数据同步（新增内容无需刷新页面）
+$('#btn-doc-print').addEventListener('click', () => {
+  const t = getTrip(currentTripId);
+  if (t) buildDoc(t);
+  window.print();
+});
 
 function openDoc(t) { $('#doc').classList.remove('hidden'); applyTripTheme($('#doc'), t.color); buildDoc(t); }
 function closeDoc() { $('#doc').classList.add('hidden'); }
