@@ -207,29 +207,31 @@ textarea{resize:vertical}
 .seg-wrap{border-bottom:1px dashed var(--line)}
 .seg-wrap:last-child{border-bottom:none}
 /* 路线展示：一行优先（内容分组在手柄与按钮之间），放不下时第二行从时间列左对齐 */
-.seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;line-height:1.5}
+.seg-view{display:flex;align-items:center;gap:4px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
-/* 紧凑布局：主文字不换行（路径可压缩省略），像表格一样行距统一 */
-.seg-main{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:1;min-width:0;overflow:hidden}
+/* 紧凑布局：时间/路径/交通一行，乘客过长时整体换行（chip 底色=文字长度，不蔓延不覆盖） */
+.seg-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
 /* 时间：固定宽、不加粗；跨天角标绝对定位右上角不占行 */
 .seg-view-time{flex:none;width:92px;position:relative;display:inline-flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap}
 /* 跨天角标：右上角灰色小字 */
 /* 跨天角标：悬浮在到达时间正上方，灰色小字无底色 */
 .seg-time-arr{position:relative}
-.seg-cross-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:700;color:#a0a0b0;line-height:1.2;pointer-events:none;white-space:nowrap}
+.seg-cross-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;color:#a0a0b0;line-height:1.2;pointer-events:none;white-space:nowrap}
 /* 路径：超长时缩小字号（优先完整显示）；极长才省略兜底 */
 .seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw;min-width:0;flex-shrink:1}
 .seg-view-path.seg-path-sm{font-size:12.5px}
 .seg-view-path.seg-path-xs{font-size:11.5px}
 .seg-view-trans{flex-shrink:0}
 .seg-view-arr{font-size:11.5px;color:var(--sub);white-space:nowrap;flex-shrink:0}
-/* 乘客 chip：完整显示不省略（过长换行到第二行），不覆盖价格 */
-.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
+/* 乘客 chip：不压缩不溢出（宽度=文字长度），过长整体换行 */
+.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0;flex-shrink:0}
 .seg-view-price{flex-shrink:0}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
 .seg-view-path{font-weight:700;font-size:14px;color:var(--ink)}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
+/* 备注小图标（💬）：缩小与文字统一 */
+.note-emoji{font-style:normal;font-size:10px;margin-right:2px}
 /* 备注独立于主行 flex 流：紧贴主行下方（小上间距），长备注在块内换行，不影响主行对齐 */
 .seg-view-sub{font-size:12px;color:var(--sub);padding:0 0 4px 2px;line-height:1.5;margin-top:-2px}
 /* 标签胶囊（交通/班次乘客，与花销类别同款） */
@@ -1690,7 +1692,7 @@ function renderDayCard(t, d) {
     if (paxTxt) det.push(esc(paxTxt));
     else if (s.seat) det.push(esc(s.seat)); // 兼容旧数据
     const chips = det.map(x => `<span class="seg-view-chip">${x}</span>`).join('');
-    const sub = s.notes ? '💬 ' + esc(s.notes) : '';
+    const sub = s.notes ? `<i class="note-emoji">💬</i> ${esc(s.notes)}` : '';
     // 路径超长时缩小字号（优先完整显示，不省略）
     const pathLen = String(s.from || '').length + String(s.to || '').length;
     const pathCls = pathLen >= 22 ? ' seg-path-xs' : pathLen >= 14 ? ' seg-path-sm' : '';
@@ -1755,7 +1757,7 @@ function renderDayCard(t, d) {
           <button class="icon-btn" data-action="exp-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
         </div>
       </div>
-      ${e.note ? `<div class="exp-view-note">💬 ${esc(e.note)}</div>` : ''}
+      ${e.note ? `<div class="exp-view-note"><i class="note-emoji">💬</i> ${esc(e.note)}</div>` : ''}
     </div>`;
   }).join('');
 
