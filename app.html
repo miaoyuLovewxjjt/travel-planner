@@ -32,6 +32,8 @@
   --bg:#f4f4f7; --card:#ffffff; --ink:#1c1c28; --sub:#8a8a9a;
   --line:#ececf1; --radius:16px;
   --accent:#FF6B6B; --accent2:#FF8F8F; --accent-soft:#fff0f0; --accent-border:#ffc9c9; --accent-shadow:rgba(255,107,107,.35);
+  /* 消费构成色板默认值（珊瑚红派生，行程主题会覆盖）：交通深 → 其他浅 */
+  --cat-1:#AD4949; --cat-2:#DB5C5C; --cat-3:#FF6B6B; --cat-4:#FF9A9A; --cat-5:#FFBCBC; --cat-6:#FFDADA;
   --shadow:0 2px 14px rgba(28,28,60,.07);
 }
 /* 大主题已移除：默认珊瑚红为应用底色；每个大行程用自己创建时选的颜色（详情/记录/PDF 按行程独立配色） */
@@ -1166,8 +1168,8 @@ const emptyDay = () => ({ notes: '', lodging: { name: '', location: '', pricePer
   travelers: [], expenses: [], segments: [], pins: [] });
 
 /* —— 统计 —— */
-/* 消费构成颜色：每类固定一个颜色，不随行程主题变化 */
-const CAT_COLORS = { '交通': '#4D96FF', '餐饮': '#FF9A5A', '住宿': '#7B5CF0', '门票': '#4ECB71', '购物': '#F0619B', '其他': '#B0B0BC' };
+/* 消费构成颜色：跟随行程主题色（applyTripTheme 按深浅派生 --cat-1..6），同行程内同类别永远同色 */
+const CAT_COLORS = { '交通': 'var(--cat-1)', '餐饮': 'var(--cat-2)', '住宿': 'var(--cat-3)', '门票': 'var(--cat-4)', '购物': 'var(--cat-5)', '其他': 'var(--cat-6)' };
 function dayStats(day) {
   // 路线价格（交通）+ 住宿价格（住宿）自动计入当日合计，但不再进消费构成环形图（路线/住宿区块已直观体现）
   const segs = day.segments || [];
@@ -1373,6 +1375,13 @@ function applyTripTheme(root, color) {
   root.style.setProperty('--accent-soft', mixWhite(c, 0.88));
   root.style.setProperty('--accent-border', mixWhite(c, 0.62));
   root.style.setProperty('--accent-shadow', hexToRgba(c, 0.35));
+  // 消费构成色板：同一行程内类别深浅固定（交通最深 → 其他最浅），跨行程随主题变化
+  root.style.setProperty('--cat-1', shade(c, -32));
+  root.style.setProperty('--cat-2', shade(c, -14));
+  root.style.setProperty('--cat-3', c);
+  root.style.setProperty('--cat-4', mixWhite(c, 0.32));
+  root.style.setProperty('--cat-5', mixWhite(c, 0.55));
+  root.style.setProperty('--cat-6', mixWhite(c, 0.75));
 }
 
 /* ---------- 详情页 ---------- */
