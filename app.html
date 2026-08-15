@@ -297,11 +297,11 @@ textarea{resize:vertical}
 .lodge-view-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .lodge-view-type{font-size:14px;line-height:1.5;display:inline-flex;align-items:center;flex-shrink:0}
 .lodge-view-name{font-weight:700;font-size:14px;color:var(--ink);line-height:1.5}
-.lodge-view-price{font-size:14px;font-weight:800;color:var(--accent);margin-left:auto;white-space:nowrap;line-height:1.5}
+.lodge-view-price{font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap;line-height:1.5}
 .lodge-view-sub{font-size:12px;color:var(--sub);padding-left:2px;line-height:1.5}
 /* 住宿备注：独立一行（无论长短），与位置行同缩进 */
 .lodge-view-note{font-size:12px;color:var(--sub);padding-left:2px;line-height:1.5}
-.lodge-view-actions{display:flex;gap:2px}
+.lodge-view-actions{display:flex;gap:2px;margin-left:auto}
 
 /* 乘客选择面板 */
 .pax-panel .pax-list{display:flex;flex-wrap:wrap;gap:9px;margin:6px 0 14px}
@@ -1845,7 +1845,8 @@ function renderDayCard(t, d) {
     })),
   ];
   const segBarHtml = barItems.length ? barItems.map(b =>
-    `<div class="rb-seg" style="flex:${b.dur || 1};background:${b.color}" title="${b.title}">
+    // 条形图总长 = 24 小时，每段按时长比例（无时间的段给最小占位显示图标）
+    `<div class="rb-seg" style="flex:${b.dur ? (b.dur / 1440).toFixed(4) : 0.02};background:${b.color}" title="${b.title}">
       <span class="rb-txt">${b.label}</span></div>`).join('')
     : '<div class="rb-seg" style="flex:1;background:#e8e8ef;color:var(--sub);min-width:auto">暂无路线</div>';
 
