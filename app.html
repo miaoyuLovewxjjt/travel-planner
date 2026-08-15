@@ -1694,10 +1694,10 @@ function renderDayCard(t, d) {
           ${arriveTxt}
           ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
           ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
-        </div>
-        <div class="seg-view-actions">
-          <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
-          <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
+          <div class="seg-view-actions">
+            <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
+            <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
+          </div>
         </div>
       </div>
       ${sub ? `<div class="seg-view-sub">${sub}</div>` : ''}
