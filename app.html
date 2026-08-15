@@ -1505,16 +1505,23 @@ function timeRange(seg) {
     }
     return [dep, arr].filter(Boolean).join('-');
   }
-  return seg.time || '—';
+  // 兼容旧数据：仅 time 文本（如 "23:00-01:00"），同样提示跨天
+  const t = seg.time || '—';
+  const cd = crossDays(seg);
+  return cd > 0 ? t + ' (+' + cd + ')' : t;
 }
-/** 跨天天数：显式 crossDays 优先；否则到达<出发自动视为 +1；结束≥开始且仅残留 +1 时按当天处理 */
+/** 跨天天数：显式 crossDays 优先；否则到达<出发自动视为 +1（任何交通方式都提示，含地铁/步行）；结束≥开始且仅残留 +1 时按当天处理 */
 function crossDays(seg) {
   if (seg.crossDays && Number(seg.crossDays) > 1) return Number(seg.crossDays); // 显式 +2/+3 必是用户设置
-  if (seg.departTime && seg.arriveTime) {
-    if (seg.arriveTime < seg.departTime) return Number(seg.crossDays) > 0 ? Number(seg.crossDays) : 1;
+  const dep = seg.departTime, arr = seg.arriveTime;
+  if (dep && arr) {
+    if (arr < dep) return Number(seg.crossDays) > 0 ? Number(seg.crossDays) : 1;
     // 结束 ≥ 开始：当天（除非显式 >1）
     return 0;
   }
+  // 兼容旧数据：仅 time 文本，到达<出发也视为跨天
+  const m = String(seg.time || '').match(/(\d{1,2}:\d{2})\s*[-–—→~]\s*(\d{1,2}:\d{2})/);
+  if (m && m[2] < m[1]) return Number(seg.crossDays) > 0 ? Number(seg.crossDays) : 1;
   return 0;
 }
 const isCrossDay = seg => crossDays(seg) > 0;
@@ -2111,31 +2118,6 @@ $('#view-detail').addEventListener('input', e => {
     scheduleSave();
     updateTotalsUI(t, el.dataset.path); // 金额变化时局部刷新合计，不重渲染、不打断输入
   }
-});
-
-/* —— 时间选择器：点击时间框弹出系统时钟（原生 time picker），选完自动填入 —— */
-const timePicker = document.createElement('input');
-timePicker.type = 'time';
-timePicker.style.cssText = 'position:fixed;opacity:0;pointer-events:none;width:1px;height:1px;left:0;top:0';
-document.body.appendChild(timePicker);
-let activeTimeInput = null;
-timePicker.addEventListener('change', () => {
-  if (activeTimeInput) {
-    const v = timePicker.value || '';
-    activeTimeInput.value = v;
-    activeTimeInput.dispatchEvent(new Event('input', { bubbles: true }));
-    activeTimeInput = null;
-  }
-});
-$('#view-detail').addEventListener('pointerdown', e => {
-  const ti = e.target.closest('.seg-time');
-  if (!ti) return;
-  activeTimeInput = ti;
-  try {
-    // 去掉跨天标记等非时间字符，作为时钟初始值
-    timePicker.value = ti.value.replace(/[^\d:]/g, '').slice(0, 5);
-    timePicker.showPicker();
-  } catch (_) { activeTimeInput = null; } // 不支持 showPicker 的浏览器：保持手动输入
 });
 
 /** 编辑金额后局部更新当日合计 / 头部花费 / 总览 / 统计条 / 日期导航 */
