@@ -150,10 +150,26 @@ textarea{resize:vertical}
   display:flex;align-items:center;gap:9px;transition:all .15s;font-size:13px;
 }
 .day-nav button:hover{border-color:#d8d8e0;transform:translateX(2px)}
-.day-nav button .d{font-weight:800;font-size:15px;min-width:34px}
+/* 日期数字：主题色混合渐变文字（accent→accent2 斜向过渡）+ 微弱光晕，艺术科技感 */
+.day-nav button .d{
+  font-weight:800;font-size:15px;min-width:34px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 55%,var(--accent) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 4px var(--accent-shadow));
+}
 .day-nav button .info{color:var(--sub);font-size:11.5px;margin-left:auto;white-space:nowrap}
 .day-nav button.empty{opacity:.55;border-style:dashed}
-.day-nav button.active{background:var(--accent);color:#fff;border-color:transparent;box-shadow:0 4px 12px var(--accent-shadow)}
+/* 激活态：主题色渐变底色 + 顶部内高光 + 外发光，日期转白色渐变 */
+.day-nav button.active{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+  color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px var(--accent-shadow),inset 0 1px 0 rgba(255,255,255,.28);
+}
+.day-nav button.active .d{
+  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.78) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:none;
+}
 .day-nav button.active .info{color:rgba(255,255,255,.85)}
 .days-col{display:flex;flex-direction:column;gap:20px}
 
