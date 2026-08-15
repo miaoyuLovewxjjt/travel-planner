@@ -215,12 +215,16 @@ textarea{resize:vertical}
 /* 时间：固定宽、不加粗；跨天角标绝对定位右上角不占行 */
 .seg-view-time{flex:none;width:92px;position:relative;display:inline-flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap}
 /* 跨天角标：右上角灰色小字 */
-.seg-cross-badge{position:absolute;top:-7px;right:-2px;font-size:9.5px;font-weight:700;color:#a0a0b0;background:#f2f2f7;border-radius:6px;padding:0 4px;line-height:1.4;pointer-events:none}
-/* 路径：唯一可压缩元素（省略号省略，悬浮查看完整） */
+.seg-cross-badge{position:absolute;top:-6px;right:-4px;font-size:9.5px;font-weight:700;color:#a0a0b0;line-height:1.2;pointer-events:none}
+/* 路径：超长时缩小字号（优先完整显示）；极长才省略兜底 */
 .seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw;min-width:0;flex-shrink:1}
+.seg-view-path.seg-path-sm{font-size:12.5px}
+.seg-view-path.seg-path-xs{font-size:11.5px}
 .seg-view-trans{flex-shrink:0}
 .seg-view-arr{font-size:11.5px;color:var(--sub);white-space:nowrap;flex-shrink:0}
-.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:nowrap;min-width:0}
+/* 乘客 chip：过长省略（不覆盖后方价格），可被压缩 */
+.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:nowrap;min-width:0;flex-shrink:1}
+.seg-view-dets .seg-view-chip{overflow:hidden;text-overflow:ellipsis;max-width:110px}
 .seg-view-price{flex-shrink:0}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
 .seg-view-path{font-weight:700;font-size:14px;color:var(--ink)}
@@ -233,7 +237,8 @@ textarea{resize:vertical}
 /* 金额：主题色加粗纯文字（跟随行程主题色，与花销金额同款），无底色 */
 .seg-view-price{font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap}
 .seg-view-actions{margin-left:auto;display:flex;gap:2px}
-.drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;text-align:center;padding:2px 0;border-radius:6px}
+/* 拖动图标：≡ 左对齐（备注与之一致） */
+.drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;padding:2px 0;border-radius:6px}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
 .seg-view[draggable="true"]{cursor:grab}
 .seg-view[draggable="true"]:active{cursor:grabbing}
@@ -1685,6 +1690,9 @@ function renderDayCard(t, d) {
     else if (s.seat) det.push(esc(s.seat)); // 兼容旧数据
     const chips = det.map(x => `<span class="seg-view-chip">${x}</span>`).join('');
     const sub = s.notes ? '💬 ' + esc(s.notes) : '';
+    // 路径超长时缩小字号（优先完整显示，不省略）
+    const pathLen = String(s.from || '').length + String(s.to || '').length;
+    const pathCls = pathLen >= 22 ? ' seg-path-xs' : pathLen >= 14 ? ' seg-path-sm' : '';
     // 时间列：完整开始-结束；跨天标记用右上角灰色小角标（不占用本行空间）
     const dep = s.departTime, arr = s.arriveTime;
     const timeText = (dep || arr) ? [dep, arr].filter(Boolean).join('-') : (s.time || '—');
@@ -1695,7 +1703,7 @@ function renderDayCard(t, d) {
         <span class="drag-handle">≡</span>
         <div class="seg-main">
           <span class="seg-view-time">${esc(timeText)}${crossBadge}</span>
-          <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
+          <span class="seg-view-path${pathCls}"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
           <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
           ${arriveTxt}
           ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
