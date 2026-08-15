@@ -213,7 +213,7 @@ textarea{resize:vertical}
 .seg-view .drag-handle{flex-shrink:0}
 .seg-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
 /* 时间：固定宽（按 +1 最长情况计算）、不加粗；+1 行内上标紧随到达时间，不悬空不裁剪 */
-.seg-view-time{flex:none;width:96px;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap}
+.seg-view-time{flex:none;width:96px;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
 /* 跨天角标：行内上标（9px），灰色小字 */
 .seg-cross-badge{font-size:9px;font-weight:700;color:#a0a0b0;line-height:1;margin-left:1px;vertical-align:super;pointer-events:none;white-space:nowrap}
 /* 路径：超长时缩小字号（优先完整显示）；极长才省略兜底 */
@@ -227,17 +227,17 @@ textarea{resize:vertical}
 .seg-trail{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;min-width:0}
 .seg-view-price{flex-shrink:0}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
-.seg-view-path{font-weight:700;font-size:14px;color:var(--ink)}
+.seg-view-path{font-weight:700;font-size:13px;color:var(--ink)}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
 /* 备注小图标（💬）：缩小与文字统一 */
 .note-emoji{font-style:normal;font-size:10px;margin-right:2px}
 /* 备注独立于主行 flex 流：紧贴主行下方（小上间距），长备注在块内换行，不影响主行对齐 */
 .seg-view-sub{font-size:12px;color:var(--sub);padding:0 0 4px 2px;line-height:1.5;margin-top:-5px}
 /* 标签胶囊（交通/班次乘客，与花销类别同款）：与主行字体统一 14px */
-.seg-view-trans{font-size:14px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 8px;border-radius:8px;white-space:nowrap}
-.seg-view-chip{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap}
+.seg-view-trans{font-size:13px;font-weight:400;color:#55556a;background:#f0f0f5;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.seg-view-chip{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
 /* 金额：主题色加粗纯文字（跟随行程主题色，与花销金额同款），无底色 */
-.seg-view-price{font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap}
+.seg-view-price{font-size:13px;font-weight:800;color:var(--accent);white-space:nowrap}
 /* 编辑/删除：margin-left:auto 推右 → 永远在第一行末尾；整组不换行 */
 .seg-view-actions{margin-left:auto;flex-shrink:0;display:flex;gap:2px}
 /* 拖动图标：≡ 左对齐（备注与之一致）；行高与主行一致（icon-btn 30px），与第一行文字垂直居中 */
@@ -461,8 +461,10 @@ textarea{resize:vertical}
 /* 大字体：所有内容字号统一 +1.5px（与标准档同比例） */
 body.font-large{font-size:15.5px}
 body.font-large .exp-view-cat,body.font-large .rem-view-time{font-size:14px}
-body.font-large .seg-view-time,body.font-large .seg-view-path,body.font-large .seg-view-chip,body.font-large .seg-view-trans,body.font-large .exp-view-item,body.font-large .lodge-view-name,body.font-large .rem-view-title{font-size:15.5px}
-body.font-large .seg-view-price,body.font-large .exp-view-amt,body.font-large .lodge-view-price{font-size:15.5px}
+body.font-large .seg-view-time,body.font-large .seg-view-path,body.font-large .seg-view-chip,body.font-large .seg-view-trans{font-size:14.5px}
+body.font-large .seg-view-price{font-size:14.5px}
+body.font-large .exp-view-item,body.font-large .lodge-view-name,body.font-large .rem-view-title{font-size:15.5px}
+body.font-large .exp-view-amt,body.font-large .lodge-view-price{font-size:15.5px}
 body.font-large .seg-view-sub,body.font-large .exp-view-note,body.font-large .lodge-view-sub{font-size:13.5px}
 body.font-large .btn{font-size:14.5px}
 /* 渐变壁纸 */
@@ -1715,12 +1717,12 @@ function renderDayCard(t, d) {
         <div class="seg-main">
           <span class="seg-view-time">${timeHtml}</span>
           <span class="seg-view-path${pathCls}"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
-          <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
-          <!-- 乘客/价格一组：放不下时整组换到第二行（与时间列左对齐），按钮不受影响 -->
-          ${(chips || num(s.price)) ? `<div class="seg-trail">
+          <!-- 交通+乘客+价格一组：放不下时整组换到第二行（与时间列左对齐），按钮不受影响 -->
+          <div class="seg-trail">
+            <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
             ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
             ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
-          </div>` : ''}
+          </div>
           <div class="seg-view-actions">
             <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
             <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
