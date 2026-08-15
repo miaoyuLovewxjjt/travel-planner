@@ -224,8 +224,11 @@ textarea{resize:vertical}
 .seg-view-path.seg-path-xs{font-size:11.5px}
 .seg-view-trans{flex-shrink:0}
 .seg-view-arr{font-size:11.5px;color:var(--sub);white-space:nowrap;flex-shrink:0}
-/* 乘客 chip：不压缩不溢出（宽度=文字长度），过长整体换行 */
+/* 乘客 chip：宽度=文字长度，不压缩不溢出 */
 .seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0;flex-shrink:0}
+/* 乘客/价格/按钮一组：短段同行靠右，长段整组换行到第二行（从时间列起点对齐，不拆散） */
+.seg-trail{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;margin-left:auto}
+.seg-trail .seg-view-actions{margin-left:0}
 .seg-view-price{flex-shrink:0}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
 .seg-view-path{font-weight:700;font-size:14px;color:var(--ink)}
@@ -1718,11 +1721,14 @@ function renderDayCard(t, d) {
           <span class="seg-view-path${pathCls}"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
           <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
           ${arriveTxt}
-          ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
-          ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
-          <div class="seg-view-actions">
-            <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
-            <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
+          <!-- 乘客/价格/按钮一组：整体换行，不拆散（避免岔开错乱） -->
+          <div class="seg-trail">
+            ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
+            ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
+            <div class="seg-view-actions">
+              <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
+              <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
+            </div>
           </div>
         </div>
       </div>
