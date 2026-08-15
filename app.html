@@ -218,8 +218,8 @@ textarea{resize:vertical}
 /* 拖动图标：≡ 右对齐贴框右缘 → 与时间戳间距 = gap 6px（与其余列间距一致） */
 .drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;line-height:1.5;padding:0;border-radius:6px;text-align:right}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
-/* 时间列：固定宽（按 +1 最长情况）、右对齐贴出发地，间距 6px；不加粗 */
-.seg-view-time{flex:none;width:96px;font-size:13px;font-weight:400;color:var(--ink);white-space:nowrap;text-align:right}
+/* 时间列：内容宽、左对齐（不固定宽不右对齐）→ ≡ 到时间戳、时间戳到出发地间距恒为 6px，不随文字长度变化 */
+.seg-view-time{flex:none;font-size:13px;font-weight:400;color:var(--ink);white-space:nowrap}
 /* 跨天角标：行内上标（9px），灰色小字，紧随到达时间 */
 .seg-cross-badge{font-size:9px;font-weight:700;color:#a0a0b0;line-height:1;margin-left:1px;vertical-align:super;pointer-events:none;white-space:nowrap}
 /* 路径：超长时缩小字号（优先完整显示）；极长才省略兜底 */
@@ -229,8 +229,9 @@ textarea{resize:vertical}
 .seg-view-path .arr{color:var(--sub);font-weight:400;margin:0 4px}
 /* 乘客 chip：宽度=文字长度，不压缩不溢出 */
 .seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0;flex-shrink:0}
-/* 交通+乘客+价格一组：整体换行单元；换到第二行时起点=时间列起点（与时间戳对齐） */
+/* 乘客+价格一组：有乘客时强制换行到第二行（flex-basis:100%），左缘与时间列对齐；无乘客（仅价格）留在主行 */
 .seg-trail{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;min-width:0}
+.seg-trail.newline{flex-basis:100%}
 .seg-view-trans{font-size:13px;font-weight:400;color:var(--ink);white-space:nowrap;flex-shrink:0}
 .seg-view-chip{font-size:13px;font-weight:400;color:var(--ink);white-space:nowrap}
 /* 金额：主题色加粗纯文字（跟随行程主题色），无底色 */
@@ -239,8 +240,8 @@ textarea{resize:vertical}
 .seg-view-actions{margin-left:auto;align-self:flex-start;flex-shrink:0;display:flex;gap:2px}
 /* 备注小图标（💬）：缩小与文字统一 */
 .note-emoji{font-style:normal;font-size:10px;margin-right:2px}
-/* 备注：最后一行，居中显示 */
-.seg-view-sub{font-size:12px;color:var(--sub);text-align:center;padding:0 0 4px;line-height:1.5;margin-top:-5px}
+/* 备注：最后一行；💬 图标左缘与拖动图标 ≡ 字符左缘对齐（≡ 右对齐贴框右缘，字符左缘约 19px） */
+.seg-view-sub{font-size:12px;color:var(--sub);text-align:left;padding:0 0 4px 19px;line-height:1.5;margin-top:-5px}
 .seg-view[draggable="true"]{cursor:grab}
 .seg-view[draggable="true"]:active{cursor:grabbing}
 .seg-view.dragging,.exp-view.dragging{opacity:.35}
@@ -1740,8 +1741,8 @@ function renderDayCard(t, d) {
           <span class="seg-view-time">${timeHtml}</span>
           <span class="seg-view-path${pathCls}"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
           <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
-          <!-- 乘客+价格一组：存在乘客时整组换到第二行，左缘与出发时间列对齐；无乘客则留在主行 -->
-          <div class="seg-trail">
+          <!-- 乘客+价格一组：有乘客时整组换到第二行（与时间列左缘对齐）；无乘客则价格留在主行 -->
+          <div class="seg-trail${chips ? ' newline' : ''}">
             ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
             ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
           </div>
