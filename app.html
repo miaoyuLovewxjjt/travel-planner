@@ -947,10 +947,10 @@ const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const pad2 = n => String(n).padStart(2, '0');
-/** 时间输入自动格式化：冒号始终保留（9 → 9:；0900 → 09:00）；空值即空，不显示任何占位 */
+/** 时间输入自动格式化：冒号始终保留（空时显示冒号占位；9 → 9:；0900 → 09:00） */
 const fmtTimeInput = v => {
   const d = String(v).replace(/\D/g, '').slice(0, 4);
-  if (!d) return '';
+  if (!d) return ':';
   if (d.length === 1 || d.length === 2) return d + ':';
   return d.slice(0, 2) + ':' + d.slice(2);
 };
@@ -1628,9 +1628,9 @@ function renderDayCard(t, d) {
       return `<div class="seg-wrap editing">
         <div class="seg-row">
           ${pub ? `<button class="seg-toggle${(autoOpen || hasDetail) ? ' open' : ''}" data-action="toggle-seg" title="收起/展开交通详情">▸</button>` : ''}
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" title="出发时间（直接输数字，冒号自动就位）">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart || ':')}" title="出发时间（直接输数字，冒号自动就位）">
           <span class="arr">→</span>
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" title="到达时间（直接输数字，冒号自动就位）">
+          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive || ':')}" title="到达时间（直接输数字，冒号自动就位）">
           <input class="seg-from" maxlength="30" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
           <input class="seg-to" maxlength="30" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
@@ -2087,11 +2087,11 @@ $('#view-detail').addEventListener('input', e => {
   if (el.dataset.path) {
     const t = getTrip(currentTripId);
     if (!t) return;
-    // 时间输入：输入/删除都统一格式化（冒号始终保留，删不掉；空值即空）
+    // 时间输入：输入/删除都统一格式化（冒号始终保留；纯冒号占位不写入数据）
     if (el.classList.contains('seg-time')) {
       const fmt = fmtTimeInput(el.value);
       el.value = fmt;
-      setByPath(t, el.dataset.path, fmt);
+      setByPath(t, el.dataset.path, fmt === ':' ? '' : fmt);
     } else {
       setByPath(t, el.dataset.path, el.dataset.num ? num(el.value) : el.value);
     }
@@ -2139,7 +2139,7 @@ $('#view-detail').addEventListener('keydown', e => {
   el.dispatchEvent(new Event('input', { bubbles: true }));
 });
 
-// 时间输入失焦时规整格式（删除到一半的状态也会标准化）
+// 时间输入失焦时规整格式（删除到一半的状态也会标准化），纯冒号占位清空
 $('#view-detail').addEventListener('focusout', e => {
   const el = e.target;
   if (!el.classList.contains('seg-time') || !el.dataset.path) return;
@@ -2148,7 +2148,7 @@ $('#view-detail').addEventListener('focusout', e => {
   const fmt = fmtTimeInput(el.value);
   if (el.value !== fmt) {
     el.value = fmt;
-    setByPath(t, el.dataset.path, fmt);
+    setByPath(t, el.dataset.path, fmt === ':' ? '' : fmt);
     scheduleSave();
   }
 });
