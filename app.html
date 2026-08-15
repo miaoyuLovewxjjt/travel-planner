@@ -206,12 +206,12 @@ textarea{resize:vertical}
 .seg-wrap.editing{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:8px 12px;margin:4px 0}
 .seg-wrap{border-bottom:1px dashed var(--line)}
 .seg-wrap:last-child{border-bottom:none}
-/* 路线展示：主行=时间/路径/交通 永在一行（路径过长先缩字号、极长省略兜底）；
-   乘客+价格一组（seg-trail）放不下时整组换到第二行、与时间列左对齐；
-   编辑/删除按钮永远在第一行末尾（margin-left:auto 推右） */
+/* 路线展示：主行=时间/路径 永在一行（顶对齐，与拖动图标顶部平齐）；
+   交通+乘客+价格一组（seg-trail）放不下时整组换到第二行、与时间列左对齐；
+   编辑/删除按钮独立于主行容器（margin-left:auto 推右）→ 永远停留在第一行末尾 */
 .seg-view{display:flex;align-items:flex-start;gap:4px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
-.seg-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.seg-main{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
 /* 时间：固定宽（按 +1 最长情况计算）、不加粗；+1 行内上标紧随到达时间，不悬空不裁剪 */
 .seg-view-time{flex:none;width:96px;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
 /* 跨天角标：行内上标（9px），灰色小字 */
@@ -238,10 +238,10 @@ textarea{resize:vertical}
 .seg-view-chip{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
 /* 金额：主题色加粗纯文字（跟随行程主题色，与花销金额同款），无底色 */
 .seg-view-price{font-size:13px;font-weight:800;color:var(--accent);white-space:nowrap}
-/* 编辑/删除：margin-left:auto 推右 → 永远在第一行末尾；整组不换行 */
-.seg-view-actions{margin-left:auto;flex-shrink:0;display:flex;gap:2px}
-/* 拖动图标：≡ 左对齐（备注与之一致）；行高与主行一致（icon-btn 30px），与第一行文字垂直居中 */
-.drag-handle{color:#c9c9d4;font-size:14px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;line-height:30px;padding:0;border-radius:6px}
+/* 编辑/删除：独立于主行，margin-left:auto 推右 → 永远在第一行末尾（JS 校准垂直居中） */
+.seg-view-actions{margin-left:auto;align-self:flex-start;flex-shrink:0;display:flex;gap:2px}
+/* 拖动图标：≡ 左对齐（备注与之一致）；与主行顶对齐（同字号同行高，天然平齐） */
+.drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;line-height:1.5;padding:0;border-radius:6px}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
 .seg-view[draggable="true"]{cursor:grab}
 .seg-view[draggable="true"]:active{cursor:grabbing}
@@ -1464,6 +1464,29 @@ function renderDetail(id) {
   // 每日卡片
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
+  watchSegAlign();
+}
+
+/* 拖动图标与主行文字顶部平齐（CSS 顶对齐已保证）；编辑/删除按钮 30px 比文字行高，
+   按时间列实际中心微调按钮垂直位置（第一行高度随换行变化，纯 CSS 无法预知） */
+let segAlignRO = null;
+function alignSegActions() {
+  document.querySelectorAll('#view-detail .seg-view').forEach(v => {
+    const t = v.querySelector('.seg-view-time'), a = v.querySelector('.seg-view-actions');
+    if (!t || !a) return;
+    const mr = v.querySelector('.seg-main').getBoundingClientRect();
+    const tr = t.getBoundingClientRect(), ar = a.getBoundingClientRect();
+    // 按钮中心对齐主行文字中心（margin 相对容器 padding 边，故以 seg-main 为基准）
+    a.style.marginTop = ((tr.top + tr.height / 2 - mr.top) - ar.height / 2) + 'px';
+  });
+}
+function watchSegAlign() {
+  if (segAlignRO) segAlignRO.disconnect();
+  const root = document.getElementById('view-detail');
+  if (!root || typeof ResizeObserver === 'undefined') return;
+  segAlignRO = new ResizeObserver(alignSegActions);
+  root.querySelectorAll('.seg-view').forEach(v => segAlignRO.observe(v));
+  alignSegActions();
 }
 
 /* ---------- 旅行记录（独立页面：📖 新开标签页 → #/trip/{id}/journal） ---------- */
@@ -1717,16 +1740,16 @@ function renderDayCard(t, d) {
         <div class="seg-main">
           <span class="seg-view-time">${timeHtml}</span>
           <span class="seg-view-path${pathCls}"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
-          <!-- 交通+乘客+价格一组：放不下时整组换到第二行（与时间列左对齐），按钮不受影响 -->
+          <!-- 交通+乘客+价格一组：放不下时整组换到第二行（与时间列左对齐） -->
           <div class="seg-trail">
             <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
             ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
             ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
           </div>
-          <div class="seg-view-actions">
-            <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
-            <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
-          </div>
+        </div>
+        <div class="seg-view-actions">
+          <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
+          <button class="icon-btn" data-action="seg-del" data-date="${d}" data-idx="${i}" title="删除">${trashIcon()}</button>
         </div>
       </div>
       ${sub ? `<div class="seg-view-sub">${sub}</div>` : ''}
