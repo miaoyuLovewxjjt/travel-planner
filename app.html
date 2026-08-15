@@ -2087,11 +2087,15 @@ $('#view-detail').addEventListener('input', e => {
   if (el.dataset.path) {
     const t = getTrip(currentTripId);
     if (!t) return;
-    // 时间输入自动格式化：冒号自动就位；纯冒号占位不写入数据（保持空）
+    // 时间输入：输入时自动补冒号；删除时不干预（可连续删除、不被冒号隔开）；纯冒号占位不写数据
     if (el.classList.contains('seg-time')) {
-      const fmt = fmtTimeInput(el.value);
-      el.value = fmt;
-      setByPath(t, el.dataset.path, fmt === ':' ? '' : fmt);
+      if (e.inputType && e.inputType.startsWith('delete')) {
+        setByPath(t, el.dataset.path, (el.value === ':' || el.value === '') ? '' : el.value);
+      } else {
+        const fmt = fmtTimeInput(el.value);
+        el.value = fmt;
+        setByPath(t, el.dataset.path, fmt === ':' ? '' : fmt);
+      }
     } else {
       setByPath(t, el.dataset.path, el.dataset.num ? num(el.value) : el.value);
     }
@@ -2117,6 +2121,20 @@ $('#view-detail').addEventListener('input', e => {
     }
     scheduleSave();
     updateTotalsUI(t, el.dataset.path); // 金额变化时局部刷新合计，不重渲染、不打断输入
+  }
+});
+
+// 时间输入失焦时规整格式（删除到一半的状态也会标准化），纯冒号/空值清空
+$('#view-detail').addEventListener('focusout', e => {
+  const el = e.target;
+  if (!el.classList.contains('seg-time') || !el.dataset.path) return;
+  const t = getTrip(currentTripId);
+  if (!t) return;
+  const fmt = fmtTimeInput(el.value);
+  if (el.value !== fmt) {
+    el.value = fmt;
+    setByPath(t, el.dataset.path, fmt === ':' ? '' : fmt);
+    scheduleSave();
   }
 });
 
