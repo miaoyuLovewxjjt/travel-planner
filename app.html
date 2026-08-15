@@ -1827,13 +1827,13 @@ function renderDayCard(t, d) {
     ...segsOfDay.map((seg, i) => ({
       dur: segDurs[i],
       color: segsOfDay.length === 1 ? accentHex : shade(accentHex, -22 + (i / (segsOfDay.length - 1)) * 44),
-      label: `${emojiOf(seg.transport)}${segDurs[i] ? ' ' + fmtDur(segDurs[i]) : ''}`,
+      label: `${emojiOf(seg.transport)}`, // 只显示交通图标；时长悬浮查看
       title: `${esc(seg.from || '?')} → ${esc(seg.to || '?')}${segDurs[i] ? ' · ' + fmtDur(segDurs[i]) : ''}${isCrossDay(seg) ? ' · 次日到达' : ''}`,
     })),
     ...tails.map(t => ({
       dur: t.dur,
       color: accentHex,
-      label: `↪${emojiOf(t.transport)} ${t.arrive}`,
+      label: `↪${emojiOf(t.transport)}`,
       title: `接昨日 ${esc(t.from)} → ${esc(t.to)} · ${fmtDur(t.dur)}`,
     })),
   ];
