@@ -404,11 +404,15 @@ textarea{resize:vertical}
 .donut-detail{margin-top:2px;border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:3px}
 .dd-row{display:flex;justify-content:space-between;font-size:12px;color:#55556a;gap:12px}
 .dd-row b{color:var(--ink);white-space:nowrap}
-.route-bar{display:flex;width:100%;height:32px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#f0f0f5}
-.rb-seg{display:flex;align-items:center;justify-content:center;gap:3px;color:#fff;font-size:11px;font-weight:800;
-  min-width:34px;white-space:nowrap;transition:filter .15s;cursor:default}
+/* 路线条：24h 时间轴（6:00 起），段按比例绝对定位，无行程透明 */
+.route-bar{position:relative;width:100%;height:32px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:transparent}
+.rb-seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:3px;color:#fff;font-size:11px;font-weight:800;
+  min-width:24px;white-space:nowrap;transition:filter .15s;cursor:default}
 .rb-seg:hover{filter:brightness(1.12)}
 .rb-seg .rb-txt{overflow:hidden;text-overflow:ellipsis}
+.route-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.route-row:first-of-type{margin-top:0}
+.route-label{font-size:11px;color:var(--sub);flex-shrink:0;width:56px}
 
 /* 添加一天 */
 .add-day-wrap{padding:20px;display:flex;justify-content:center}
@@ -1830,25 +1834,45 @@ function renderDayCard(t, d) {
   const segDurs = segsOfDay.map(dayPartDuration);
   const totalMin = segDurs.reduce((s, x) => s + x, 0) + tails.reduce((s, x) => s + x.dur, 0);
   const accentHex = t.color || '#FF6B6B';
+  /** 段开始时间（分钟）；无时间返回 null */
+  const segStartMin = seg => {
+    if (!seg.departTime) return null;
+    const [h, m] = String(seg.departTime).split(':').map(Number);
+    return isNaN(h) ? null : h * 60 + (isNaN(m) ? 0 : m);
+  };
   const barItems = [
     ...segsOfDay.map((seg, i) => ({
       dur: segDurs[i],
+      startMin: segStartMin(seg),
       color: segsOfDay.length === 1 ? accentHex : shade(accentHex, -22 + (i / (segsOfDay.length - 1)) * 44),
       label: `${emojiOf(seg.transport)}`, // 只显示交通图标；时长悬浮查看
       title: `${esc(seg.from || '?')} → ${esc(seg.to || '?')}${segDurs[i] ? ' · ' + fmtDur(segDurs[i]) : ''}${isCrossDay(seg) ? ' · 次日到达' : ''}`,
     })),
     ...tails.map(t => ({
       dur: t.dur,
+      startMin: 0, // 接昨日从 00:00 起（凌晨，向左裁剪到 0）
       color: accentHex,
       label: `↪${emojiOf(t.transport)}`,
       title: `接昨日 ${esc(t.from)} → ${esc(t.to)} · ${fmtDur(t.dur)}`,
     })),
   ];
-  const segBarHtml = barItems.length ? barItems.map(b =>
-    // 条形图总长 = 24 小时，每段按时长比例（无时间的段给最小占位显示图标）
-    `<div class="rb-seg" style="flex:${b.dur ? (b.dur / 1440).toFixed(4) : 0.02};background:${b.color}" title="${b.title}">
-      <span class="rb-txt">${b.label}</span></div>`).join('')
-    : '<div class="rb-seg" style="flex:1;background:#e8e8ef;color:var(--sub);min-width:auto">暂无路线</div>';
+  // 方案①：24h 时间轴（6:00 起），按实际开始时间定位，无行程处透明
+  const bar1Html = barItems.length ? barItems.map(b => {
+    const sm = b.startMin == null ? 0 : b.startMin; // 无时间放最前
+    const left = Math.max(0, Math.min(100, ((sm - 360) / 1440) * 100));
+    const width = Math.max(b.dur ? (b.dur / 1440) * 100 : 2, 2);
+    return `<div class="rb-seg" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%;background:${b.color}" title="${b.title}">
+      <span class="rb-txt">${b.label}</span></div>`;
+  }).join('') : '<div class="rb-seg" style="left:0;width:100%;background:#e8e8ef;color:var(--sub)">暂无路线</div>';
+  // 方案②：24h 连续堆积（6:00 起），不满 24h 停止，空余无填充
+  let off2 = 0;
+  const bar2Html = barItems.length ? barItems.map(b => {
+    const w = Math.max(b.dur ? (b.dur / 1440) * 100 : 2, 2);
+    const el = `<div class="rb-seg" style="left:${off2.toFixed(2)}%;width:${w.toFixed(2)}%;background:${b.color}" title="${b.title}">
+      <span class="rb-txt">${b.label}</span></div>`;
+    off2 += w;
+    return el;
+  }).join('') : '<div class="rb-seg" style="left:0;width:100%;background:#e8e8ef;color:var(--sub)">暂无路线</div>';
 
   return `<section class="day-card" id="day-${d}">
     <div class="day-head">
@@ -1883,7 +1907,8 @@ function renderDayCard(t, d) {
       </div>
       <div class="block full">
         <div class="block-title"><span class="tag">🗺️</span>今日路线 · 共 ${st.segs} 段${totalMin ? ' · 总时长 ' + fmtDur(totalMin) : ''}</div>
-        <div class="route-bar">${segBarHtml}</div>
+        <div class="route-row"><span class="route-label">① 时间轴</span><div class="route-bar">${bar1Html}</div></div>
+        <div class="route-row"><span class="route-label">② 连续</span><div class="route-bar">${bar2Html}</div></div>
       </div>
       <div class="block full exp-split">
         <div class="exp-col exp-col-l">
