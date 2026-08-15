@@ -230,7 +230,8 @@ textarea{resize:vertical}
    - 按钮独立于主行容器，永远停第一行末尾（margin-left:auto + JS 校准中心） */
 .seg-view{display:flex;align-items:flex-start;gap:12px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
-.seg-main{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;flex:1;min-width:0}
+/* 主行容器：水平列距 12px（与全列统一），垂直行距 6px（乘客行紧凑贴主行，主次分明，避免与段间距同级） */
+.seg-main{display:flex;align-items:flex-start;column-gap:12px;row-gap:6px;flex-wrap:wrap;flex:1;min-width:0}
 /* 拖动图标：≡ 右对齐贴框右缘 → 与时间戳间距 = gap 6px（与其余列间距一致） */
 .drag-handle{color:#c9c9d4;font-size:14px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;line-height:1.5;padding:0;border-radius:6px;text-align:right}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
