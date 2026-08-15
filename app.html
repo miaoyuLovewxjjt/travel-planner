@@ -210,15 +210,17 @@ textarea{resize:vertical}
 .seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
-/* 紧凑布局：优先一行挤下（间距/内边距收紧），换行时行距也紧凑 */
-.seg-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
-/* 时间：紧凑最小宽（跨天段自动撑宽） */
-.seg-view-time{flex:none;min-width:92px;display:inline-flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
-/* 路径：可压缩省略（悬浮查看完整信息），优先不换行 */
+/* 紧凑布局：主文字不换行（路径可压缩省略），像表格一样行距统一 */
+.seg-main{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:1;min-width:0;overflow:hidden}
+/* 时间：固定宽、不加粗；跨天角标绝对定位右上角不占行 */
+.seg-view-time{flex:none;width:92px;position:relative;display:inline-flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap}
+/* 跨天角标：右上角灰色小字 */
+.seg-cross-badge{position:absolute;top:-7px;right:-2px;font-size:9.5px;font-weight:700;color:#a0a0b0;background:#f2f2f7;border-radius:6px;padding:0 4px;line-height:1.4;pointer-events:none}
+/* 路径：唯一可压缩元素（省略号省略，悬浮查看完整） */
 .seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw;min-width:0;flex-shrink:1}
 .seg-view-trans{flex-shrink:0}
 .seg-view-arr{font-size:11.5px;color:var(--sub);white-space:nowrap;flex-shrink:0}
-.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
+.seg-view-dets{display:inline-flex;gap:6px;flex-wrap:nowrap;min-width:0}
 .seg-view-price{flex-shrink:0}
 /* 主文本：目的地/路线（与花销项目、住宿名、提醒标题同款 14/700） */
 .seg-view-path{font-weight:700;font-size:14px;color:var(--ink)}
@@ -1683,13 +1685,16 @@ function renderDayCard(t, d) {
     else if (s.seat) det.push(esc(s.seat)); // 兼容旧数据
     const chips = det.map(x => `<span class="seg-view-chip">${x}</span>`).join('');
     const sub = s.notes ? '💬 ' + esc(s.notes) : '';
-    // 时间列显示完整开始-结束（含跨天标记）
+    // 时间列：完整开始-结束；跨天标记用右上角灰色小角标（不占用本行空间）
+    const dep = s.departTime, arr = s.arriveTime;
+    const timeText = (dep || arr) ? [dep, arr].filter(Boolean).join('-') : (s.time || '—');
+    const crossBadge = crossDays(s) > 0 ? `<span class="seg-cross-badge">+${crossDays(s)}</span>` : '';
     const arriveTxt = '';
     return `<div class="seg-wrap">
       <div class="seg-view" draggable="true" data-date="${d}" data-idx="${i}" data-type="segments" title="拖动排序">
         <span class="drag-handle">≡</span>
         <div class="seg-main">
-          <span class="seg-view-time">${esc(timeRange(s))}</span>
+          <span class="seg-view-time">${esc(timeText)}${crossBadge}</span>
           <span class="seg-view-path"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
           <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
           ${arriveTxt}
