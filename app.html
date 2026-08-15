@@ -218,8 +218,8 @@ textarea{resize:vertical}
 /* 拖动图标：≡ 右对齐贴框右缘 → 与时间戳间距 = gap 6px（与其余列间距一致） */
 .drag-handle{color:#c9c9d4;font-size:14px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;line-height:1.5;padding:0;border-radius:6px;text-align:right}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
-/* 时间列：内容宽、左对齐（不固定宽不右对齐）→ ≡ 到时间戳、时间戳到出发地间距恒为 6px，不随文字长度变化 */
-.seg-view-time{flex:none;font-size:14px;font-weight:400;color:var(--ink);white-space:nowrap}
+/* 时间列：内容宽、左对齐；等宽数字(tabular-nums)使 09:30-09:45 与 10:00-11:00 长度一致，不因数字字形占位不同而参差 */
+.seg-view-time{flex:none;font-size:14px;font-weight:400;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
 /* 跨天角标：行内上标（9px），灰色小字，紧随到达时间 */
 .seg-cross-badge{font-size:9px;font-weight:700;color:#a0a0b0;line-height:1;margin-left:1px;vertical-align:super;pointer-events:none;white-space:nowrap}
 /* 路径：超长时缩小字号（优先完整显示）；极长才省略兜底 */
