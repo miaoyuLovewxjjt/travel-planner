@@ -186,7 +186,7 @@ textarea{resize:vertical}
 .block.col-left{grid-column:1;border-right:1px solid var(--line)}
 .block.col-right{grid-column:2;border-right:none}
 .block.full{grid-column:1/-1;border-right:none}
-.block.lodge-block{padding:22px 26px 12px} /* 标题与其余区块对齐（上/左 22px 26px），底部收窄让总览上移 */
+.block.lodge-block{padding:18px 24px}
 /* 左右独立列：左列（住宿+总览）紧贴，右列（记账）独立高度，互不影响 */
 .day-col{display:flex;flex-direction:column}
 .day-col .block{border-right:none}
@@ -375,6 +375,11 @@ textarea{resize:vertical}
 .block-hint{font-size:12px;color:var(--sub);font-style:italic;margin:0 0 6px;line-height:1.5}
 /* 记账区紧凑：标题、提示、内容间距收紧 */
 .day-col.col-r .block-title{margin-bottom:8px}
+/* 记账两栏：明细更宽（左 1.5），消费构成（右 1） */
+.block.exp-split{display:grid;grid-template-columns:1.5fr 1fr;gap:0;padding:0}
+.exp-split .exp-col{padding:18px 24px}
+.exp-split .exp-col-l{border-right:1px solid var(--line)}
+.exp-split .block-title{margin-bottom:8px}
 /* 提醒 */
 .rem-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
 .rem-row input[type=date]{width:132px;padding:4px 8px;font-size:13px;border-radius:8px}
@@ -759,7 +764,7 @@ body.pad .day-nav .nav-title { display: block !important; }
 body.pad .day-nav button { padding: 10px 14px; }
 body.pad .day-grid { grid-template-columns: 1fr 1fr !important; }
 body.pad .block { padding: 16px 20px; }
-body.pad .block.lodge-block { padding: 12px 18px; }
+body.pad .block.lodge-block { padding: 16px 20px; }
 body.pad .block.full { grid-column: 1/-1 !important; border-right: none !important; }
 body.pad .day-col.col-l { border-right: 1px solid var(--line) !important; }
 body.pad .day-head { padding: 14px 22px; }
@@ -834,6 +839,8 @@ body.pad .seg-row select { width: 104px; }
   .lodge-grid { grid-template-columns: 1fr; }
   .overview-grid { grid-template-columns: 1fr; }
   .seg-detail-row .seg-pax-chips { flex-basis: 100%; }
+  .block.exp-split { grid-template-columns: 1fr; }
+  .exp-split .exp-col-l { border-right: none; border-bottom: 1px solid var(--line); }
 }
 
 /* ============ 打印 ============ */
@@ -1864,40 +1871,31 @@ function renderDayCard(t, d) {
         <div class="rem-list">${remRows || '<div class="lodge-none">暂无提醒，可设置抢票、出发等定时提醒</div>'}</div>
         <button class="add-row-btn" data-action="add-rem" data-date="${d}">＋ 添加提醒</button>
       </div>
+      <div class="block full lodge-block">
+        <div class="block-title"><span class="tag">🌌</span>住宿</div>
+        ${lodgeHtml}
+      </div>
       <div class="block full">
         <div class="block-title"><span class="tag">🗺️</span>行程路线</div>
         <div class="seg-list">${segRows || '<div class="lodge-none">还没有路线，点击下方添加</div>'}</div>
         <button class="add-row-btn" data-action="add-seg" data-date="${d}">＋ 添加路线</button>
       </div>
-      <div class="day-col col-l">
-        <div class="block lodge-block">
-          <div class="block-title"><span class="tag">🌌</span>住宿</div>
-          ${lodgeHtml}
-        </div>
-        <div class="block">
-          <div class="block-title"><span class="tag">📊</span>行程总览</div>
-          <div class="overview-grid">
-            <div class="ov-item"><span class="num">${st.lodge ? `<i class="ov-emoji">${lodgeEmoji(lodgeType)}</i> ${esc(st.lodge.name || st.lodge.location)}` : '—'}</span><span class="lbl">${st.lodge ? esc(lodgeType) + ' · ' + esc(st.lodge.location || '') + ' · ' + (num(st.lodge.pricePerNight) ? fmtMoney(st.lodge.pricePerNight) + '/晚' : '价格未填') : '今日无住宿'}</span></div>
-            <div class="ov-item"><span class="num">${travelers.length ? esc(travelers.join('、')) : '—'}</span><span class="lbl">出行人</span></div>
-            <div class="ov-route">
-              <div class="lbl">🗺️ 今日路线 · 共 ${st.segs} 段${totalMin ? ' · 总时长 ' + fmtDur(totalMin) : ''}</div>
-              <div class="route-bar">${segBarHtml}</div>
-            </div>
-          </div>
-        </div>
+      <div class="block full">
+        <div class="block-title"><span class="tag">🗺️</span>今日路线 · 共 ${st.segs} 段${totalMin ? ' · 总时长 ' + fmtDur(totalMin) : ''}</div>
+        <div class="route-bar">${segBarHtml}</div>
       </div>
-      <div class="day-col col-r">
-        <div class="block">
+      <div class="block full exp-split">
+        <div class="exp-col exp-col-l">
           <div class="block-title"><span class="tag">🧾</span>记账</div>
           <div class="block-hint">💡 记录购物、吃饭、门票等日常消费</div>
           <div class="exp-list">${expRows || '<div class="lodge-none">还没有花销记录</div>'}</div>
           <button class="add-row-btn" data-action="add-exp" data-date="${d}">＋ 添加花销</button>
           <div class="exp-total"><span class="t">当日合计</span><span class="amt">${fmtMoney(st.exp)}</span></div>
-          <div class="exp-donut">
-            <div class="lbl">💰 消费构成（点击类别查看明细）</div>
-            ${donutChart(st.expByCat) || '<div class="lodge-none" style="margin:4px 0 0">今日暂无日常消费</div>'}
-            <div class="donut-detail" id="donut-detail-${d}" hidden></div>
-          </div>
+        </div>
+        <div class="exp-col exp-col-r">
+          <div class="block-title"><span class="tag">💰</span>消费构成</div>
+          ${donutChart(st.expByCat) || '<div class="lodge-none" style="margin:4px 0 0">今日暂无日常消费</div>'}
+          <div class="donut-detail" id="donut-detail-${d}" hidden></div>
         </div>
       </div>
     </div>
