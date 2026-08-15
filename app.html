@@ -210,11 +210,12 @@ textarea{resize:vertical}
 .seg-view{display:flex;align-items:center;gap:8px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
 .seg-view-actions{margin-left:auto;flex-shrink:0}
-/* 紧凑布局：时间胶囊统一最小宽（段间开头对齐），其余紧跟内容、不拉长不预留空隙 */
-.seg-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
-/* 时间：黑色加粗纯文字，最小宽按跨天时间（+1）长度，普通段与跨天段统一对齐 */
-.seg-view-time{flex:none;min-width:118px;display:inline-flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
-.seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw}
+/* 紧凑布局：优先一行挤下（间距/内边距收紧），换行时行距也紧凑 */
+.seg-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+/* 时间：紧凑最小宽（跨天段自动撑宽） */
+.seg-view-time{flex:none;min-width:92px;display:inline-flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
+/* 路径：可压缩省略（悬浮查看完整信息），优先不换行 */
+.seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw;min-width:0;flex-shrink:1}
 .seg-view-trans{flex-shrink:0}
 .seg-view-arr{font-size:11.5px;color:var(--sub);white-space:nowrap;flex-shrink:0}
 .seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0}
@@ -225,11 +226,11 @@ textarea{resize:vertical}
 /* 备注独立于主行 flex 流：紧贴主行下方（小上间距），长备注在块内换行，不影响主行对齐 */
 .seg-view-sub{font-size:12px;color:var(--sub);padding:0 0 4px 32px;line-height:1.5;margin-top:-2px}
 /* 标签胶囊（交通/班次乘客，与花销类别同款） */
-.seg-view-trans{font-size:12.5px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
-.seg-view-chip{font-size:12.5px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.seg-view-trans{font-size:12.5px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.seg-view-chip{font-size:12.5px;font-weight:600;color:#55556a;background:#f0f0f5;padding:3px 8px;border-radius:8px;white-space:nowrap}
 /* 金额：主题色加粗纯文字（跟随行程主题色，与花销金额同款），无底色 */
 .seg-view-price{font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap}
-.seg-view-actions{margin-left:auto;display:flex;gap:4px}
+.seg-view-actions{margin-left:auto;display:flex;gap:2px}
 .drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;text-align:center;padding:2px 0;border-radius:6px}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
 .seg-view[draggable="true"]{cursor:grab}
