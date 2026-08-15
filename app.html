@@ -2109,6 +2109,12 @@ $('#view-detail').addEventListener('input', e => {
             delete seg.crossDays;
           }
           seg.time = [seg.departTime, seg.arriveTime].filter(Boolean).join('-');
+        } else if (!seg.departTime && !seg.arriveTime) {
+          // 时间全部清空：同步清除组合字段与跨天标记，避免展示残留旧时间
+          delete seg.time;
+          delete seg.crossDays;
+        } else {
+          seg.time = [seg.departTime, seg.arriveTime].filter(Boolean).join('-');
         }
         // 同步更新跨天下拉选中值（如自动 +1 后）
         const cdSel = document.querySelector(`select[data-path="days.${parts[1]}.segments.${parts[3]}.crossDays"]`);
