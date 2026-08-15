@@ -207,14 +207,14 @@ textarea{resize:vertical}
 .seg-wrap{border-bottom:1px dashed var(--line)}
 .seg-wrap:last-child{border-bottom:none}
 /* ============ 路线段展示 ============
-   统一间距：所有相邻列之间一律 8px（.seg-view / .seg-main / .seg-trail 的 gap 全为 8px）
+   统一间距：所有相邻列之间一律 12px（.seg-view / .seg-main / .seg-trail 的 gap 全为 12px）
    列顺序：≡ [时间戳] [出发地→目的地] [交通·乘客·价格] [编辑/删除]
    - 主行(时间/路径)永在一行、顶对齐 → 与 ≡ 天然平齐
    - 乘客+价格整组换行（seg-trail.newline），第二行起点与时间列左缘对齐
    - 按钮独立于主行容器，永远停第一行末尾（margin-left:auto + JS 校准中心） */
-.seg-view{display:flex;align-items:flex-start;gap:8px;padding:6px 2px;line-height:1.5}
+.seg-view{display:flex;align-items:flex-start;gap:12px;padding:6px 2px;line-height:1.5}
 .seg-view .drag-handle{flex-shrink:0}
-.seg-main{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.seg-main{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;flex:1;min-width:0}
 /* 拖动图标：≡ 右对齐贴框右缘 → 与时间戳间距 = gap 6px（与其余列间距一致） */
 .drag-handle{color:#c9c9d4;font-size:13px;cursor:grab;user-select:none;flex-shrink:0;letter-spacing:-3px;width:22px;line-height:1.5;padding:0;border-radius:6px;text-align:right}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
@@ -230,7 +230,7 @@ textarea{resize:vertical}
 /* 乘客 chip：宽度=文字长度，不压缩不溢出 */
 .seg-view-dets{display:inline-flex;gap:6px;flex-wrap:wrap;min-width:0;flex-shrink:0}
 /* 乘客+价格一组：有乘客时强制换行到第二行（flex-basis:100%），左缘与时间列对齐；无乘客（仅价格）留在主行 */
-.seg-trail{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;min-width:0}
+.seg-trail{display:inline-flex;align-items:center;gap:12px;flex-shrink:0;min-width:0}
 .seg-trail.newline{flex-basis:100%}
 .seg-view-trans{font-size:13px;font-weight:400;color:var(--ink);white-space:nowrap;flex-shrink:0}
 .seg-view-chip{font-size:13px;font-weight:400;color:var(--ink);white-space:nowrap}
@@ -2049,6 +2049,15 @@ $('#view-detail').addEventListener('click', async e => {
     const act = segAction.dataset.action;
     if (act === 'seg-done') {
       const s = segs[i];
+      // 时间戳校验：已填时间必须为合法 HH:MM（小时 00-23、分钟 00-59），非法拦截不保存
+      const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+      const bad = [s.departTime, s.arriveTime].some(t => t && !TIME_RE.test(String(t)));
+      if (bad) {
+        const row = document.querySelector(`#day-${d} .seg-wrap.editing`);
+        if (row) row.querySelectorAll('.seg-time').forEach(el => el.style.borderColor = '#e5484d');
+        setSaveState('⏰ 时间格式不正确：小时 00-23、分钟 00-59');
+        return;
+      }
       const empty = !(s.from || '').trim() && !(s.to || '').trim() && !(s.time || '').trim() &&
         !(s.notes || '').trim() && !(s.vehicleNo || '').trim() && !(s.seat || '').trim() && !(s.passengers || []).length && !num(s.price);
       if (empty) segs.splice(i, 1);   // 空记录确认 → 直接删除
