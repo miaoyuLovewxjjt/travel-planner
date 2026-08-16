@@ -62,7 +62,7 @@ textarea{resize:vertical}
 #topbar .lbl{display:none}
 #btn-export,#btn-import{display:none}
 /* 顶栏图标按钮尺寸统一（纯图标、无文字） */
-#btn-back,#btn-preview,#btn-pdf,#btn-new,#btn-data{padding:8px 12px;font-size:13.5px}
+#btn-back,#btn-pdf,#btn-new,#btn-data{padding:8px 12px;font-size:13.5px}
 #topbar .spacer{flex:1}
 #save-state{font-size:12px;color:var(--sub);margin-right:6px}
 .btn{
@@ -144,8 +144,10 @@ textarea{resize:vertical}
 .stat-long .sl-div{width:1px;height:30px;background:var(--line)}
 .detail-body{display:grid;grid-template-columns:210px 1fr;gap:26px;margin-top:20px;align-items:start}
 .day-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:8px}
-/* 二级标题（左侧导航）：每日行程 / 后续旅行清单 */
+/* 二级标题（左侧导航）：每日行程 / 旅行清单 / 旅行随记，可点击跳转 */
 .day-nav .nav-title{font-size:13px;font-weight:800;color:var(--ink);margin:6px 0 4px;padding-left:4px}
+.day-nav .nav-link{cursor:pointer;border-radius:8px;padding:3px 4px;transition:background .15s}
+.day-nav .nav-link:hover{background:var(--accent-soft)}
 .day-nav button{
   text-align:left;padding:9px 14px;border-radius:12px;background:#fff;border:1px solid var(--line);
   display:flex;align-items:center;gap:9px;transition:all .15s;font-size:13px;
@@ -799,8 +801,8 @@ body.pad #topbar .logo { font-size: 19px; }
 body.pad .btn { padding: 10px 18px; }
 body.pad .btn-small { padding: 8px 14px; }
 body.pad #btn-export, body.pad #btn-import { display: none; }              /* 导出/导入在 ⚙️ 面板 */
-body.pad #btn-back .lbl, body.pad #btn-preview .lbl, body.pad #btn-pdf .lbl, body.pad #btn-new .lbl { display: none; } /* 顶栏纯图标 */
-body.pad #btn-back, body.pad #btn-preview, body.pad #btn-pdf, body.pad #btn-new, body.pad #btn-data { padding: 10px 12px; }
+body.pad #btn-back .lbl, body.pad #btn-pdf .lbl, body.pad #btn-new .lbl { display: none; } /* 顶栏纯图标 */
+body.pad #btn-back, body.pad #btn-pdf, body.pad #btn-new, body.pad #btn-data { padding: 10px 12px; }
 body.pad #view-list { max-width: 1200px; padding: 0 24px; }
 body.pad .trip-cover { height: 130px; }
 body.pad .stat-card { min-width: 130px; padding: 12px 20px; }
@@ -957,7 +959,6 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   <button class="btn btn-ghost btn-small" id="btn-import" title="导入数据">📥 <span class="lbl">导入</span></button>
   <button class="btn btn-ghost" id="btn-data" title="设置">⚙️</button>
   <button class="btn btn-ghost" id="btn-back" hidden>← <span class="lbl">返回列表</span></button>
-  <button class="btn btn-ghost" id="btn-preview" hidden>📖<span class="lbl"> 旅行记录</span></button>
   <button class="btn btn-ghost" id="btn-pdf" hidden>📄<span class="lbl"> 生成 PDF 文档</span></button>
   <button class="btn btn-ghost" id="btn-checklist" hidden>📋<span class="lbl"> 旅行清单</span></button>
   <button class="btn btn-primary" id="btn-new">＋<span class="lbl"> 新建大行程</span></button>
@@ -985,7 +986,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   <!-- 视图3：旅行记录（独立页面：右上角 📖 打开，地址栏 #/trip/{id}/journal） -->
   <section id="view-journal" class="hidden">
     <div class="journal-toolbar">
-      <span class="t">📖 旅行记录</span>
+      <span class="t">📝 旅行随记</span>
       <button class="btn" id="btn-dl-png" title="下载整页手账为 PNG 图片">⬇️<span class="lbl"> 下载</span></button>
     </div>
     <div class="diy-bar hidden" id="diy-bar">
@@ -1420,7 +1421,6 @@ function renderList() {
   $('#view-journal').classList.add('hidden');
   $('#view-checklist').classList.add('hidden');
   $('#btn-back').hidden = true;
-  $('#btn-preview').hidden = true;
   $('#btn-pdf').hidden = true;
   $('#btn-checklist').hidden = true;
   $('#btn-new').hidden = false;
@@ -1506,7 +1506,6 @@ function renderDetail(id) {
   $('#view-journal').classList.add('hidden');
   $('#view-checklist').classList.add('hidden');
   $('#btn-back').hidden = false;
-  $('#btn-preview').hidden = false;
   $('#btn-pdf').hidden = false;
   $('#btn-checklist').hidden = false;
   $('#btn-new').hidden = true;
@@ -1545,7 +1544,7 @@ function renderDetail(id) {
   const extraDates = Object.keys(t.days).filter(d => !isInRange(t, d)).sort();
   const navDates = [...new Set([...allDates, ...extraDates])].sort();
 
-  $('#day-nav').innerHTML = `<div class="nav-title">📅 每日行程</div>` + navDates.map(d => {
+  $('#day-nav').innerHTML = `<div class="nav-title nav-link" data-nav="daily" title="返回每日行程">📅 每日行程</div>` + navDates.map(d => {
     const day = t.days[d];
     const has = !!day;
     const s = has ? dayStats(day) : null;
@@ -1556,7 +1555,9 @@ function renderDetail(id) {
       <span>周${weekdayCN(d)}</span>
       <span class="info">${info}</span>
     </button>`;
-  }).join('');
+  }).join('') + `
+  <div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
+  <div class="nav-title nav-link" data-nav="journal" title="旅行随记">📝 旅行随记</div>`;
 
   // 每日卡片
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
@@ -1607,7 +1608,6 @@ function renderChecklist(id) {
   $('#view-journal').classList.add('hidden');
   $('#view-checklist').classList.remove('hidden');
   $('#btn-back').hidden = false;
-  $('#btn-preview').hidden = false;
   $('#btn-pdf').hidden = false;
   $('#btn-checklist').hidden = false;
   $('#btn-new').hidden = true;
@@ -1635,7 +1635,6 @@ function renderJournal(id) {
   $('#view-detail').classList.add('hidden');
   $('#view-journal').classList.remove('hidden');
   $('#btn-back').hidden = false;
-  $('#btn-preview').hidden = true;
   $('#btn-pdf').hidden = true;
   $('#btn-new').hidden = true;
   // 首次打开自动标记已生成（照片等 DIY 数据跟随行程保存）
@@ -1649,26 +1648,12 @@ function renderJournal(id) {
   if (sc) sc.scrollTop = 0;
 }
 /** 打开旅行记录：新开浏览器标签页（原页面不动）；WebView 等不支持新窗口时降级为同页跳转 */
-function openJournal(t) {
-  const url = location.pathname + '?v=' + Date.now() + '#/trip/' + encodeURIComponent(t.id) + '/journal';
-  const w = window.open(url, '_blank');
-  if (!w) {
-    location.hash = '#/trip/' + encodeURIComponent(t.id) + '/journal';
-    showToast('📖 已在当前页打开旅行记录');
-  }
-}
 /** 关闭旅行记录：新标签页（有 opener）关闭自己；否则同页返回详情 */
 function closeJournal() {
   if (window.opener) { window.close(); return; }
   if (postTripId) location.hash = '#/trip/' + encodeURIComponent(postTripId);
   else location.hash = '#/';
 }
-
-// 顶栏 📖 按钮：新开标签页打开旅行记录
-$('#btn-preview').addEventListener('click', () => {
-  const t = getTrip(currentTripId);
-  if (t) openJournal(t);
-});
 
 /** 公共交通（显示车次/座位/乘客详情的交通方式） */
 const PUB_TRANSPORTS = ['高铁', '飞机', '地铁', '公交', '游船'];
@@ -2075,6 +2060,16 @@ function renderDayCard(t, d) {
 $('#view-detail').addEventListener('click', async e => {
   const t = currentTripId ? getTrip(currentTripId) : null;
   if (!t) return;
+
+  // 左侧二级标题导航：每日行程 / 旅行清单 / 旅行随记
+  const navLink = e.target.closest('.day-nav .nav-link');
+  if (navLink) {
+    const nav = navLink.dataset.nav;
+    if (nav === 'daily') location.hash = '#/trip/' + encodeURIComponent(t.id);
+    else if (nav === 'checklist') location.hash = '#/trip/' + encodeURIComponent(t.id) + '/checklist';
+    else if (nav === 'journal') location.hash = '#/trip/' + encodeURIComponent(t.id) + '/journal';
+    return;
+  }
 
   // 日期导航跳转
   const navBtn = e.target.closest('.day-nav button');
