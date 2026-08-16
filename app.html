@@ -872,7 +872,8 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .detail-body { grid-template-columns: 1fr; gap: 14px; }
   .day-nav { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px;
     padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
-  .day-nav .nav-title { display: none; }
+  .day-nav .nav-title { display: inline-block; flex-shrink: 0; margin: 0; padding: 8px 12px; font-size: 13px; background: var(--accent-soft); border-radius: 10px; }
+  .day-nav .nav-link:hover { background: var(--accent-border); }
   .day-nav button { padding: 8px 12px; white-space: nowrap; }
   .day-nav button .info { display: none; }
   .days-col { gap: 16px; }
