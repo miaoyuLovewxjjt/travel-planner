@@ -197,9 +197,6 @@ textarea{resize:vertical}
 .day-head .day-info{flex:1}
 .day-head .day-info h3{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .day-head .day-info .day-sub{font-size:12px;color:var(--sub)}
-.day-head .day-cost{text-align:right;align-self:flex-end;padding-bottom:2px}
-.day-head .day-cost .amt{font-size:18px;font-weight:800;color:var(--accent)}
-.day-head .day-cost .lbl{font-size:11px;color:var(--sub)}
 .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .block{padding:18px 24px;border-bottom:1px solid var(--line)}
 .block.col-left{grid-column:1;border-right:1px solid var(--line)}
@@ -1937,10 +1934,7 @@ function renderDayCard(t, d) {
         <h3>${no === '—' ? '额外行程' : '第' + no + '天'} · ${fmtDateCN(d)} 星期${weekdayCN(d)}</h3>
         <div class="day-sub">${st.segs ? st.segs + '段路线 · ' + transSummary : '今日暂无路线'}</div>
       </div>
-      <div class="day-cost">
-        <div class="amt">${fmtMoney(st.exp)}</div>
-        <div class="lbl">今日花费</div>
-      </div>      <button class="icon-btn del-day" data-date="${d}" title="删除当日行程">${trashIcon()}</button>
+      <button class="icon-btn del-day" data-date="${d}" title="删除当日行程">${trashIcon()}</button>
     </div>
     <div class="day-grid">
       <div class="block notes-box col-left">
@@ -2321,7 +2315,6 @@ function updateTotalsUI(t, path) {
   const fmt = fmtMoney(s.exp);
   const q = sel => { const el = document.querySelector(sel); if (el) el.textContent = fmt; };
   q(`#day-${d} .exp-total .amt`);                 // 记账合计
-  q(`#day-${d} .day-cost .amt`);                  // 卡片头部今日花费
   // 总览住宿（lodging 编辑时，住宿是总览第 1 项）
   if (parts[2] === 'lodging') {
     const lodge = day.lodging || emptyDay().lodging;
