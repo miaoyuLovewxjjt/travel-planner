@@ -822,6 +822,16 @@ body.pad .seg-row input[type=time] { width: 112px; }
 body.pad .seg-row input { width: 108px; }
 body.pad .seg-row select { width: 104px; }
 
+/* ============ 安卓 WebView（手机/平板）emoji 图标对齐 ============
+   Noto Color Emoji 字形自带左右内边距 → 图标视觉左缘比文字偏右；
+   统一左移 2px 补偿：标题类图标（block-title）、内容类图标（交通/住宿类型/花销类别/备注）左侧对齐 */
+body.pad .block-title .tag, body.phone .block-title .tag { margin-left: -2px; }
+body.pad .seg-view-trans, body.phone .seg-view-trans { margin-left: -2px; }
+body.pad .lodge-view-type, body.phone .lodge-view-type { margin-left: -2px; }
+body.pad .exp-view-cat, body.phone .exp-view-cat { margin-left: -2px; }
+body.pad .note-emoji, body.phone .note-emoji { margin-left: -2px; }
+body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px; }
+
 /* ============ 手机端适配（≤560px） ============ */
 @media (max-width: 560px) {
   /* 手机端紧凑：列距 8px、按钮缩小、价格行换行 → 主行(时间+地点+交通)能一行放下 */
@@ -1035,6 +1045,7 @@ const GITHUB_URL = 'https://github.com/miaoyuLovewxjjt/travel-planner';
 const DEVICE = (window.AndroidBridge && window.AndroidBridge.getDevice) ? window.AndroidBridge.getDevice()
   : new URLSearchParams(location.search).get('device') || 'web';
 if (DEVICE === 'pad') document.body.classList.add('pad');
+if (DEVICE === 'phone') document.body.classList.add('phone');
 
 /** 外观偏好已移入行程级（主题色/渐变壁纸在行程编辑面板）；清理旧版全局设置残留 */
 (function initPrefs() {
@@ -1230,14 +1241,16 @@ const emptyDay = () => ({ notes: '', lodging: { name: '', location: '', pricePer
 /* 消费构成颜色：跟随行程主题色（applyTripTheme 按深浅派生 --cat-1..6），同行程内同类别永远同色 */
 const CAT_COLORS = { '交通': 'var(--cat-1)', '餐饮': 'var(--cat-2)', '住宿': 'var(--cat-3)', '门票': 'var(--cat-4)', '购物': 'var(--cat-5)', '其他': 'var(--cat-6)' };
 function dayStats(day) {
-  // 路线价格（交通）+ 住宿价格（住宿）自动计入当日合计，但不再进消费构成环形图（路线/住宿区块已直观体现）
+  // 路线价格（交通）+ 住宿价格（住宿）自动计入当日合计，并计入消费构成对应类别（环形图完整呈现）
   const segs = day.segments || [];
   const segExp = segs.reduce((s, x) => s + num(x.price), 0);
   const lodge = day.lodging;
   const lodgeExp = (lodge && (lodge.name || lodge.location)) ? num(lodge.pricePerNight) : 0;
   const expByCat = {};
   (day.expenses || []).forEach(e => { expByCat[e.category] = (expByCat[e.category] || 0) + num(e.amount); });
-  const exp = Object.values(expByCat).reduce((a, b) => a + b, 0) + segExp + lodgeExp;
+  if (segExp) expByCat['交通'] = (expByCat['交通'] || 0) + segExp;
+  if (lodgeExp) expByCat['住宿'] = (expByCat['住宿'] || 0) + lodgeExp;
+  const exp = Object.values(expByCat).reduce((a, b) => a + b, 0);
   return {
     exp, expByCat, segs: segs.length,
     lodge: lodge && (lodge.name || lodge.location) ? lodge : null,
