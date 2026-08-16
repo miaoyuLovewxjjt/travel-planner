@@ -2473,6 +2473,13 @@ $('#trip-grid').addEventListener('click', e => {
 });
 
 $('#btn-new').addEventListener('click', () => openTripModal(null));
+// 新建/编辑大行程弹窗：开始日期变化 → 结束日期为空或早于开始时自动补为开始后 1 天
+document.addEventListener('change', e => {
+  if (!e.target || e.target.id !== 'm-start') return;
+  const end = document.getElementById('m-end');
+  const sv = e.target.value;
+  if (end && sv && (!end.value || end.value <= sv)) end.value = addDays(sv, 1);
+});
 $('#btn-back').addEventListener('click', () => { location.hash = '#/'; });
 // 顶栏 📖 按钮：打开旅行记录（绑定见 openJournal 函数上方）
 
@@ -2592,6 +2599,10 @@ function openTripModal(trip) {
         </div>
       </div>
       <div class="form-field full"><label>行程备注</label><textarea id="m-notes" maxlength="30" rows="2" placeholder="旅行主题、注意事项…">${esc(t.notes)}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="m-cancel">取消</button>
+      <button class="btn btn-primary" id="m-ok">${trip ? '保存修改' : '创建大行程'}</button>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="m-cancel">取消</button>
