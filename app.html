@@ -216,7 +216,7 @@ textarea{resize:vertical}
   .day-grid{grid-template-columns:1fr}.block.col-left,.block.col-right{grid-column:1/-1;border-right:none}.day-col{grid-column:1/-1}.day-col.col-l{border-right:none}}
 .block-title{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:1px;margin-bottom:10px;
   display:flex;align-items:center;gap:7px}
-.block-title .tag{font-size:16px;display:inline-flex;align-items:center;line-height:18px}
+.block-title .tag{font-size:16px;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;line-height:1}
 .add-row-btn{
   display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:12.5px;font-weight:700;
   padding:6px 12px;border-radius:999px;border:1.5px dashed var(--accent-border);transition:all .15s;margin:6px 0 0;
@@ -3173,6 +3173,12 @@ function showToast(msg) {
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDoc(); } });
+
+/* 双击页面顶部空白区域 → 平滑回到最上方（不响应按钮/链接/输入框） */
+document.addEventListener('dblclick', e => {
+  if (e.target.closest('button, a, input, select, textarea, label')) return;
+  if (e.clientY < window.innerHeight * 0.25) window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 loadData();
 </script>
 </body>
