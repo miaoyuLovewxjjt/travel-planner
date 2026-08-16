@@ -290,6 +290,10 @@ textarea{resize:vertical}
 .exp-note-input{flex-basis:100%;width:100%!important;padding:4px 8px;font-size:12px;border-radius:8px;border-color:#eee}
 .exp-view-note{font-size:12px;color:var(--sub);padding:0 0 4px 2px;line-height:1.5;margin-top:-2px}
 .seg-row select{width:82px;padding:4px 4px;font-size:12.5px;border-radius:8px;flex-shrink:0}
+/* 时间下拉：时/分窄下拉 + 冒号分隔，'-' 表示不输入 */
+.seg-row select.seg-hh,.seg-row select.seg-mm{width:56px;padding:4px 2px;text-align:center}
+.seg-row .tm-colon{color:var(--sub);flex-shrink:0}
+.seg-row input.seg-price-row{width:76px;flex-shrink:0}
 .seg-row .arr{flex-shrink:0}
 .seg-toggle{width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
   color:var(--sub);background:#f2f2f7;font-size:11px;font-weight:800;flex-shrink:0;transition:transform .2s,background .15s}
@@ -821,6 +825,7 @@ body.pad .seg-row { flex-wrap: wrap; }                                     /* �
 body.pad .seg-row input[type=time] { width: 112px; }
 body.pad .seg-row input { width: 108px; }
 body.pad .seg-row select { width: 104px; }
+body.pad .seg-row select.seg-hh, body.pad .seg-row select.seg-mm { width: 56px; }
 
 /* ============ 安卓 WebView（手机/平板）emoji 图标对齐 ============
    Noto Color Emoji 字形自带左右内边距 → 图标视觉左缘比文字偏右；
@@ -1673,6 +1678,16 @@ function segTimes(seg) {
   const m = String(seg.time || '').match(/(\d{1,2}:\d{2})\s*[-–—→~]\s*(\d{1,2}:\d{2})/);
   return m ? { depart: m[1], arrive: m[2] } : { depart: '', arrive: '' };
 }
+/** 时间下拉选项：'-'（不输入）+ 00-23 时 / 00-59 分（参考主流时间选择器） */
+const HH_OPTS = ['-', ...Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))];
+const MM_OPTS = ['-', ...Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))];
+/** 时间选择器：时/分两个下拉（data-path 指向同一时间字段，冒号居中），任一为 '-' 视为不输入 */
+const timeSel = (path, v, title) => {
+  const m = String(v || '').match(/^(\d{2}):(\d{2})$/);
+  const hh = m ? m[1] : '-', mm = m ? m[2] : '-';
+  const opts = (arr, sel) => arr.map(x => `<option value="${x}"${x === sel ? ' selected' : ''}>${x}</option>`).join('');
+  return `<select class="seg-hh" data-path="${path}" data-part="hh" title="${title}（不选为 -）">${opts(HH_OPTS, hh)}</select><span class="tm-colon">:</span><select class="seg-mm" data-path="${path}" data-part="mm" title="${title}（不选为 -）">${opts(MM_OPTS, mm)}</select>`;
+};
 /** 交通方式颜色（每日总览路线条） */
 const TRANS_COLORS = {
   '高铁': '#4D96FF', '飞机': '#7B5CF0', '地铁': '#0FB5AE', '公交': '#4ECB71',
@@ -1741,15 +1756,16 @@ function renderDayCard(t, d) {
       return `<div class="seg-wrap editing">
         <div class="seg-row">
           ${pub ? `<button class="seg-toggle${(autoOpen || hasDetail) ? ' open' : ''}" data-action="toggle-seg" title="收起/展开交通详情">▸</button>` : ''}
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart || ':')}" title="出发时间（直接输数字，冒号自动就位）">
+          ${timeSel(`days.${d}.segments.${i}.departTime`, tm.depart, '出发时间')}
           <span class="arr">→</span>
-          <input type="text" class="seg-time" inputmode="numeric" maxlength="5" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive || ':')}" title="到达时间（直接输数字，冒号自动就位）">
+          ${timeSel(`days.${d}.segments.${i}.arriveTime`, tm.arrive, '到达时间')}
           <input class="seg-from" maxlength="20" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
           <input class="seg-to" maxlength="20" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
           <select class="seg-trans" data-path="days.${d}.segments.${i}.transport">
             ${TRANSPORTS.map(x => `<option value="${x[1]}" ${s.transport === x[1] ? 'selected' : ''}>${x[0]} ${x[1]}</option>`).join('')}
           </select>
+          <input class="seg-price-row" type="number" min="0" data-num data-path="days.${d}.segments.${i}.price" value="${num(s.price)}" placeholder="价格" title="费用自动计入当日账本">
           <button class="done-btn" data-action="seg-done" data-date="${d}" data-idx="${i}" title="确认保存">✓</button>
           <button class="done-btn gray" data-action="seg-cancel" data-date="${d}" data-idx="${i}" title="取消（删除）">✕</button>
           <input class="seg-note-input" maxlength="30" data-path="days.${d}.segments.${i}.notes" value="${esc(s.notes)}" placeholder="备注（可选）">
@@ -1763,8 +1779,6 @@ function renderDayCard(t, d) {
             ${paxChips || '<span class="lodge-none">未选乘客</span>'}
             <button class="pax-add-btn" data-action="pick-pax" data-date="${d}" data-idx="${i}">＋ 选择乘客/填座位</button>
           </div>
-          <span class="seg-detail-label">花销</span>
-          <input class="seg-price" type="number" min="0" data-num data-path="days.${d}.segments.${i}.price" value="${num(s.price)}" placeholder="💴 价格（元），自动计入今日花费">
           ${CROSS_EDITABLE.includes(s.transport) ? `
           <span class="seg-detail-label">跨天</span>
           <select class="seg-cross" data-path="days.${d}.segments.${i}.crossDays">
@@ -2213,35 +2227,53 @@ $('#view-detail').addEventListener('input', e => {
       setByPath(t, el.dataset.path, el.dataset.num ? num(el.value) : el.value);
     }
     // 出发/到达时间变化 → 同步组合 time 字段；跨天自动 +1（结束<开始时），改回当天自动清除
-    const parts = el.dataset.path.split('.');
-    if (parts[2] === 'segments' && (parts[4] === 'departTime' || parts[4] === 'arriveTime')) {
-      const seg = t.days[parts[1]].segments[Number(parts[3])];
-      if (seg) {
-        if (seg.departTime && seg.arriveTime) {
-          if (seg.arriveTime < seg.departTime) {
-            // 跨天：未设置时自动 +1；显式值（含用户选的 0）保持
-            if (seg.crossDays === undefined || seg.crossDays === '') seg.crossDays = 1;
-          } else if (seg.crossDays === undefined || seg.crossDays === '' || Number(seg.crossDays) === 1) {
-            // 结束 ≥ 开始：清除自动的 +1（显式 +2/+3 保持）
-            delete seg.crossDays;
-          }
-          seg.time = [seg.departTime, seg.arriveTime].filter(Boolean).join('-');
-        } else if (!seg.departTime && !seg.arriveTime) {
-          // 时间全部清空：同步清除组合字段与跨天标记，避免展示残留旧时间
-          delete seg.time;
-          delete seg.crossDays;
-        } else {
-          seg.time = [seg.departTime, seg.arriveTime].filter(Boolean).join('-');
-        }
-        // 同步更新跨天下拉选中值（如自动 +1 后）
-        const cdSel = document.querySelector(`select[data-path="days.${parts[1]}.segments.${parts[3]}.crossDays"]`);
-        if (cdSel) cdSel.value = String(crossDays(seg));
-      }
-    }
+    syncSegTimeFields(t, el.dataset.path);
     scheduleSave();
     updateTotalsUI(t, el.dataset.path); // 金额变化时局部刷新合计，不重渲染、不打断输入
   }
 });
+
+/** 时间下拉（change）：时/分两个下拉联动写 HH:MM，任一为 '-' → 空；跨天逻辑与输入一致 */
+$('#view-detail').addEventListener('change', e => {
+  const el = e.target;
+  if (!el.dataset.path || !(el.classList.contains('seg-hh') || el.classList.contains('seg-mm'))) return;
+  const t = getTrip(currentTripId);
+  if (!t) return;
+  const pair = [...document.querySelectorAll(`select[data-path="${el.dataset.path}"]`)];
+  const hh = pair[0].value, mm = pair[1].value;
+  const v = (hh !== '-' && mm !== '-') ? hh + ':' + mm : '';
+  setByPath(t, el.dataset.path, v);
+  syncSegTimeFields(t, el.dataset.path);
+  scheduleSave();
+  saveAndRender(t);
+});
+
+/** 出发/到达时间变化后的联动：组合 time 字段、跨天自动 +1/清除、同步跨天下拉 */
+function syncSegTimeFields(t, path) {
+  const parts = path.split('.');
+  if (parts[2] !== 'segments' || (parts[4] !== 'departTime' && parts[4] !== 'arriveTime')) return;
+  const seg = t.days[parts[1]] && t.days[parts[1]].segments[Number(parts[3])];
+  if (!seg) return;
+  if (seg.departTime && seg.arriveTime) {
+    if (seg.arriveTime < seg.departTime) {
+      // 跨天：未设置时自动 +1；显式值（含用户选的 0）保持
+      if (seg.crossDays === undefined || seg.crossDays === '') seg.crossDays = 1;
+    } else if (seg.crossDays === undefined || seg.crossDays === '' || Number(seg.crossDays) === 1) {
+      // 结束 ≥ 开始：清除自动的 +1（显式 +2/+3 保持）
+      delete seg.crossDays;
+    }
+    seg.time = [seg.departTime, seg.arriveTime].filter(Boolean).join('-');
+  } else if (!seg.departTime && !seg.arriveTime) {
+    // 时间全部清空：同步清除组合字段与跨天标记，避免展示残留旧时间
+    delete seg.time;
+    delete seg.crossDays;
+  } else {
+    seg.time = [seg.departTime, seg.arriveTime].filter(Boolean).join('-');
+  }
+  // 同步更新跨天下拉选中值（如自动 +1 后）
+  const cdSel = document.querySelector(`select[data-path="days.${parts[1]}.segments.${parts[3]}.crossDays"]`);
+  if (cdSel) cdSel.value = String(crossDays(seg));
+}
 
 // 时间退格：删数字、冒号保留（光标在末尾时拦截 Backspace 自定义删除；有选区走浏览器默认）
 $('#view-detail').addEventListener('keydown', e => {
@@ -2313,6 +2345,8 @@ $('#view-detail').addEventListener('change', e => {
   const t = getTrip(currentTripId);
   if (!t) return;
   if (el.dataset.path) {
+    // 时间下拉（时/分组合）由上方专用委托处理，这里跳过避免原始值覆盖
+    if (el.classList.contains('seg-hh') || el.classList.contains('seg-mm')) return;
     setByPath(t, el.dataset.path, el.value);
     scheduleSave();
     // 交通方式切换 / 住宿类型变化 → 重渲染以显示/隐藏对应 UI
