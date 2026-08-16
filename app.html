@@ -918,8 +918,11 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
    二级标题：页面/区块（每日行程、旅行清单）；三级标题：子区块 */
 .h2-title{font-size:16px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;margin:6px 0 10px}
 .h3-title{font-size:13.5px;font-weight:700;color:var(--sub);margin:10px 0 6px}
-/* 旅行清单页 */
-.cl-toolbar{display:flex;align-items:center;gap:10px;padding:14px 18px;position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--line)}
+/* 旅行清单面板（详情页内嵌，点击左侧标题切换显示） */
+.cl-panel{max-width:760px;margin:0 auto;padding:6px 0 40px;width:100%}
+.cl-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cl-panel .h2-title{margin-bottom:4px}
+.cl-panel .cl-hint{margin-bottom:14px}
 .cl-toolbar .t{font-size:16px;font-weight:800;color:var(--ink);flex:1}
 .cl-body{max-width:760px;margin:0 auto;padding:22px 20px 60px}
 .cl-hint{font-size:12.5px;color:var(--sub);margin:0 0 14px}
@@ -979,32 +982,10 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
     <div class="detail-body">
       <aside class="day-nav" id="day-nav"></aside>
       <div class="days-col" id="days-col"></div>
+      <div class="cl-panel hidden" id="cl-panel"></div>
     </div>
   </section>
 
-  <!-- 视图3：旅行记录（独立页面：右上角 📖 打开，地址栏 #/trip/{id}/journal） -->
-  <section id="view-journal" class="hidden">
-    <div class="journal-toolbar">
-      <span class="t">📝 旅行随记</span>
-      <button class="btn" id="btn-dl-png" title="下载整页手账为 PNG 图片">⬇️<span class="lbl"> 下载</span></button>
-    </div>
-    <div class="diy-bar hidden" id="diy-bar">
-      <span class="diy-t">🖼️ 贴一张旅途照片</span>
-      <button class="btn" id="btn-diy-add">＋ 选择照片</button>
-      <span class="diy-hint">从本地上传照片（会自动压缩保存，电脑⇄手机同步不丢）；鼠标移到照片上可删除。</span>
-      <input type="file" id="diy-file" accept="image/*" multiple hidden>
-    </div>
-    <div class="journal-scroll"><div id="post" class="post"></div></div>
-  </section>
-
-  <!-- 视图4：旅行清单（独立页面：地址栏 #/trip/{id}/checklist） -->
-  <section id="view-checklist" class="hidden">
-    <div class="cl-toolbar">
-      <span class="t">📋 旅行清单</span>
-      <button class="btn" id="btn-cl-add" hidden>＋ 添加事项</button>
-    </div>
-    <div class="cl-body" id="cl-body"></div>
-  </section>
 </main>
 
 <!-- 通用模态（新建/编辑大行程、添加一天） -->
@@ -1389,18 +1370,6 @@ async function geocodePlace(name) {
  * ================================================================ */
 function render() {
   const hash = location.hash;
-  // 旅行清单独立页面：#/trip/{id}/checklist
-  const cm = hash.match(/^#\/trip\/([^\/]+)\/checklist$/);
-  if (cm) {
-    const id = decodeURIComponent(cm[1]);
-    if (getTrip(id)) { renderChecklist(id); return; }
-  }
-  // 旅行记录独立页面：#/trip/{id}/journal
-  const jm = hash.match(/^#\/trip\/([^\/]+)\/journal$/);
-  if (jm) {
-    const id = decodeURIComponent(jm[1]);
-    if (getTrip(id)) { renderJournal(id); return; }
-  }
   if (hash.startsWith('#/trip/')) {
     const id = decodeURIComponent(hash.slice(7));
     if (getTrip(id)) { renderDetail(id); return; }
@@ -1413,12 +1382,9 @@ function renderList() {
   // 清掉上一个行程的配色变量与壁纸（避免残留影响其他视图）
   $('#view-detail').removeAttribute('style');
   $('#view-detail').classList.remove('wall-gradient');
-  $('#view-journal').removeAttribute('style');
   $('#doc').removeAttribute('style');
   $('#view-list').classList.remove('hidden');
   $('#view-detail').classList.add('hidden');
-  $('#view-journal').classList.add('hidden');
-  $('#view-checklist').classList.add('hidden');
   $('#btn-back').hidden = true;
   $('#btn-pdf').hidden = true;
   $('#btn-new').hidden = false;
@@ -1501,8 +1467,6 @@ function renderDetail(id) {
   $('#view-detail').classList.toggle('wall-gradient', t.wall === 'gradient'); // 行程级渐变壁纸（跟随行程主题色）
   $('#view-list').classList.add('hidden');
   $('#view-detail').classList.remove('hidden');
-  $('#view-journal').classList.add('hidden');
-  $('#view-checklist').classList.add('hidden');
   $('#btn-back').hidden = false;
   $('#btn-pdf').hidden = false;
   $('#btn-new').hidden = true;
@@ -1553,12 +1517,14 @@ function renderDetail(id) {
       <span>周${weekdayCN(d)}</span>
       <span class="info">${info}</span>
     </button>`;
-  }).join('') + `
-  <div class="nav-title nav-link" data-nav="journal" title="旅行随记">📝 旅行随记</div>`;
+  }).join('');
 
   // 每日卡片
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
+  $('#cl-panel').innerHTML = checklistPanelHtml(t); // 旅行清单：详情页内嵌面板（点击左侧标题切换，不刷新）
+  $('#cl-panel').classList.add('hidden');
+  $('#days-col').classList.remove('hidden');
   watchSegAlign();
 }
 
@@ -1593,62 +1559,22 @@ window.addEventListener('resize', () => {
   }
 });
 
-/* ---------- 旅行记录（独立页面：📖 新开标签页 → #/trip/{id}/journal） ---------- */
-/** 旅行清单页（Demo）：二级标题 + 数据模型 t.checklist=[{done,text}]，PDF 同步该数据 */
-function renderChecklist(id) {
-  const t = getTrip(id);
-  if (!t) return;
-  currentTripId = id;
-  applyTripTheme($('#view-checklist'), t.color);
-  $('#view-list').classList.add('hidden');
-  $('#view-detail').classList.add('hidden');
-  $('#view-journal').classList.add('hidden');
-  $('#view-checklist').classList.remove('hidden');
-  $('#btn-back').hidden = false;
-  $('#btn-pdf').hidden = false;
-  $('#btn-new').hidden = true;
+/* 旅行清单：详情页内嵌面板（数据模型 t.checklist=[{done,text}]，PDF 同步该数据） */
+function checklistPanelHtml(t) {
   const items = Array.isArray(t.checklist) ? t.checklist : [];
   const rows = items.map((c, i) =>
     `<div class="cl-item${c.done ? ' done' : ''}">
       <span class="cl-check">${c.done ? '✅' : '⬜'}</span>
       <span class="cl-text">${esc(c.text || '')}</span>
     </div>`).join('');
-  $('#cl-body').innerHTML = `
-    <div class="h2-title">📋 旅行清单</div>
+  return `
+    <div class="cl-panel-head">
+      <div class="h2-title">📋 旅行清单</div>
+      <button class="btn btn-ghost btn-small" data-action="cl-back">← 返回每日行程</button>
+    </div>
     <p class="cl-hint">出行前要准备 / 完成的事项清单（开发中 Demo，数据与 PDF 同步）</p>
     ${rows || '<div class="empty-state"><div class="big">📋</div><p>清单还是空的</p><p style="margin-top:6px">后续在这里添加出发前待办、打包物品、预订确认等事项</p></div>'}
   `;
-}
-
-function renderJournal(id) {
-  const t = getTrip(id);
-  if (!t) return;
-  currentTripId = id;
-  postTrip = t;
-  postTripId = t.id;
-  applyTripTheme($('#view-journal'), t.color); // 旅行记录页配色跟随行程
-  $('#view-list').classList.add('hidden');
-  $('#view-detail').classList.add('hidden');
-  $('#view-journal').classList.remove('hidden');
-  $('#btn-back').hidden = false;
-  $('#btn-pdf').hidden = true;
-  $('#btn-new').hidden = true;
-  // 首次打开自动标记已生成（照片等 DIY 数据跟随行程保存）
-  if (!(t.journal && t.journal.rendered)) {
-    t.journal = t.journal || {};
-    t.journal.rendered = true;
-    scheduleSave();
-  }
-  buildPost(t);
-  const sc = document.querySelector('#view-journal .journal-scroll');
-  if (sc) sc.scrollTop = 0;
-}
-/** 打开旅行记录：新开浏览器标签页（原页面不动）；WebView 等不支持新窗口时降级为同页跳转 */
-/** 关闭旅行记录：新标签页（有 opener）关闭自己；否则同页返回详情 */
-function closeJournal() {
-  if (window.opener) { window.close(); return; }
-  if (postTripId) location.hash = '#/trip/' + encodeURIComponent(postTripId);
-  else location.hash = '#/';
 }
 
 /** 公共交通（显示车次/座位/乘客详情的交通方式） */
@@ -2057,13 +1983,24 @@ $('#view-detail').addEventListener('click', async e => {
   const t = currentTripId ? getTrip(currentTripId) : null;
   if (!t) return;
 
-  // 左侧二级标题导航：每日行程 / 旅行清单 / 旅行随记
+  // 左侧二级标题导航：旅行清单（页内切换）/ 每日行程（返回日期视图）
   const navLink = e.target.closest('.day-nav .nav-link');
   if (navLink) {
     const nav = navLink.dataset.nav;
-    if (nav === 'daily') location.hash = '#/trip/' + encodeURIComponent(t.id);
-    else if (nav === 'checklist') location.hash = '#/trip/' + encodeURIComponent(t.id) + '/checklist';
-    else if (nav === 'journal') location.hash = '#/trip/' + encodeURIComponent(t.id) + '/journal';
+    if (nav === 'checklist') {
+      $('#days-col').classList.add('hidden');
+      $('#cl-panel').classList.remove('hidden');
+    } else if (nav === 'daily') {
+      $('#cl-panel').classList.add('hidden');
+      $('#days-col').classList.remove('hidden');
+    }
+    return;
+  }
+  // 清单面板内返回按钮
+  const clBack = e.target.closest('[data-action="cl-back"]');
+  if (clBack) {
+    $('#cl-panel').classList.add('hidden');
+    $('#days-col').classList.remove('hidden');
     return;
   }
 
@@ -2542,11 +2479,7 @@ $('#trip-grid').addEventListener('click', e => {
 });
 
 $('#btn-new').addEventListener('click', () => openTripModal(null));
-$('#btn-back').addEventListener('click', () => {
-  // 旅行记录页：关闭标签页（新开标签页场景）或回详情页
-  if (location.hash.includes('/journal')) { closeJournal(); return; }
-  location.hash = '#/';
-});
+$('#btn-back').addEventListener('click', () => { location.hash = '#/'; });
 // 顶栏 📖 按钮：打开旅行记录（绑定见 openJournal 函数上方）
 
 // 导出 / 导入（电脑 ⇄ 手机数据迁移）
@@ -2792,75 +2725,8 @@ $('#modal-root').addEventListener('click', e => { if (e.target === $('#modal-roo
 /* ================================================================
  * 旅行记录手账（全屏页面：右上角 📖 打开）
  * ================================================================ */
-let postMap = null, postTrip = null, postTripId = null;
+let postMap = null;
 
-// 旅行记录页面内点击：下载 / 上传照片 / 删除照片
-$('#view-journal').addEventListener('click', async e => {
-  const t = postTrip;
-  if (!t) return;
-  if (e.target.closest('#btn-dl-png')) { downloadJournalPNG(); return; }
-  if (e.target.closest('#btn-diy-add')) {
-    const inp = $('#diy-file');
-    if (inp) inp.click();
-    return;
-  }
-  const delBtn = e.target.closest('[data-action="del-photo"]');
-  if (delBtn) {
-    const idx = Number(delBtn.dataset.idx);
-    if (t.journal && Array.isArray(t.journal.photos) && t.journal.photos[idx]) {
-      t.journal.photos.splice(idx, 1);
-      scheduleSave();
-      // 局部刷新照片区（不重建地图）
-      const post = $('#post');
-      const old = post.querySelector('.post-photos');
-      const st = tripStats(t);
-      const photos = t.journal.photos;
-      const frag = document.createElement('div');
-      frag.innerHTML = photos.length
-        ? `<div class="post-photos">
-            <div class="pp-title">📷 旅途照片</div>
-            <div class="pp-grid">
-              ${photos.map((p, i) => `<div class="pp-item" style="transform:rotate(${((i % 3) - 1) * 2.2}deg)">
-                <img src="${p.dataUrl}" alt="旅途照片">
-                <div class="pp-cap">${esc(p.cap || '')}</div>
-                <button class="pp-del" data-action="del-photo" data-idx="${i}" title="删除这张照片">✕</button>
-              </div>`).join('')}
-            </div>
-            <button class="pp-add" id="btn-diy-add">🖼️ 再贴一张照片</button>
-          </div>`
-        : `<div class="post-photos"><div class="pp-title">📷 旅途照片</div>
-            <div class="pp-empty">还没有照片，贴几张旅途照片，让手账更有回忆吧 ✨</div>
-            <button class="pp-add" id="btn-diy-add">🖼️ 上传照片</button></div>`;
-      if (old) old.replaceWith(frag.firstElementChild);
-      else post.insertAdjacentHTML('beforeend', frag.innerHTML);
-    }
-    return;
-  }
-});
-
-// DIY 本地上传照片（压缩后存入 trip.journal.photos）
-$('#view-journal').addEventListener('change', async e => {
-  const inp = e.target.closest('#diy-file');
-  if (!inp || !inp.files || !inp.files.length) return;
-  const t = postTrip;
-  if (!t) return;
-  t.journal = t.journal || {};
-  if (!Array.isArray(t.journal.photos)) t.journal.photos = [];
-  const files = [...inp.files];
-  for (const f of files) {
-    try {
-      const dataUrl = await compressImage(f);
-      t.journal.photos.push({ id: uid(), dataUrl, cap: f.name.replace(/\.[^.]+$/, '').slice(0, 20) || '' });
-    } catch (err) {
-      showToast('⚠️ 图片「' + f.name + '」读取失败');
-    }
-  }
-  inp.value = '';
-  scheduleSave();
-  // 重建手账（照片区变化）
-  buildPost(t);
-  showToast('🖼️ 已添加 ' + files.length + ' 张照片');
-});
 
 /** 本地图片压缩：最大边 900px、JPEG 0.82，转 dataURL 节省存储 */
 function compressImage(file) {
@@ -3305,7 +3171,7 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeJournal(); closeDoc(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDoc(); } });
 loadData();
 </script>
 </body>
