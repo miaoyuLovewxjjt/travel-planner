@@ -203,6 +203,28 @@ textarea{resize:vertical}
 .wx-badge:hover{border-color:var(--accent);color:var(--accent)}
 .wx-badge.wx-empty{background:#fafafc;border-style:dashed;color:var(--sub);font-weight:400}
 
+/* 俏皮日期选择器：触发条（虚线）+ 自绘日历面板 */
+.dp-trigger{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border:1.5px dashed var(--accent-border);border-radius:10px;cursor:pointer;font-size:13px;color:var(--ink);background:#fff;transition:border-color .15s}
+.dp-trigger:hover{border-color:var(--accent)}
+.dp-trigger::after{content:"📅";font-size:13px;opacity:.6}
+.dp-trigger.empty{color:var(--sub)}
+.dp-panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(28,28,60,.12);padding:12px;margin-top:8px}
+.dp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.dp-head button{width:28px;height:28px;border-radius:8px;font-size:15px;color:var(--sub);background:#f2f2f7}
+.dp-head button:hover{background:var(--accent-soft);color:var(--accent)}
+.dp-title{font-size:13.5px;font-weight:800;color:var(--ink)}
+.dp-week{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10.5px;color:var(--sub);margin-bottom:4px}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dp-d{height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;cursor:pointer;color:var(--ink);transition:background .12s}
+.dp-d:hover{background:var(--accent-soft)}
+.dp-d.disabled{color:#d9d9e2;pointer-events:none}
+.dp-d.sel{background:var(--accent);color:#fff;font-weight:800}
+.dp-d.today{box-shadow:inset 0 0 0 1.5px var(--accent);position:relative}
+.dp-d.today::after{content:"";position:absolute;inset:0;border:1.5px dashed var(--accent);border-radius:50%;pointer-events:none}
+.dp-d.today.sel{box-shadow:none}
+.dp-d.today.sel::after{display:none}
+
+
 .day-head .day-cost .amt{font-size:18px;font-weight:800;color:var(--accent)}
 .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .block{padding:18px 24px;border-bottom:1px solid var(--line)}
@@ -2608,6 +2630,63 @@ window.addEventListener('hashchange', render);
 /* ================================================================
  * 新建 / 编辑大行程
  * ================================================================ */
+/* 俏皮日历：自绘日期选择器（今天=虚线圆圈，选中=实心主题色；开始/结束联动 min） */
+let dpFor = null, dpYear = 0, dpMonth = 0;
+const dpPad = n => String(n).padStart(2, '0');
+function updateDpTrigger(forId, v) {
+  const el = document.getElementById('dp-' + (forId === 'm-start' ? 'start' : 'end'));
+  if (!el) return;
+  el.textContent = v ? `${Number(v.slice(5, 7))}月${Number(v.slice(8, 10))}日` : '请选择日期';
+  el.classList.toggle('empty', !v);
+}
+function openDatePicker(forId) {
+  dpFor = forId;
+  const cur = document.getElementById(forId).value;
+  const min = forId === 'm-end' ? document.getElementById('m-start').value : '';
+  // 结束日期：优先定位到已选值，其次开始日期所在月（避免整月禁用需翻月）
+  const base = cur ? new Date(cur + 'T00:00:00') : (min ? new Date(min + 'T00:00:00') : new Date());
+  dpYear = base.getFullYear(); dpMonth = base.getMonth();
+  renderDatePanel();
+  document.getElementById('dp-panel').classList.remove('hidden');
+}
+function renderDatePanel() {
+  const first = new Date(dpYear, dpMonth, 1);
+  const startDow = first.getDay();
+  const days = new Date(dpYear, dpMonth + 1, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const min = dpFor === 'm-end' ? document.getElementById('m-start').value : '';
+  const sel = document.getElementById(dpFor).value;
+  let cells = '';
+  for (let i = 0; i < startDow; i++) cells += '<span class="dp-d disabled"></span>';
+  for (let d = 1; d <= days; d++) {
+    const ds = dpYear + '-' + dpPad(dpMonth + 1) + '-' + dpPad(d);
+    const cls = ['dp-d'];
+    if (ds === todayStr) cls.push('today');
+    if (min && ds < min) cls.push('disabled');
+    if (ds === sel) cls.push('sel');
+    cells += `<span class="${cls.join(' ')}" data-d="${ds}">${d}</span>`;
+  }
+  document.getElementById('dp-grid').innerHTML = cells;
+  document.getElementById('dp-title').textContent = dpYear + '年' + (dpMonth + 1) + '月';
+}
+function pickDate(v) {
+  document.getElementById(dpFor).value = v;
+  updateDpTrigger(dpFor, v);
+  if (dpFor === 'm-start') {
+    const end = document.getElementById('m-end');
+    if (end.value && end.value < v) { end.value = ''; updateDpTrigger('m-end', ''); }
+  }
+  document.getElementById('dp-panel').classList.add('hidden');
+}
+// 日历交互（委托：触发器 / 翻月 / 选日）
+document.addEventListener('click', e => {
+  const trig = e.target.closest('.dp-trigger');
+  if (trig) { openDatePicker(trig.dataset.for); return; }
+  if (e.target.closest('#dp-prev')) { dpMonth--; renderDatePanel(); return; }
+  if (e.target.closest('#dp-next')) { dpMonth++; renderDatePanel(); return; }
+  const cell = e.target.closest('.dp-d:not(.disabled)');
+  if (cell && dpFor && cell.dataset.d) { pickDate(cell.dataset.d); return; }
+});
 function openTripModal(trip) {
   const wasNewHidden = $('#btn-new').hidden;
   $('#btn-new').hidden = true; // 弹窗打开时隐藏顶栏入口，避免「两个创建大行程按钮」
@@ -2623,8 +2702,19 @@ function openTripModal(trip) {
         ${PRESET_COLORS.map(c => `<span class="color-dot ${c === t.color ? 'sel' : ''}" style="background:${c}" data-c="${c}"></span>`).join('')}
         <input type="color" id="m-color-custom" value="${esc(t.color)}" style="width:30px;height:30px;border-radius:50%;padding:0;border:1px solid var(--line)">
       </div></div>
-      <div class="form-field"><label>开始日期</label><input type="date" id="m-start" value="${esc(t.startDate)}"></div>
-      <div class="form-field"><label>结束日期</label><input type="date" id="m-end" value="${esc(t.endDate)}"></div>
+      <div class="form-field"><label>开始日期</label>
+        <div class="dp-trigger" data-for="m-start" id="dp-start"></div>
+        <input type="hidden" id="m-start" value="${esc(t.startDate)}">
+      </div>
+      <div class="form-field"><label>结束日期</label>
+        <div class="dp-trigger" data-for="m-end" id="dp-end"></div>
+        <input type="hidden" id="m-end" value="${esc(t.endDate)}">
+      </div>
+      <div class="full"><div id="dp-panel" class="dp-panel hidden">
+        <div class="dp-head"><button id="dp-prev" title="上一月">‹</button><span class="dp-title" id="dp-title"></span><button id="dp-next" title="下一月">›</button></div>
+        <div class="dp-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div class="dp-grid" id="dp-grid"></div>
+      </div></div>
       <div class="form-field"><label>出行人（逗号分隔）</label><input id="m-travelers" maxlength="30" value="${esc(t.travelers.join('，'))}" placeholder="我，小美，老王"></div>
       <div class="form-field"><label>总预算（元）</label><input id="m-budget" type="number" min="0" value="${num(t.budget)}" placeholder="0 = 不设预算"></div>
       <div class="form-field full"><label>背景壁纸</label>
@@ -2664,6 +2754,8 @@ function openTripModal(trip) {
     }
   });
   $('#m-cancel').addEventListener('click', closeModal);
+  updateDpTrigger('m-start', $('#m-start').value);
+  updateDpTrigger('m-end', $('#m-end').value);
   $('#m-ok').addEventListener('click', () => {
     const name = $('#m-name').value.trim();
     const start = $('#m-start').value, end = $('#m-end').value;
