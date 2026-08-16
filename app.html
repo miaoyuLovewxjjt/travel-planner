@@ -204,7 +204,7 @@ textarea{resize:vertical}
 .wx-badge.wx-empty{background:#fafafc;border-style:dashed;color:var(--sub);font-weight:400}
 
 /* 俏皮日期选择器：触发条（虚线）+ 自绘日历面板 */
-.dp-trigger{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border:1.5px dashed var(--accent-border);border-radius:10px;cursor:pointer;font-size:13px;color:var(--ink);background:#fff;transition:border-color .15s}
+.dp-trigger{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:13px;color:var(--ink);background:#fff;transition:border-color .15s}
 .dp-trigger:hover{border-color:var(--accent)}
 .dp-trigger::after{content:"📅";font-size:13px;opacity:.6}
 .dp-trigger.empty{color:var(--sub)}
@@ -2709,16 +2709,16 @@ function openTripModal(trip) {
       <div class="form-field"><label>开始日期</label>
         <div class="dp-trigger" data-for="m-start" id="dp-start"></div>
         <input type="hidden" id="m-start" value="${esc(t.startDate)}">
+        <div id="dp-panel" class="dp-panel hidden">
+          <div class="dp-head"><button id="dp-prev" title="上一月">‹</button><span class="dp-title" id="dp-title"></span><button id="dp-next" title="下一月">›</button></div>
+          <div class="dp-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div class="dp-grid" id="dp-grid"></div>
+        </div>
       </div>
       <div class="form-field"><label>结束日期</label>
         <div class="dp-trigger" data-for="m-end" id="dp-end"></div>
         <input type="hidden" id="m-end" value="${esc(t.endDate)}">
       </div>
-      <div class="full"><div id="dp-panel" class="dp-panel hidden">
-        <div class="dp-head"><button id="dp-prev" title="上一月">‹</button><span class="dp-title" id="dp-title"></span><button id="dp-next" title="下一月">›</button></div>
-        <div class="dp-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-        <div class="dp-grid" id="dp-grid"></div>
-      </div></div>
       <div class="form-field"><label>出行人（逗号分隔）</label><input id="m-travelers" maxlength="30" value="${esc(t.travelers.join('，'))}" placeholder="我，小美，老王"></div>
       <div class="form-field"><label>总预算（元）</label><input id="m-budget" type="number" min="0" value="${num(t.budget)}" placeholder="0 = 不设预算"></div>
       <div class="form-field full"><label>背景壁纸</label>
