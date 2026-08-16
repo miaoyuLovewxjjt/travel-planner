@@ -195,8 +195,14 @@ textarea{resize:vertical}
 .day-badge .n{font-size:20px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 .day-badge .w{font-size:11px;opacity:.95;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 .day-head .day-info{flex:1}
-.day-head .day-info h3{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day-head .day-info h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0}
+.day-head .day-info h3 .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .day-head .day-cost{text-align:right;align-self:flex-end;padding-bottom:2px}
+/* 天气徽章：胶囊浅底，悬停主题色；空态虚线占位 */
+.wx-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#55556a;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:999px;padding:2px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.wx-badge:hover{border-color:var(--accent);color:var(--accent)}
+.wx-badge.wx-empty{background:#fafafc;border-style:dashed;color:var(--sub);font-weight:400}
+
 .day-head .day-cost .amt{font-size:18px;font-weight:800;color:var(--accent)}
 .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .block{padding:18px 24px;border-bottom:1px solid var(--line)}
@@ -1560,6 +1566,50 @@ window.addEventListener('resize', () => {
   }
 });
 
+
+/* 天气：气候+最低+最高温度（每日可设置，徽章显示于卡片标题后） */
+const WEATHERS = [['☀️', '晴'], ['🌤️', '多云'], ['☁️', '阴'], ['🌧️', '雨'], ['⛈️', '雷阵雨'], ['❄️', '雪'], ['🌫️', '雾'], ['🌬️', '风']];
+const wxEmoji = c => (WEATHERS.find(x => x[1] === c) || WEATHERS[0])[0];
+/** 天气设置弹窗 */
+function openWxModal(d) {
+  const t = getTrip(currentTripId);
+  if (!t) return;
+  const w = (t.days[d] && t.days[d].weather) || {};
+  $('#modal-box').innerHTML = `
+    <h2>🌤️ 设置当天天气</h2>
+    <div class="form-grid">
+      <div class="form-field full"><label>气候</label><select id="wx-cond">
+        ${WEATHERS.map(x => `<option value="${x[1]}"${w.cond === x[1] ? ' selected' : ''}>${x[0]} ${x[1]}</option>`).join('')}
+      </select></div>
+      <div class="form-field"><label>最低温度（℃）</label><input id="wx-low" type="number" value="${num(w.low)}" placeholder="如 20"></div>
+      <div class="form-field"><label>最高温度（℃）</label><input id="wx-high" type="number" value="${num(w.high)}" placeholder="如 30"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="wx-del"${w.cond ? '' : ' hidden'}>删除天气</button>
+      <button class="btn btn-ghost" id="wx-cancel">取消</button>
+      <button class="btn btn-primary" id="wx-save">保存</button>
+    </div>`;
+  $('#modal-root').classList.remove('hidden');
+  $('#wx-cancel').addEventListener('click', closeModal);
+  $('#wx-save').addEventListener('click', () => {
+    const t2 = getTrip(currentTripId);
+    if (!t2) return;
+    ensureDay(t2, d);
+    const cond = $('#wx-cond').value;
+    const low = num($('#wx-low').value), high = num($('#wx-high').value);
+    if (cond && (low != null || high != null)) t2.days[d].weather = { cond, low: low != null ? low : null, high: high != null ? high : null };
+    else delete t2.days[d].weather;
+    closeModal();
+    saveAndRender(t2);
+  });
+  $('#wx-del').addEventListener('click', () => {
+    const t2 = getTrip(currentTripId);
+    if (t2 && t2.days[d]) delete t2.days[d].weather;
+    closeModal();
+    saveAndRender(t2);
+  });
+}
+
 /* 旅行清单：详情页内嵌面板（数据模型 t.checklist=[{done,text}]，PDF 同步该数据） */
 function checklistPanelHtml(t) {
   const items = Array.isArray(t.checklist) ? t.checklist : [];
@@ -1929,7 +1979,11 @@ function renderDayCard(t, d) {
     <div class="day-head">
       <div class="day-badge"><span class="n">${Number(d.slice(8,10))}</span><span class="w">${Number(d.slice(5,7))}月</span></div>
       <div class="day-info">
-        <h3>${no === '—' ? '额外行程' : '第' + no + '天'} · ${fmtDateCN(d)} 星期${weekdayCN(d)}</h3>
+        <h3><span class="t">${no === '—' ? '额外行程' : '第' + no + '天'} · ${fmtDateCN(d)} 星期${weekdayCN(d)}</span>
+          ${day.weather && day.weather.cond
+            ? `<span class="wx-badge" data-action="set-wx" data-date="${d}" title="点击设置天气">${wxEmoji(day.weather.cond)} ${esc(day.weather.cond)}${num(day.weather.low) != null ? ' ' + Math.round(num(day.weather.low)) + '°' : ''}~${num(day.weather.high) != null ? Math.round(num(day.weather.high)) + '°' : ''}</span>`
+            : `<span class="wx-badge wx-empty" data-action="set-wx" data-date="${d}" title="设置天气">＋ 天气</span>`}
+        </h3>
       </div>
       <div class="day-cost"><div class="amt">${fmtMoney(st.exp)}</div></div>
       <button class="icon-btn del-day" data-date="${d}" title="删除当日行程">${trashIcon()}</button>
@@ -1978,6 +2032,9 @@ $('#view-detail').addEventListener('click', async e => {
   const t = currentTripId ? getTrip(currentTripId) : null;
   if (!t) return;
 
+  // 天气徽章：打开天气设置
+  const wxBtn = e.target.closest('[data-action="set-wx"]');
+  if (wxBtn) { openWxModal(wxBtn.dataset.date); return; }
   // 左侧二级标题导航：旅行清单（页内切换）/ 每日行程（返回日期视图）
   const navLink = e.target.closest('.day-nav .nav-link');
   if (navLink) {
@@ -2473,12 +2530,15 @@ $('#trip-grid').addEventListener('click', e => {
 });
 
 $('#btn-new').addEventListener('click', () => openTripModal(null));
-// 新建/编辑大行程弹窗：开始日期变化 → 结束日期为空或早于开始时自动补为开始后 1 天
+// 新建/编辑大行程弹窗：开始日期变化 → 不自动填充结束日期，仅让结束日历跟随
+// （结束 input 的 min = 开始日期，日历早于开始不可选；已填但早于开始的旧值清空）
 document.addEventListener('change', e => {
   if (!e.target || e.target.id !== 'm-start') return;
   const end = document.getElementById('m-end');
   const sv = e.target.value;
-  if (end && sv && (!end.value || end.value <= sv)) end.value = addDays(sv, 1);
+  if (!end) return;
+  if (sv) end.min = sv;
+  if (end.value && sv && end.value < sv) end.value = '';
 });
 $('#btn-back').addEventListener('click', () => { location.hash = '#/'; });
 // 顶栏 📖 按钮：打开旅行记录（绑定见 openJournal 函数上方）
@@ -2577,6 +2637,9 @@ window.addEventListener('hashchange', render);
  * 新建 / 编辑大行程
  * ================================================================ */
 function openTripModal(trip) {
+  const wasNewHidden = $('#btn-new').hidden;
+  $('#btn-new').hidden = true; // 弹窗打开时隐藏顶栏入口，避免「两个创建大行程按钮」
+  $('#btn-new').dataset.wasHidden = wasNewHidden ? '1' : '0';
   const t = trip || { name: '', emoji: '🧳', startDate: todayStr(), endDate: addDays(todayStr(), 2),
     travelers: [], budget: 0, color: PRESET_COLORS[0], notes: '', days: {} };
   $('#modal-box').innerHTML = `
@@ -2724,7 +2787,10 @@ $('#days-col').addEventListener('dragend', () => {
   dragState = null;
 });
 
-function closeModal() { $('#modal-root').classList.add('hidden'); }
+function closeModal() {
+  $('#modal-root').classList.add('hidden');
+  if ($('#btn-new').dataset.wasHidden === '0') $('#btn-new').hidden = false; // 恢复顶栏入口（原为可见时）
+}
 $('#modal-root').addEventListener('click', e => { if (e.target === $('#modal-root')) closeModal(); });
 
 /* ================================================================
