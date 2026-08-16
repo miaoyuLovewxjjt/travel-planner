@@ -323,8 +323,8 @@ textarea{resize:vertical}
 .seg-row input.seg-price-row{width:76px;flex-shrink:0}
 .seg-row input.seg-time-native{width:84px;flex-shrink:0;text-align:center;color:var(--ink)}
 .seg-row input.seg-time-native::-webkit-datetime-edit{text-align:center}
-.seg-row input.seg-time-native:invalid{color:transparent}
-.seg-row input.seg-time-native:invalid::-webkit-datetime-edit-fields-wrapper{visibility:hidden}
+.seg-row input.seg-time-native.empty{color:transparent}
+.seg-row input.seg-time-native.empty::-webkit-datetime-edit-fields-wrapper{visibility:hidden}
 .seg-row .arr{flex-shrink:0}
 .seg-toggle{width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
   color:var(--sub);background:#f2f2f7;font-size:11px;font-weight:800;flex-shrink:0;transition:transform .2s,background .15s}
@@ -1792,9 +1792,9 @@ function renderDayCard(t, d) {
       return `<div class="seg-wrap editing">
         <div class="seg-row">
           ${pub ? `<button class="seg-toggle${(autoOpen || hasDetail) ? ' open' : ''}" data-action="toggle-seg" title="收起/展开交通详情">▸</button>` : ''}
-          <input type="time" class="seg-time-native" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" title="出发时间（系统时间选择器）">
+          <input type="time" class="seg-time-native${tm.depart ? '' : ' empty'}" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" title="出发时间（系统时间选择器）">
           <span class="arr">→</span>
-          <input type="time" class="seg-time-native" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" title="到达时间（系统时间选择器）">
+          <input type="time" class="seg-time-native${tm.arrive ? '' : ' empty'}" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" title="到达时间（系统时间选择器）">
           <input class="seg-from" maxlength="20" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
           <input class="seg-to" maxlength="20" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
@@ -2293,6 +2293,7 @@ $('#view-detail').addEventListener('input', e => {
       setByPath(t, el.dataset.path, fmt === ':' ? '' : fmt);
     } else {
       setByPath(t, el.dataset.path, el.dataset.num ? num(el.value) : el.value);
+      if (el.classList.contains('seg-time-native')) el.classList.toggle('empty', !el.value);
     }
     // 出发/到达时间变化 → 同步组合 time 字段；跨天自动 +1（结束<开始时），改回当天自动清除
     syncSegTimeFields(t, el.dataset.path);
