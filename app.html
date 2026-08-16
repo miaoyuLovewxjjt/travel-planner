@@ -219,9 +219,9 @@ textarea{resize:vertical}
 .dp-d:hover{background:var(--accent-soft)}
 .dp-d.disabled{color:#d9d9e2;pointer-events:none}
 .dp-d.sel{background:var(--accent);color:#fff;font-weight:800}
-.dp-d.today{box-shadow:inset 0 0 0 1.5px var(--accent);position:relative}
+.dp-d.today{position:relative;color:var(--accent);font-weight:700}
 .dp-d.today::after{content:"";position:absolute;inset:0;border:1.5px dashed var(--accent);border-radius:50%;pointer-events:none}
-.dp-d.today.sel{box-shadow:none}
+.dp-d.today.sel{color:#fff}
 .dp-d.today.sel::after{display:none}
 
 
@@ -321,7 +321,10 @@ textarea{resize:vertical}
 .seg-row select{width:82px;padding:4px 4px;font-size:12.5px;border-radius:8px;flex-shrink:0}
 /* 时间下拉：时/分窄下拉 + 冒号分隔，'-' 表示不输入 */
 .seg-row input.seg-price-row{width:76px;flex-shrink:0}
-.seg-row input.seg-time-native{width:84px;flex-shrink:0}
+.seg-row input.seg-time-native{width:84px;flex-shrink:0;text-align:center;color:var(--ink)}
+.seg-row input.seg-time-native::-webkit-datetime-edit{text-align:center}
+.seg-row input.seg-time-native:invalid{color:transparent}
+.seg-row input.seg-time-native:invalid::-webkit-datetime-edit-fields-wrapper{visibility:hidden}
 .seg-row .arr{flex-shrink:0}
 .seg-toggle{width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
   color:var(--sub);background:#f2f2f7;font-size:11px;font-weight:800;flex-shrink:0;transition:transform .2s,background .15s}
