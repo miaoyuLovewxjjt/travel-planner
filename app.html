@@ -208,6 +208,8 @@ textarea{resize:vertical}
 .day-col .block{border-right:none}
 .day-col.col-l{border-right:1px solid var(--line)}
 @media(max-width:860px){.detail-body{grid-template-columns:1fr}.day-nav{position:static;flex-direction:row;flex-wrap:wrap}
+  /* grid 子项允许收缩：防止 day-nav 横向滚动条/段内容把整页撑宽（手机端横向溢出） */
+  .detail-body>*,.day-grid>*{min-width:0}
   .day-grid{grid-template-columns:1fr}.block.col-left,.block.col-right{grid-column:1/-1;border-right:none}.day-col{grid-column:1/-1}.day-col.col-l{border-right:none}}
 .block-title{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:1px;margin-bottom:10px;
   display:flex;align-items:center;gap:7px}
@@ -802,6 +804,8 @@ body.pad .day-nav { position: sticky !important; flex-direction: column !importa
 body.pad .day-nav .nav-title { display: block !important; }
 body.pad .day-nav button { padding: 10px 14px; }
 body.pad .day-grid { grid-template-columns: 1fr 1fr !important; }
+body.pad .detail-body>* { min-width: 0; }        /* 平板：grid 子项可收缩，防内容撑宽溢出 */
+body.pad .day-grid>* { min-width: 0; }
 body.pad .block { padding: 16px 20px; }
 body.pad .block.lodge-block { padding: 16px 20px; }
 body.pad .block.full { grid-column: 1/-1 !important; border-right: none !important; }
@@ -820,6 +824,15 @@ body.pad .seg-row select { width: 104px; }
 
 /* ============ 手机端适配（≤560px） ============ */
 @media (max-width: 560px) {
+  /* 手机端紧凑：列距 8px、按钮缩小、价格行换行 → 主行(时间+地点+交通)能一行放下 */
+  .seg-view { gap: 8px; }
+  .seg-main { column-gap: 8px; row-gap: 4px; }
+  .seg-trail { gap: 8px; flex-basis: 100%; }
+  .drag-handle { width: 20px; }
+  .seg-view-actions .icon-btn { width: 26px; height: 26px; }
+  /* 手机端：主行剩余空间给地名设上限（按最宽时间列+跨天角标计算），保证时间+地名+按钮一行不拆散 */
+  /* 手机端：地名上限=主行剩余空间（时间列最宽含跨天角标 97px + 间距），任意屏宽都保证主行一行 */
+  .seg-view-path { max-width: calc(100% - 110px); }
   #topbar { padding: 10px 10px; gap: 6px; }
   #topbar .logo { font-size: 16px; }
   #btn-export, #btn-import, #save-state { display: none; }        /* 导出/导入在 ⚙️ 数据面板中 */
@@ -1519,6 +1532,15 @@ function watchSegAlign() {
   root.querySelectorAll('.seg-view').forEach(v => segAlignRO.observe(v));
   alignSegActions();
 }
+/* 窗口跨过 560px 阈值（手机横竖屏/平板分屏）时重渲染：路线段主行结构随窄屏切换 */
+let lastCompact = window.innerWidth <= 560;
+window.addEventListener('resize', () => {
+  const c = window.innerWidth <= 560;
+  if (c !== lastCompact && currentTripId) {
+    lastCompact = c;
+    renderDetail(currentTripId);
+  }
+});
 
 /* ---------- 旅行记录（独立页面：📖 新开标签页 → #/trip/{id}/journal） ---------- */
 function renderJournal(id) {
@@ -1764,18 +1786,23 @@ function renderDayCard(t, d) {
         ? `<span class="seg-time-dep">${esc(tm[1])}</span><span class="seg-time-sep">-</span><span class="seg-time-arr">${esc(tm[2])}${crossBadge}</span>`
         : esc(s.time);
     }
+    const transHtml = `<span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>`;
+    // 手机窄屏（≤560px）：交通并入第二行组，主行=时间+地点+按钮（地名空间翻倍，主行不拆散）
+    const segCompact = window.innerWidth <= 560;
+    const hasTrail = segCompact || chips || num(s.price);
     return `<div class="seg-wrap">
       <div class="seg-view" draggable="true" data-date="${d}" data-idx="${i}" data-type="segments" title="拖动排序">
         <span class="drag-handle">≡</span>
         <div class="seg-main">
           <span class="seg-view-time">${timeHtml}</span>
           <span class="seg-view-path${pathCls}"><b>${esc(s.from || '?')}</b><span class="arr">→</span><b>${esc(s.to || '?')}</b></span>
-          <span class="seg-view-trans">${emojiOf(s.transport)} ${esc(s.transport || '')}${s.vehicleNo ? '-' + esc(s.vehicleNo) : ''}</span>
-          <!-- 乘客+价格一组：有乘客时整组换到第二行（与时间列左缘对齐）；无乘客则价格留在主行 -->
-          <div class="seg-trail${chips ? ' newline' : ''}">
+          ${segCompact ? '' : transHtml}
+          <!-- 交通+乘客+价格一组：桌面有乘客时整组换行；手机窄屏始终整组换行（与时间列左缘对齐） -->
+          ${hasTrail ? `<div class="seg-trail${(chips || segCompact) ? ' newline' : ''}">
+            ${segCompact ? transHtml : ''}
             ${chips ? `<span class="seg-view-dets">${chips}</span>` : ''}
             ${num(s.price) ? `<span class="seg-view-price">¥${Math.round(num(s.price)).toLocaleString('zh-CN')}</span>` : ''}
-          </div>
+          </div>` : ''}
         </div>
         <div class="seg-view-actions">
           <button class="icon-btn" data-action="seg-edit" data-date="${d}" data-idx="${i}" title="编辑">${pencilIcon()}</button>
