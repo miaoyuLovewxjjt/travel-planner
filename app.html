@@ -144,8 +144,8 @@ textarea{resize:vertical}
 .stat-long .sl-div{width:1px;height:30px;background:var(--line)}
 .detail-body{display:grid;grid-template-columns:210px 1fr;gap:26px;margin-top:20px;align-items:start}
 .day-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:8px}
-/* 二级标题（左侧导航）：每日行程 / 旅行清单 / 旅行随记，可点击跳转 */
-.day-nav .nav-title{font-size:13px;font-weight:800;color:var(--ink);margin:6px 0 4px;padding-left:4px}
+/* 二级标题（左侧导航）：旅行清单 / 每日行程 / 旅行随记，可点击跳转；字体加大加粗、颜色随行程主题 */
+.day-nav .nav-title{font-size:15px;font-weight:800;color:var(--accent);margin:8px 0 4px;padding-left:4px}
 .day-nav .nav-link{cursor:pointer;border-radius:8px;padding:3px 4px;transition:background .15s}
 .day-nav .nav-link:hover{background:var(--accent-soft)}
 .day-nav button{
@@ -960,7 +960,6 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   <button class="btn btn-ghost" id="btn-data" title="设置">⚙️</button>
   <button class="btn btn-ghost" id="btn-back" hidden>← <span class="lbl">返回列表</span></button>
   <button class="btn btn-ghost" id="btn-pdf" hidden>📄<span class="lbl"> 生成 PDF 文档</span></button>
-  <button class="btn btn-ghost" id="btn-checklist" hidden>📋<span class="lbl"> 旅行清单</span></button>
   <button class="btn btn-primary" id="btn-new">＋<span class="lbl"> 新建大行程</span></button>
 </header>
 
@@ -1422,7 +1421,6 @@ function renderList() {
   $('#view-checklist').classList.add('hidden');
   $('#btn-back').hidden = true;
   $('#btn-pdf').hidden = true;
-  $('#btn-checklist').hidden = true;
   $('#btn-new').hidden = false;
 
   const grid = $('#trip-grid');
@@ -1507,7 +1505,6 @@ function renderDetail(id) {
   $('#view-checklist').classList.add('hidden');
   $('#btn-back').hidden = false;
   $('#btn-pdf').hidden = false;
-  $('#btn-checklist').hidden = false;
   $('#btn-new').hidden = true;
 
   // 头部（日期/天数/出行人已并入下方统计长框）
@@ -1544,7 +1541,8 @@ function renderDetail(id) {
   const extraDates = Object.keys(t.days).filter(d => !isInRange(t, d)).sort();
   const navDates = [...new Set([...allDates, ...extraDates])].sort();
 
-  $('#day-nav').innerHTML = `<div class="nav-title nav-link" data-nav="daily" title="返回每日行程">📅 每日行程</div>` + navDates.map(d => {
+  $('#day-nav').innerHTML = `<div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
+  <div class="nav-title nav-link" data-nav="daily" title="返回每日行程">📅 每日行程</div>` + navDates.map(d => {
     const day = t.days[d];
     const has = !!day;
     const s = has ? dayStats(day) : null;
@@ -1556,7 +1554,6 @@ function renderDetail(id) {
       <span class="info">${info}</span>
     </button>`;
   }).join('') + `
-  <div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
   <div class="nav-title nav-link" data-nav="journal" title="旅行随记">📝 旅行随记</div>`;
 
   // 每日卡片
@@ -1609,7 +1606,6 @@ function renderChecklist(id) {
   $('#view-checklist').classList.remove('hidden');
   $('#btn-back').hidden = false;
   $('#btn-pdf').hidden = false;
-  $('#btn-checklist').hidden = false;
   $('#btn-new').hidden = true;
   const items = Array.isArray(t.checklist) ? t.checklist : [];
   const rows = items.map((c, i) =>
@@ -3170,10 +3166,6 @@ function initPostMap(points, color) {
  * PDF 文档视图（带目录，目录标题为日期）
  * ================================================================ */
 $('#btn-pdf').addEventListener('click', () => { const t = getTrip(currentTripId); if (t) openDoc(t); });
-$('#btn-checklist').addEventListener('click', () => {
-  const t = getTrip(currentTripId);
-  if (t) location.hash = '#/trip/' + encodeURIComponent(t.id) + '/checklist';
-});
 $('#btn-close-doc').addEventListener('click', closeDoc);
 // 打印前重新生成文档，确保打印内容与最新数据同步（新增内容无需刷新页面）
 $('#btn-doc-print').addEventListener('click', () => {
