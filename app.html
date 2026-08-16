@@ -298,9 +298,8 @@ textarea{resize:vertical}
 .exp-view-note{font-size:12px;color:var(--sub);padding:0 0 4px 2px;line-height:1.5;margin-top:-2px}
 .seg-row select{width:82px;padding:4px 4px;font-size:12.5px;border-radius:8px;flex-shrink:0}
 /* 时间下拉：时/分窄下拉 + 冒号分隔，'-' 表示不输入 */
-.seg-row select.seg-hh,.seg-row select.seg-mm{width:56px;padding:4px 2px;text-align:center}
-.seg-row .tm-colon{color:var(--sub);flex-shrink:0}
 .seg-row input.seg-price-row{width:76px;flex-shrink:0}
+.seg-row input.seg-time-native{width:120px;flex-shrink:0}
 .seg-row .arr{flex-shrink:0}
 .seg-toggle{width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
   color:var(--sub);background:#f2f2f7;font-size:11px;font-weight:800;flex-shrink:0;transition:transform .2s,background .15s}
@@ -833,7 +832,6 @@ body.pad .seg-row { flex-wrap: wrap; }                                     /* �
 body.pad .seg-row input[type=time] { width: 112px; }
 body.pad .seg-row input { width: 108px; }
 body.pad .seg-row select { width: 104px; }
-body.pad .seg-row select.seg-hh, body.pad .seg-row select.seg-mm { width: 56px; }
 
 /* ============ 安卓 WebView（手机/平板）emoji 图标对齐 ============
    Noto Color Emoji 字形自带左右内边距 → 图标视觉左缘比文字偏右；
@@ -1700,15 +1698,7 @@ function segTimes(seg) {
   return m ? { depart: m[1], arrive: m[2] } : { depart: '', arrive: '' };
 }
 /** 时间下拉选项：'-'（不输入）+ 00-23 时 / 00-59 分（参考主流时间选择器） */
-const HH_OPTS = ['-', ...Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))];
-const MM_OPTS = ['-', ...Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))];
-/** 时间选择器：时/分两个下拉（data-path 指向同一时间字段，冒号居中），任一为 '-' 视为不输入 */
-const timeSel = (path, v, title) => {
-  const m = String(v || '').match(/^(\d{2}):(\d{2})$/);
-  const hh = m ? m[1] : '-', mm = m ? m[2] : '-';
-  const opts = (arr, sel) => arr.map(x => `<option value="${x}"${x === sel ? ' selected' : ''}>${x}</option>`).join('');
-  return `<select class="seg-hh" data-path="${path}" data-part="hh" title="${title}（不选为 -）">${opts(HH_OPTS, hh)}</select><span class="tm-colon">:</span><select class="seg-mm" data-path="${path}" data-part="mm" title="${title}（不选为 -）">${opts(MM_OPTS, mm)}</select>`;
-};
+// 时间输入：使用原生 <input type="time">（桌面时钟 / 安卓原生滚轮），值直接写入 HH:MM 或空
 /** 交通方式颜色（每日总览路线条） */
 const TRANS_COLORS = {
   '高铁': '#4D96FF', '飞机': '#7B5CF0', '地铁': '#0FB5AE', '公交': '#4ECB71',
@@ -1777,9 +1767,9 @@ function renderDayCard(t, d) {
       return `<div class="seg-wrap editing">
         <div class="seg-row">
           ${pub ? `<button class="seg-toggle${(autoOpen || hasDetail) ? ' open' : ''}" data-action="toggle-seg" title="收起/展开交通详情">▸</button>` : ''}
-          ${timeSel(`days.${d}.segments.${i}.departTime`, tm.depart, '出发时间')}
+          <input type="time" class="seg-time-native" data-path="days.${d}.segments.${i}.departTime" value="${esc(tm.depart)}" title="出发时间（系统时间选择器）">
           <span class="arr">→</span>
-          ${timeSel(`days.${d}.segments.${i}.arriveTime`, tm.arrive, '到达时间')}
+          <input type="time" class="seg-time-native" data-path="days.${d}.segments.${i}.arriveTime" value="${esc(tm.arrive)}" title="到达时间（系统时间选择器）">
           <input class="seg-from" maxlength="20" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
           <span class="arr">→</span>
           <input class="seg-to" maxlength="20" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
@@ -1985,7 +1975,6 @@ function renderDayCard(t, d) {
             : `<span class="wx-badge wx-empty" data-action="set-wx" data-date="${d}" title="设置天气">＋ 天气</span>`}
         </h3>
       </div>
-      <div class="day-cost"><div class="amt">${fmtMoney(st.exp)}</div></div>
       <button class="icon-btn del-day" data-date="${d}" title="删除当日行程">${trashIcon()}</button>
     </div>
     <div class="day-grid">
@@ -2287,21 +2276,6 @@ $('#view-detail').addEventListener('input', e => {
   }
 });
 
-/** 时间下拉（change）：时/分两个下拉联动写 HH:MM，任一为 '-' → 空；跨天逻辑与输入一致 */
-$('#view-detail').addEventListener('change', e => {
-  const el = e.target;
-  if (!el.dataset.path || !(el.classList.contains('seg-hh') || el.classList.contains('seg-mm'))) return;
-  const t = getTrip(currentTripId);
-  if (!t) return;
-  const pair = [...document.querySelectorAll(`select[data-path="${el.dataset.path}"]`)];
-  const hh = pair[0].value, mm = pair[1].value;
-  const v = (hh !== '-' && mm !== '-') ? hh + ':' + mm : '';
-  setByPath(t, el.dataset.path, v);
-  syncSegTimeFields(t, el.dataset.path);
-  scheduleSave();
-  saveAndRender(t);
-});
-
 /** 出发/到达时间变化后的联动：组合 time 字段、跨天自动 +1/清除、同步跨天下拉 */
 function syncSegTimeFields(t, path) {
   const parts = path.split('.');
@@ -2398,8 +2372,6 @@ $('#view-detail').addEventListener('change', e => {
   const t = getTrip(currentTripId);
   if (!t) return;
   if (el.dataset.path) {
-    // 时间下拉（时/分组合）由上方专用委托处理，这里跳过避免原始值覆盖
-    if (el.classList.contains('seg-hh') || el.classList.contains('seg-mm')) return;
     setByPath(t, el.dataset.path, el.value);
     scheduleSave();
     // 交通方式切换 / 住宿类型变化 → 重渲染以显示/隐藏对应 UI
@@ -2640,7 +2612,7 @@ function openTripModal(trip) {
   const wasNewHidden = $('#btn-new').hidden;
   $('#btn-new').hidden = true; // 弹窗打开时隐藏顶栏入口，避免「两个创建大行程按钮」
   $('#btn-new').dataset.wasHidden = wasNewHidden ? '1' : '0';
-  const t = trip || { name: '', emoji: '🧳', startDate: todayStr(), endDate: addDays(todayStr(), 2),
+  const t = trip || { name: '', emoji: '🧳', startDate: '', endDate: '',
     travelers: [], budget: 0, color: PRESET_COLORS[0], notes: '', days: {} };
   $('#modal-box').innerHTML = `
     <h2>${trip ? '✏️ 编辑大行程' : '✨ 新建大行程'}</h2>
