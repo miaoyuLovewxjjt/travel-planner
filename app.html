@@ -548,219 +548,6 @@ body.font-large .btn{font-size:14.5px}
 .data-panel .dp-warn{font-size:12px;color:#e5484d;background:var(--accent-soft);border:1px solid #f3c1c3;
   border-radius:10px;padding:9px 12px;margin-top:8px;line-height:1.7}
 
-/* ============ 旅行记录（独立页面视图） ============ */
-#view-journal{max-width:900px;margin:0 auto;padding:0 20px 60px;min-height:100vh}
-.journal-toolbar{display:flex;align-items:center;gap:10px;padding:16px 4px;color:var(--ink);flex-wrap:wrap}
-.journal-toolbar .t{font-weight:900;font-size:16px;margin-right:auto;color:#6b4f1d;
-  font-family:'STXingkai','KaiTi','STKaiti',serif;letter-spacing:2px}
-.journal-toolbar .btn{background:#fdf6e3;color:#6b4f1d;border:1.5px solid #c9a86a;
-  box-shadow:0 2px 6px rgba(120,95,50,.12)}
-.journal-toolbar .btn:hover{background:#f4e6c8}
-#view-journal .diy-bar{background:#fdf6e3;border:1.5px dashed #c9a86a;border-radius:12px;
-  margin:0 0 14px;padding:10px 14px;color:#6b4f1d;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-#view-journal .diy-bar .diy-t{font-weight:800;font-size:13px}
-#view-journal .diy-bar .diy-hint{font-size:11px;color:#9a8458;flex-basis:100%}
-#view-journal .diy-bar .btn{background:#fff;border-color:#c9a86a;color:#6b4f1d}
-.journal-scroll{padding:6px 0 30px;display:flex;justify-content:center}
-/* 照片角（宝丽来风格） */
-.post-photos{margin:10px 26px 6px}
-.post-photos .pp-title{font-size:13px;font-weight:900;color:#6b4f1d;letter-spacing:2px;margin-bottom:10px;
-  font-family:'KaiTi','STKaiti',serif}
-.post-photos .pp-grid{display:flex;flex-wrap:wrap;gap:14px}
-.post-photos .pp-item{position:relative;background:#fff;padding:8px 8px 14px;border-radius:6px;
-  box-shadow:0 4px 14px rgba(120,90,40,.22);width:150px;transition:transform .2s}
-.post-photos .pp-item:hover{transform:scale(1.04) rotate(0deg)!important}
-.post-photos .pp-item img{width:100%;height:112px;object-fit:cover;border-radius:3px;display:block}
-.post-photos .pp-item .pp-cap{font-size:10.5px;color:#7a6540;text-align:center;margin-top:7px;
-  font-family:'KaiTi','STKaiti',serif}
-.post-photos .pp-del{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;
-  background:#c0392b;color:#fff;border:none;font-size:12px;font-weight:900;cursor:pointer;
-  box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;
-  opacity:.55;transition:opacity .15s,transform .15s}
-.post-photos .pp-item:hover .pp-del,.post-photos .pp-del:hover{opacity:1;transform:scale(1.1)}
-.post-photos .pp-empty{font-size:12px;color:#9a8458;font-style:italic;padding:4px 0 10px}
-.post-photos .pp-add{display:inline-flex;align-items:center;gap:5px;margin-top:4px;color:#6b4f1d;
-  background:#fdf6e3;border:1.5px dashed #c9a86a;border-radius:999px;padding:5px 14px;
-  font-size:12px;font-weight:800;cursor:pointer;transition:all .15s}
-.post-photos .pp-add:hover{background:#f4e6c8}
-.post{
-  position:relative;width:min(640px,94vw);background:#faf3e3;border-radius:24px;overflow:hidden;
-  height:fit-content;
-  box-shadow:inset 0 -10px 16px -10px rgba(140,110,60,.28),
-    0 1px 2px rgba(120,90,40,.25),0 6px 14px rgba(120,90,40,.22),0 30px 80px rgba(0,0,0,.35),
-    0 0 0 6px #efe2c8,0 0 0 7px #d8c9a8;
-}
-/* 纸张横纹 + 折痕（像被对折过的地图纸） */
-.post::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
-  background:
-    linear-gradient(90deg,transparent 49.5%,rgba(150,115,60,.14) 49.9%,rgba(255,255,255,.38) 50.1%,transparent 50.5%),
-    linear-gradient(180deg,transparent 74.5%,rgba(150,115,60,.11) 74.9%,rgba(255,255,255,.3) 75.1%,transparent 75.5%),
-    linear-gradient(180deg,transparent 49.5%,rgba(150,115,60,.07) 49.9%,rgba(255,255,255,.22) 50.1%,transparent 50.5%),
-    repeating-linear-gradient(0deg,transparent 0 26px,rgba(139,115,72,.05) 26px 27px);
-}
-/* 旧纸泛黄：边缘与底部的岁月痕迹 */
-.post::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
-  background:
-    radial-gradient(ellipse at 50% 108%,rgba(150,110,50,.16),transparent 55%),
-    radial-gradient(ellipse at -8% 45%,rgba(150,110,50,.1),transparent 45%),
-    radial-gradient(ellipse at 108% 20%,rgba(150,110,50,.08),transparent 40%)}
-.post-cover{
-  position:relative;padding:46px 34px 40px;color:#fff;overflow:hidden;
-}
-/* 顶端贴纸胶带（像地图被贴在手账上） */
-.post .tape{position:absolute;top:16px;left:50%;transform:translateX(-50%) rotate(-2.5deg);z-index:6;
-  width:122px;height:24px;pointer-events:none;
-  background:repeating-linear-gradient(90deg,rgba(255,240,190,.78) 0 7px,rgba(250,228,168,.78) 7px 14px);
-  border-left:1px solid rgba(190,160,100,.5);border-right:1px solid rgba(190,160,100,.5);
-  box-shadow:0 2px 5px rgba(120,90,40,.2);backdrop-filter:blur(1px)}
-.post-cover .tape::after{content:"";position:absolute;inset:0;opacity:.5;
-  background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 40%,rgba(150,110,50,.12))}
-.post-cover::before{content:"";position:absolute;width:320px;height:320px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,.28),transparent 65%);top:-110px;right:-90px}
-.post-cover::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,.16),transparent 65%);bottom:-80px;left:-40px}
-.post-cover .deco{position:absolute;opacity:.55;z-index:1;animation:float 4.5s ease-in-out infinite;filter:drop-shadow(0 3px 6px rgba(0,0,0,.15))}
-.post-cover .deco.d1{top:16px;left:24px;font-size:26px}
-.post-cover .deco.d2{top:52px;right:56px;font-size:19px;animation-delay:.8s}
-.post-cover .deco.d3{bottom:64px;left:64px;font-size:21px;animation-delay:1.6s}
-.post-cover .deco.d4{top:90px;left:38%;font-size:15px;animation-delay:2.3s}
-@keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
-.post-day{cursor:pointer;transition:background .18s}
-.post-day:hover{background:#fff6f0}
-.post-day:hover .post-day-head .pd-t{color:var(--accent)}
-.post-cover .pc-emoji{font-size:52px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25));position:relative;z-index:1}
-.post-cover h1{font-size:30px;font-weight:900;margin-top:10px;letter-spacing:2px;position:relative;z-index:1;line-height:1.3;
-  font-family:'STXingkai','KaiTi','STKaiti',serif;text-shadow:0 2px 8px rgba(0,0,0,.25)}
-.post-cover .pc-dates{margin-top:8px;font-size:14px;font-weight:600;opacity:.95;position:relative;z-index:1;
-  font-family:'KaiTi','STKaiti',serif;letter-spacing:1px}
-.post-cover .pc-travelers{margin-top:14px;display:flex;gap:7px;flex-wrap:wrap;position:relative;z-index:1}
-.post-cover .pc-travelers span{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
-  padding:3px 13px;border-radius:999px;font-size:12.5px;font-weight:600;backdrop-filter:blur(4px)}
-.post-map{position:relative;margin:16px 16px 0;border-radius:16px;overflow:hidden;
-  height:clamp(320px,46vh,480px);
-  border:2px solid #b99b6b;outline:3px solid #faf3e3;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 0 34px rgba(140,110,60,.12),0 10px 26px rgba(120,95,50,.18)}
-/* 地图右下角卷起（像纸角被折过） */
-.post-map .map-curl{position:absolute;right:-2px;bottom:-2px;width:44px;height:44px;z-index:700;pointer-events:none;
-  background:linear-gradient(315deg,#f3e9d2 0 50%,rgba(150,115,60,.45) 50% 56%,rgba(90,70,35,.28) 56% 100%);
-  border-radius:14px 0 14px 0;box-shadow:-4px -4px 8px rgba(150,115,60,.18)}
-.post-map .map-curl::before{content:"";position:absolute;left:-6px;bottom:-6px;width:12px;height:12px;border-radius:50%;
-  background:radial-gradient(circle,rgba(150,115,60,.2),transparent 70%)}
-/* 指南针 */
-.post-map .compass{position:absolute;left:12px;bottom:12px;z-index:600;width:36px;height:36px;opacity:.9;pointer-events:none;
-  background:#fdf6e3;border:1.5px solid #c9a86a;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 6px rgba(120,90,40,.2);transform:rotate(-8deg)}
-.post-map .compass svg{width:24px;height:24px}
-.post-map .leaflet-tile-pane{filter:sepia(.3) saturate(.75) contrast(.94) brightness(1.04)}
-.post-map .map-label{position:absolute;top:12px;left:12px;z-index:500;background:#fdf6e3;color:#6b4f1d;
-  border:1.5px solid #c9a86a;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:800;
-  letter-spacing:2px;box-shadow:0 2px 8px rgba(0,0,0,.14);font-family:'KaiTi','STKaiti',serif}
-.post-map .map-tools{position:absolute;top:12px;right:12px;z-index:500;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.post-map .map-toggle{background:#fdf6e3;color:#6b4f1d;border:1.5px solid #c9a86a;border-radius:999px;
-  padding:4px 12px;font-size:11.5px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;transition:all .15s}
-.post-map .map-toggle:hover{background:#f4e6c8}
-.post-map .map-toggle.lock{background:#8a5a2b;color:#fff;border-color:#8a5a2b}
-.post-map .map-geo-status{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(253,246,227,.94);
-  border-radius:999px;padding:3px 12px;font-size:11px;font-weight:600;color:#6b4f1d;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.post-map .map-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:#f5f0e0;color:#7a6540;font-size:12.5px;z-index:400}
-/* 复古图钉 */
-.pin-icon{display:flex;flex-direction:column;align-items:center;transform-origin:top center;transition:transform .15s}
-.pin-icon:hover{transform:scale(1.15)}
-.pin-icon svg{filter:drop-shadow(0 3px 3px rgba(90,60,20,.35))}
-.pin-icon .pin-tag{background:#fdf6e3;border:1.5px solid #c9a86a;border-radius:4px;font-size:10.5px;font-weight:800;
-  color:#6b4f1d;padding:1px 6px;margin-top:1px;white-space:nowrap;letter-spacing:.5px;font-family:'KaiTi','STKaiti',serif}
-.pin-icon .pin-tag b{color:#c0392b}
-/* 折线上交通徽标 */
-.trans-badge{width:26px;height:26px;border-radius:50%;background:#fdf6e3;border:1.5px solid #c9a86a;
-  display:flex;align-items:center;justify-content:center;font-size:13px;
-  box-shadow:0 2px 6px rgba(0,0,0,.16);transform:translate(-50%,-50%)}
-/* 预算表情卡 + 总消费构成（复古账本区块） */
-.post-moneys{margin:12px 26px 0;border-radius:16px;overflow:hidden;
-  background:linear-gradient(165deg,#faf0dc,#f3e3c0);
-  border:2px solid #b99b6b;outline:3px solid #faf3e3;
-  box-shadow:0 8px 20px rgba(120,95,50,.15)}
-.post-moneys .pm-head{
-  display:flex;align-items:center;gap:12px;padding:10px 16px 8px;
-  font-family:'KaiTi','STKaiti',serif;font-weight:900;font-size:15px;color:#6b4f1d;letter-spacing:5px;
-  border-bottom:1.5px dashed #c9a86a}
-.post-moneys .pm-head::before,.post-moneys .pm-head::after{content:"";flex:1;height:1px;
-  background:linear-gradient(90deg,transparent,#c9a86a)}
-.post-moneys .pm-body{display:flex;align-items:center;gap:22px;padding:16px 18px;flex-wrap:wrap}
-.post-moneys .post-budget{flex:1;min-width:210px;display:flex;align-items:center;gap:14px;margin:0;padding:0;background:none;border:none}
-.post-moneys .pb-face{
-  width:58px;height:58px;border-radius:50%;flex-shrink:0;font-size:30px;
-  background:radial-gradient(circle at 35% 30%,#fff8e8,#f0d9a8);
-  border:2px solid #c9a86a;box-shadow:inset 0 0 0 3px #faf3e3,0 3px 8px rgba(120,95,50,.18);
-  display:flex;align-items:center;justify-content:center;transform:rotate(-6deg)}
-.post-moneys .pb-txt{flex:1}
-.post-moneys .pb-txt .t{font-size:12px;font-weight:800;color:#8a6a30;letter-spacing:2px;
-  font-family:'KaiTi','STKaiti',serif}
-.post-moneys .pb-txt .amt{font-size:26px;font-weight:900;color:#6b4f1d;margin-top:2px;
-  font-family:'KaiTi','STKaiti',serif;text-shadow:1px 1px 0 rgba(255,255,255,.6)}
-.post-moneys .pb-txt .amt em{font-style:normal;color:#c0392b}
-.post-moneys .pb-txt .amt.ok{color:#2e8b57}
-.post-moneys .pb-txt .pb-sub{font-size:11px;color:#9a8458;margin-top:3px;letter-spacing:.5px}
-.post-moneys .post-donut{flex:1;min-width:250px;margin:0;padding:0}
-.post-moneys .post-donut .donut-wrap{background:rgba(255,255,255,.5);border:1.5px dashed #c9a86a;
-  border-radius:12px;padding:12px 16px}
-.post-moneys .donut-legend span{color:#7a6540}
-.post-moneys .donut-legend span:hover{background:#f4e6c8}
-.post-day{
-  padding:20px 26px 14px;border-top:1px dashed var(--line);
-}
-.post-day-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.post-day-badge{min-width:52px;height:52px;border-radius:14px;background:linear-gradient(160deg,var(--accent),var(--accent2));
-  color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2}
-.post-day-badge .n{font-size:19px;font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,.18)}
-.post-day-badge .w{font-size:10.5px;opacity:.95;text-shadow:0 1px 2px rgba(0,0,0,.18)}
-.post-day-head .pd-t{font-size:16px;font-weight:800}
-.post-day-head .pd-s{font-size:11.5px;color:var(--sub)}
-.post-timeline{position:relative;padding-left:20px}
-.post-timeline::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;
-  background:linear-gradient(180deg,var(--accent),rgba(255,107,107,.12))}
-.pt-item{position:relative;padding:0 0 14px 4px}
-.pt-item::before{content:"";position:absolute;left:-18px;top:5px;width:12px;height:12px;border-radius:50%;
-  background:#fff;border:3px solid var(--accent)}
-.pt-item .t{font-size:11.5px;font-weight:800;color:var(--accent)}
-.pt-item .p{font-size:13.5px;font-weight:700;margin:1px 0}
-.pt-item .m{font-size:11.5px;color:var(--sub)}
-.post-lodge{display:flex;align-items:center;gap:10px;background:#fff8f0;border:1px solid #ffe8cc;border-radius:14px;
-  padding:10px 14px;margin:2px 0 12px;font-size:12.5px}
-.post-lodge .pl-name{font-weight:800}
-.post-lodge .pl-price{color:#b0712e;font-weight:700;margin-left:auto;white-space:nowrap}
-.post-exp{margin-top:2px}
-.post-exp .pe-line{display:flex;align-items:baseline;gap:8px;font-size:12px;padding:2.5px 0;color:#55556a}
-.post-exp .pe-line .c{font-size:10px;font-weight:800;background:#f2f2f7;padding:1px 8px;border-radius:99px;color:var(--sub)}
-.post-exp .pe-line .i{flex:1;font-weight:600}
-.post-exp .pe-line .a{font-weight:800;color:var(--ink)}
-.post-exp .pe-total{display:flex;justify-content:space-between;border-top:1.5px solid var(--ink);
-  margin-top:6px;padding-top:7px;font-weight:900;font-size:13px}
-.post-note{font-size:12px;color:var(--sub);background:#f7f7fa;border-radius:12px;padding:9px 13px;margin-top:12px;
-  font-style:italic}
-.post-note:empty{display:none}
-.post-total{background:linear-gradient(135deg,#6b4f1d,#4a3512);color:#fdf6e3;padding:22px 28px;margin-top:12px}
-.post-total .row{display:flex;justify-content:space-between;font-size:13px;opacity:.92;padding:3.5px 0}
-.post-total .row b{font-weight:800}
-.post-total .row.main{font-size:20px;font-weight:900;opacity:1;margin-top:8px;padding-top:10px;border-top:1px solid rgba(253,246,227,.22)}
-.post-total .row.main .amt{color:#FFD98A}
-.post-total .row.main .amt.over{color:#ff8f8f}
-.post-foot{text-align:center;padding:16px;font-size:11px;color:#9a8458;letter-spacing:1px;
-  display:flex;align-items:center;justify-content:center;gap:10px}
-/* 印章（手账落款） */
-.post-foot .stamp{display:inline-block;padding:2px 10px;border:1.6px solid rgba(180,70,60,.55);
-  color:rgba(180,70,60,.7);border-radius:6px;font-size:10px;letter-spacing:3px;font-weight:800;
-  font-family:'KaiTi','STKaiti',serif;transform:rotate(-5deg);
-  box-shadow:inset 0 0 0 1px rgba(180,70,60,.12),0 1px 2px rgba(0,0,0,.06);
-  background:radial-gradient(circle at 28% 28%,rgba(255,255,255,.55),transparent 62%)}
-
-/* ============ 迷你地图选点 ============ */
-#pinmap-modal .modal{max-width:640px}
-#pinmap-box{height:340px;border-radius:14px;border:1px solid var(--line);z-index:0}
-.pinmap-form{display:flex;gap:8px;margin-top:12px;align-items:center}
-.pinmap-form input{flex:1}
-.pinmap-form .hint{font-size:12px;color:var(--sub)}
-#pinmap-modal .leaflet-container{z-index:1}
 
 /* ============ 提示 ============ */
 #toast{
@@ -850,8 +637,6 @@ body.pad .day-head { padding: 14px 22px; }
 body.pad .day-badge { min-width: 60px; height: 60px; }
 body.pad .modal { max-width: 720px; }
 body.pad .form-grid { grid-template-columns: 1fr 1fr; }
-body.pad .post { width: 560px; }
-body.pad .post-map { height: 300px; }
 body.pad .doc-body { max-width: 900px; padding: 40px 48px; }
 body.pad .seg-row { flex-wrap: wrap; }                                     /* 平板编辑行允许换行，避免截断 */
 body.pad .seg-row input[type=time] { width: 92px; }
@@ -882,8 +667,8 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   #topbar { padding: 10px 10px; gap: 6px; }
   #topbar .logo { font-size: 16px; }
   #btn-export, #btn-import, #save-state { display: none; }        /* 导出/导入在 ⚙️ 数据面板中 */
-  #btn-back .lbl, #btn-preview .lbl, #btn-pdf .lbl, #btn-new .lbl { display: none; } /* 顶栏图标化 */
-  #btn-back, #btn-preview, #btn-pdf, #btn-new, #btn-data { padding: 8px 10px; }
+  #btn-back .lbl, #btn-pdf .lbl, #btn-new .lbl { display: none; } /* 顶栏图标化 */
+  #btn-back, #btn-pdf, #btn-new, #btn-data { padding: 8px 10px; }
 
   #view-list { margin: 14px auto; padding: 0 12px; }
   .trip-grid { gap: 14px; grid-template-columns: 1fr; }
@@ -912,17 +697,10 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .block { padding: 14px 14px; }
   .block-title { margin-bottom: 10px; }
 
-  .journal-toolbar, .doc-toolbar { padding: 10px 10px; gap: 6px; }
-  .journal-toolbar .t, .doc-toolbar .t { font-size: 13px; }
-  .journal-toolbar .lbl, .doc-toolbar .lbl { display: none; }
-  .journal-toolbar .btn, .doc-toolbar .btn { padding: 8px 10px; }
-  .post { width: 100%; max-width: 470px; border-radius: 18px; }
-  .post-cover { padding: 32px 22px 28px; }
-  .post-cover h1 { font-size: 23px; }
-  .post-section, .post-day { padding-left: 18px; padding-right: 18px; }
-  .post-map { height: 200px; margin: 10px 10px 0; }
-  .post-photos .pp-item { width: 128px; }
-  .post-photos .pp-item img { height: 96px; }
+  .doc-toolbar { padding: 10px 10px; gap: 6px; }
+  .doc-toolbar .t { font-size: 13px; }
+  .doc-toolbar .lbl { display: none; }
+  .doc-toolbar .btn { padding: 8px 10px; }
 
   .doc-scroll { padding: 10px 8px 40px; }
   .doc-body { padding: 24px 16px; }
@@ -963,19 +741,9 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 /* ============ 打印 ============ */
 @media print{
   body *{visibility:hidden!important}
-  #view-journal,#view-journal *{visibility:visible!important}
   #doc,#doc *{visibility:visible!important}
-  #view-journal{position:static!important;background:#fff!important}
   #doc{position:static!important;background:#fff!important;display:block!important}
-  .journal-toolbar{display:none!important}
   .doc-toolbar{display:none!important}
-  .diy-bar{display:none!important}
-  .journal-scroll{overflow:visible!important;padding:0!important;display:block!important}
-  .post{box-shadow:none!important;border-radius:0!important;width:100%!important}
-  .post-map{height:420px!important}
-  .post-map .map-toggle,.post-map .map-geo-status,.post-map .map-tools{display:none!important}
-  .post-map .map-curl,.post-map .compass{display:none!important}
-  .post .tape{display:none!important}
   .doc-body{max-width:100%!important;border-radius:0!important;box-shadow:none!important;padding:0!important;height:auto!important}
   .doc-cover{border-radius:0!important}
   .doc-table tr{page-break-inside:avoid}
@@ -1033,22 +801,6 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   <div class="doc-scroll"><div id="doc-body" class="doc-body"></div></div>
 </div>
 
-<script>
-(function () {
-  function loadScript(urls, ok, fail) {
-    if (!urls.length) return fail();
-    var s = document.createElement('script');
-    s.src = urls[0];
-    s.onload = ok;
-    s.onerror = function () { loadScript(urls.slice(1), ok, fail); };
-    document.head.appendChild(s);
-  }
-  loadScript(['https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
-              'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'],
-             function () { window.html2canvasReady = true; },
-             function () { window.__h2cFail = true; });
-})();
-</script>
 <script>
 'use strict';
 /* ================================================================
@@ -1332,68 +1084,6 @@ function tripStats(trip) {
 function tripTravelers(trip) { return trip.travelers || []; }
 function dayTravelers(trip, day) { return day.travelers && day.travelers.length ? day.travelers : tripTravelers(trip); }
 
-/** 每日首末点：每天第一个行程段的出发地 + 最后一个行程段的到达地 */
-function tripDayEndpoints(trip) {
-  const st = tripStats(trip);
-  const pts = [];
-  st.dates.forEach(d => {
-    const segs = (trip.days[d].segments || []).filter(s => !s.draft);
-    if (!segs.length) return;
-    const first = segs[0], last = segs[segs.length - 1];
-    if (first && first.from && first.from.trim()) pts.push({ name: first.from.trim(), date: d, no: dayNo(trip, d) });
-    if (last && last.to && last.to.trim() && !(first === last && first.from.trim() === last.to.trim()))
-      pts.push({ name: last.to.trim(), date: d, no: dayNo(trip, d) });
-  });
-  return pts;
-}
-
-/** 全行程消费构成（按类别聚合，供预览页总环形图） */
-function tripExpByCat(t) {
-  const byCat = {};
-  tripStats(t).dates.forEach(d => {
-    const s = dayStats(t.days[d]);
-    Object.entries(s.expByCat || {}).forEach(([c, v]) => { byCat[c] = (byCat[c] || 0) + v; });
-  });
-  return byCat;
-}
-
-/* —— 地理编码：根据地点文字找经纬度（免费无需 key，带本地缓存） ——
- * 优先 Open-Meteo（城市/地名中文支持好、响应快），失败回退 Photon（OSM 点位细、限定中国范围） */
-const GEO_CACHE_KEY = 'geoCache';
-function geoCache() { try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); } catch (e) { return {}; } }
-async function geocodePlace(name) {
-  const key = String(name).trim();
-  if (!key) return null;
-  const cache = geoCache();
-  if (cache[key] !== undefined) return cache[key];
-  let r = null;
-  try {
-    const u1 = 'https://geocoding-api.open-meteo.com/v1/search?count=1&language=zh&name=' + encodeURIComponent(key);
-    const res1 = await fetch(u1, { headers: { 'Accept': 'application/json' } });
-    if (res1.ok) {
-      const d1 = await res1.json();
-      const hit1 = d1 && d1.results && d1.results[0];
-      if (hit1) r = { lat: parseFloat(hit1.latitude), lng: parseFloat(hit1.longitude) };
-    }
-  } catch (e) {}
-  if (!r) {
-    try {
-      const u2 = 'https://photon.komoot.io/api/?limit=1&bbox=73.5,18.2,135.1,53.6&q=' + encodeURIComponent(key);
-      const res2 = await fetch(u2, { headers: { 'Accept': 'application/json' } });
-      if (res2.ok) {
-        const d2 = await res2.json();
-        const hit2 = d2 && d2.features && d2.features[0];
-        if (hit2 && hit2.geometry) {
-          const c = hit2.geometry.coordinates;
-          if (c && c.length >= 2) r = { lat: parseFloat(c[1]), lng: parseFloat(c[0]) };
-        }
-      }
-    } catch (e) {}
-  }
-  cache[key] = r;
-  try { localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(cache)); } catch (e) {}
-  return r;
-}
 
 /* ================================================================
  * 渲染
@@ -2539,7 +2229,6 @@ document.addEventListener('change', e => {
   if (end.value && sv && end.value < sv) end.value = '';
 });
 $('#btn-back').addEventListener('click', () => { location.hash = '#/'; });
-// 顶栏 📖 按钮：打开旅行记录（绑定见 openJournal 函数上方）
 
 // 导出 / 导入（电脑 ⇄ 手机数据迁移）
 $('#btn-export').addEventListener('click', exportData);
@@ -2732,17 +2421,13 @@ function openTripModal(trip) {
     <div class="modal-actions">
       <button class="btn btn-ghost" id="m-cancel">取消</button>
       <button class="btn btn-primary" id="m-ok">${trip ? '保存修改' : '创建大行程'}</button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="m-cancel">取消</button>
-      <button class="btn btn-primary" id="m-ok">${trip ? '保存修改' : '创建大行程'}</button>
     </div>`;
 
   $('#modal-root').classList.remove('hidden');
   let selColor = t.color;
   $('#m-colors').addEventListener('click', e => {
     const dot = e.target.closest('.color-dot');
-    if (dot) { selColor = dot.dataset.c; $$('#m-colors .color-dot').forEach(x => x.classList.remove('sel')); dot.classList.add('sel'); }
+    if (dot) { selColor = dot.dataset.c; $$('#m-colors .color-dot').forEach(x => x.classList.remove('sel')); dot.classList.add('sel'); $('#m-color-custom').value = dot.dataset.c; }
   });
   $('#m-color-custom').addEventListener('input', e => {
     selColor = e.target.value;
@@ -2861,311 +2546,6 @@ function closeModal() {
 }
 $('#modal-root').addEventListener('click', e => { if (e.target === $('#modal-root')) closeModal(); });
 
-/* ================================================================
- * 旅行记录手账（全屏页面：右上角 📖 打开）
- * ================================================================ */
-let postMap = null;
-
-
-/** 本地图片压缩：最大边 900px、JPEG 0.82，转 dataURL 节省存储 */
-function compressImage(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const MAX = 900;
-      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(img.width * scale));
-      canvas.height = Math.max(1, Math.round(img.height * scale));
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.82));
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('read fail')); };
-    img.src = url;
-  });
-}
-
-/** 下载手账 PNG */
-function downloadJournalPNG() {
-  const post = $('#post');
-  const btn = $('#btn-dl-png');
-  if (!post || !btn) return;
-  (async () => {
-    if (!window.html2canvas && !window.__h2cFail) {
-      btn.textContent = '⏳ 加载组件…';
-      await new Promise(res => {
-        let n = 0;
-        const wait = setInterval(() => {
-          n++;
-          if (window.html2canvas || window.__h2cFail) { clearInterval(wait); res(); }
-          else if (n > 40) { clearInterval(wait); res(); }
-        }, 250);
-      });
-    }
-    btn.textContent = '⏳ 生成中…';
-    btn.disabled = true;
-    try {
-      if (!window.html2canvas) throw new Error('导出组件加载失败');
-      const canvas = await html2canvas(post, { useCORS: true, scale: 2, backgroundColor: '#faf3e3', logging: false });
-      const a = document.createElement('a');
-      a.download = (postTrip ? postTrip.name : '行程') + '-旅行记录.png';
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-      showToast('已下载 PNG 图片');
-    } catch (err) {
-      showToast('⚠️ 导出失败：' + err.message + '（可改用「打印 / 存 PDF」）');
-    }
-    btn.textContent = '⬇️ 下载 PNG';
-    btn.disabled = false;
-  })();
-}
-
-// 手账地图中点击图钉/折线 → 跳转到详情页当天（旅行记录页内切换，原标签页不动）
-function jumpToPostDay(d) {
-  if (!d || !postTripId) return;
-  // 从旅行记录页切到详情页（同标签页内），滚动到当天并高亮
-  location.hash = '#/trip/' + encodeURIComponent(postTripId);
-  setTimeout(() => {
-    const el = document.getElementById('day-' + d);
-    if (el) { el.scrollIntoView({ behavior: 'smooth' }); flashDay(el); }
-  }, 250);
-}
-
-function buildPost(t) {
-  const st = tripStats(t);
-  const dates = st.dates;
-  const travelers = tripTravelers(t);
-  const avg = st.days ? st.exp / st.days : 0;
-  const grad = `linear-gradient(135deg,${t.color},${shade(t.color, -35)})`;
-
-  // 地图：每日首末点（第一个行程出发地 → 最后一个行程到达地）自动定位连线
-  const endPts = tripDayEndpoints(t);
-  // 手动途经点兜底（无首末点时保留原有手动 pin 数据）
-  const pinData = [];
-  dates.forEach(d => (t.days[d].pins || []).forEach(p => pinData.push({ ...p, date: d, no: dayNo(t, d) })));
-
-  // 全行程消费构成（总环形图）
-  const totalDonut = donutChart(tripExpByCat(t));
-
-  // DIY 旅途照片（宝丽来角）
-  const photos = (t.journal && Array.isArray(t.journal.photos)) ? t.journal.photos : [];
-  const photosHtml = photos.length
-    ? `<div class="post-photos">
-        <div class="pp-title">📷 旅途照片</div>
-        <div class="pp-grid">
-          ${photos.map((p, i) => `<div class="pp-item" style="transform:rotate(${((i % 3) - 1) * 2.2}deg)">
-            <img src="${p.dataUrl}" alt="旅途照片">
-            <div class="pp-cap">${esc(p.cap || '')}</div>
-            <button class="pp-del" data-action="del-photo" data-idx="${i}" title="删除这张照片">✕</button>
-          </div>`).join('')}
-        </div>
-        <button class="pp-add" id="btn-diy-add">🖼️ 再贴一张照片</button>
-      </div>`
-    : `<div class="post-photos"><div class="pp-title">📷 旅途照片</div>
-        <div class="pp-empty">还没有照片，贴几张旅途照片，让手账更有回忆吧 ✨</div>
-        <button class="pp-add" id="btn-diy-add">🖼️ 上传照片</button></div>`;
-
-  // 预算表情：花超 😭 / 结余 😄（与总消费构成环形图合并展示）
-  const remain = st.budget ? st.budget - st.exp : null;
-  const budgetCard = remain !== null
-    ? (remain >= 0
-        ? `<div class="post-budget"><div class="pb-face">😄</div>
-            <div class="pb-txt"><div class="t">预算结余</div><div class="amt ok">${fmtMoney(remain)}</div>
-            <div class="pb-sub">预算 ${fmtMoney(st.budget)} · 已花 ${fmtMoney(st.exp)}</div></div></div>`
-        : `<div class="post-budget"><div class="pb-face">😭</div>
-            <div class="pb-txt"><div class="t">预算超支</div><div class="amt"><em>${fmtMoney(-remain)}</em></div>
-            <div class="pb-sub">预算 ${fmtMoney(st.budget)} · 已花 ${fmtMoney(st.exp)}</div></div></div>`)
-    : '';
-
-  $('#post').innerHTML = `
-    <div class="post-cover" style="background:${grad}">
-      <span class="tape"></span>
-      <span class="deco d1">☁️</span>
-      <span class="deco d2">✈️</span>
-      <span class="deco d3">🚄</span>
-      <span class="deco d4">🎈</span>
-      <div class="pc-emoji">${t.emoji || '🧳'}</div>
-      <h1>${esc(t.name)}</h1>
-      <div class="pc-dates">🗓️ ${esc(t.startDate)} — ${esc(t.endDate)} · 共 ${Math.max(1, diffDays(t.startDate, t.endDate) + 1)} 天</div>
-      <div class="pc-travelers">${travelers.map(n => `<span>${esc(n)}</span>`).join('') || '<span>一个人说走就走</span>'}</div>
-    </div>
-    ${endPts.length || pinData.length ? `<div class="post-map" id="post-map">
-      <span class="map-label">✧ 行程足迹 ✧</span>
-      <span class="compass"><svg viewBox="0 0 24 24"><path d="M12 1.5 L14.6 9.4 L22.5 12 L14.6 14.6 L12 22.5 L9.4 14.6 L1.5 12 L9.4 9.4 Z" fill="#c0392b" stroke="#7B241C" stroke-width=".7"/><circle cx="12" cy="12" r="3" fill="#fdf6e3" stroke="#c9a86a" stroke-width="1.2"/></svg></span>
-      <span class="map-curl"></span>
-      ${endPts.length ? `<div class="map-tools">
-        <button class="map-toggle" id="map-trans-toggle" title="显示/隐藏各段交通方式">🚇 显示交通</button>
-        <button class="map-toggle" id="map-toggle" title="仅预览模式：可缩放但不跳转">🔓 点击跳转</button>
-      </div>
-      <div class="map-geo-status" id="map-geo-status">🗺️ 正在定位地点…</div>` : ''}
-    </div>` : ''}
-    ${(budgetCard || totalDonut) ? `<div class="post-moneys">
-      <div class="pm-head">✎ 旅途账本</div>
-      <div class="pm-body">
-        ${budgetCard}
-        ${totalDonut ? `<div class="post-donut">${totalDonut}</div>` : ''}
-      </div>
-    </div>` : ''}
-    ${photosHtml}
-    <div class="post-total">
-      <div class="row"><span>行程天数</span><b>${st.days} 天</b></div>
-      <div class="row"><span>路线段数</span><b>${st.segs} 段</b></div>
-      <div class="row"><span>住宿晚数</span><b>${st.lodges} 晚</b></div>
-      <div class="row"><span>日均花费</span><b>${fmtMoney(avg)}</b></div>
-      <div class="row main"><span>总花费</span><span class="amt${remain !== null && remain < 0 ? ' over' : ''}">${fmtMoney(st.exp)}</span></div>
-    </div>
-    <div class="post-foot">✎ 手绘旅行地图 · 由「我的行程」生成<span class="stamp">旅 程 手 账</span>${new Date().toLocaleDateString('zh-CN')}</div>`;
-
-  if (endPts.length) initPostMap(endPts, t.color, grad);
-  else if (pinData.length) initPostMap(pinData, t.color, grad);
-}
-
-/* —— 预览地图（复古手账风：图钉足迹 + 手绘折线 + 交通徽标 + 点击跳转/开关） —— */
-let postMapLocked = false;
-let postMapTransOn = true;
-let postTransMarks = [];
-const PIN_SVG = `<svg viewBox="0 0 24 24" width="28" height="28">
-  <path d="M12 1C7.6 1 4 4.6 4 9c0 5 8 14 8 14s8-9 8-14c0-4.4-3.6-8-8-8z" fill="#C0392B" stroke="#7B241C" stroke-width="1.4"/>
-  <circle cx="12" cy="9" r="3.2" fill="#FDF6E3" stroke="#7B241C" stroke-width="1"/></svg>`;
-
-function pinIcon(p) {
-  const no = p.no === '—' ? '·' : p.no;
-  const tag = `<div class="pin-tag"><b>Day ${no}</b> ${esc(p.name)}</div>`;
-  return L.divIcon({ className: '', html: `<div class="pin-icon">${PIN_SVG}${tag}</div>`, iconSize: [0, 0], iconAnchor: [14, 28] });
-}
-function transIcon(emoji) {
-  return L.divIcon({ className: '', html: `<div class="trans-badge">${emoji}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
-}
-
-function renderPostMap(points, color) {
-  if (postMap) { postMap.remove(); postMap = null; }
-  const box = $('#post-map');
-  postMap = L.map(box, { zoomControl: true, attributionControl: false, scrollWheelZoom: true, touchZoom: true });
-  baseTileLayer().addTo(postMap);
-  postTransMarks = [];
-
-  if (!points.length) {
-    L.marker([35.5, 105]).addTo(postMap);
-    postMap.setView([35.5, 105], 4);
-    return;
-  }
-  // 图钉足迹：每个首末点一颗复古图钉，标签显示 Day + 地点名
-  const mk = points.map(p => L.marker([p.lat, p.lng], { icon: pinIcon(p), zIndexOffset: 500 })
-    .addTo(postMap)
-    .bindTooltip(`${p.name} · ${p.date}`, { direction: 'top' }));
-  mk.forEach((m, i) => m.on('click', () => { if (!postMapLocked) jumpToPostDay(points[i].date); }));
-  // 手绘折线分段：每段独立可点击跳转 + 中点交通徽标
-  if (points.length > 1) {
-    for (let i = 0; i < points.length - 1; i++) {
-      const a = points[i], b = points[i + 1];
-      if (a.lat === b.lat && a.lng === b.lng) continue;
-      const seg = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
-        color: '#8a5a2b', weight: 3, opacity: .9, dashArray: '2 7', lineCap: 'round', lineJoin: 'round'
-      }).addTo(postMap);
-      const d = a.date > b.date ? b.date : a.date; // 跳转两端的早一天（当天行程）
-      seg.bindTooltip(`${a.name} → ${b.name}`, { direction: 'top' });
-      seg.on('click', () => { if (!postMapLocked) jumpToPostDay(d); });
-      // 该段交通徽标（取起点日期当天的交通方式）
-      const transEmo = postTransEmojis(a.date);
-      if (transEmo) {
-        const mTrans = L.marker([(a.lat + b.lat) / 2, (a.lng + b.lng) / 2], {
-          icon: transIcon(transEmo), interactive: false, keyboard: false, zIndexOffset: 800
-        }).addTo(postMap);
-        postTransMarks.push(mTrans);
-      }
-    }
-  }
-  // 交通开关状态同步
-  const transBtn = $('#map-trans-toggle');
-  if (transBtn && !postMapTransOn) postTransMarks.forEach(m => m.setOpacity(0));
-  const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
-  postMap.fitBounds(bounds.pad(0.35), { maxZoom: 11 });
-}
-/** 某天所有交通方式的 emoji（去重，用于折线徽标） */
-function postTransEmojis(date) {
-  const day = postTrip && postTrip.days[date];
-  if (!day) return '';
-  return [...new Set((day.segments || []).map(x => x.transport).filter(Boolean))].map(x => emojiOf(x)).join('');
-}
-
-function initPostMap(points, color) {
-  const box = $('#post-map');
-  if (!box) return;
-  // 开关：点击跳转（仅预览模式）
-  const toggle = $('#map-toggle');
-  postMapLocked = false;
-  if (toggle) {
-    toggle.textContent = '🔓 点击跳转';
-    toggle.classList.remove('lock');
-    toggle.onclick = () => {
-      postMapLocked = !postMapLocked;
-      toggle.textContent = postMapLocked ? '🔒 仅预览' : '🔓 点击跳转';
-      toggle.classList.toggle('lock', postMapLocked);
-    };
-  }
-  // 开关：显示/隐藏交通徽标
-  const transBtn = $('#map-trans-toggle');
-  postMapTransOn = true;
-  if (transBtn) {
-    transBtn.textContent = '🚇 显示交通';
-    transBtn.classList.remove('lock');
-    transBtn.onclick = () => {
-      postMapTransOn = !postMapTransOn;
-      transBtn.textContent = postMapTransOn ? '🚇 显示交通' : '🚫 隐藏交通';
-      transBtn.classList.toggle('lock', !postMapTransOn);
-      postTransMarks.forEach(m => m.setOpacity(postMapTransOn ? 1 : 0));
-    };
-  }
-  // 自动端点（无坐标）：异步地理编码
-  if (points.length && points[0].lat === undefined) {
-    const status = $('#map-geo-status');
-    const names = [...new Set(points.map(p => p.name))];
-    const geoMap = {};
-    let done = 0;
-    const step = async () => {
-      while (true) {
-        const i = names.findIndex(n => !(n in geoMap));
-        if (i < 0) return;
-        const n = names[i];
-        geoMap[n] = null; // 先占位，避免并发 step 重复请求同一地点
-        geoMap[n] = await geocodePlace(n);
-        done++;
-        if (status) status.textContent = `🗺️ 正在定位地点 ${done}/${names.length}…`;
-      }
-    };
-    // 并发 3 个请求 + 停顿，兼顾速度与 Nominatim 限流
-    Promise.all([step(), step(), step()]).then(() => {
-      const located = points.filter(p => geoMap[p.name]).map(p => ({ ...p, ...geoMap[p.name] }));
-      if (status) status.remove();
-      if (!located.length) {
-        box.insertAdjacentHTML('beforeend', `<div class="map-fallback">⚠️ 未能定位地点，请检查网络或补充更详细的地名</div>`);
-        return;
-      }
-      renderPostMap(located, color);
-    });
-    return;
-  }
-  // 手动 pin（已有坐标）
-  if (!isMapReady()) {
-    box.insertAdjacentHTML('beforeend', '<div class="map-fallback">🗺️ 地图加载中…</div>');
-    let n = 0;
-    const wait = setInterval(() => {
-      n++;
-      if (isMapReady()) { clearInterval(wait); box.querySelector('.map-fallback')?.remove(); renderPostMap(points, color); }
-      else if (n > 40 || window.__mapFail) {
-        clearInterval(wait);
-        const fb = box.querySelector('.map-fallback');
-        if (fb) fb.textContent = '🌐 地图加载失败（请检查网络）';
-      }
-    }, 250);
-    return;
-  }
-  renderPostMap(points, color);
-}
-
-/* —— 导出（手账 PNG 绑定已迁移到 #view-journal 委托：downloadJournalPNG） —— */
 
 /* ================================================================
  * PDF 文档视图（带目录，目录标题为日期）
