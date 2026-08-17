@@ -90,7 +90,7 @@ textarea{resize:vertical}
 
 /* ============ 列表页 ============ */
 #view-list{max-width:1080px;margin:26px auto;padding:0 22px}
-#view-list .hero{margin-bottom:22px;text-align:center}
+#view-list .hero{margin-bottom:22px}
 #view-list .hero h1{font-size:26px;font-weight:800}
 #view-list .hero p{color:var(--sub);margin-top:2px}
 .trip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
@@ -146,6 +146,12 @@ textarea{resize:vertical}
 .day-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:8px}
 /* 二级标题（左侧导航）：旅行清单 / 每日行程 / 旅行随记，可点击跳转；字体加大加粗、颜色随行程主题 */
 .day-nav .nav-title{font-size:15px;font-weight:800;color:var(--accent);margin:8px 0 4px;padding-left:4px}
+/* 折叠三角：主题色圆底 + 白色钝角箭头（110° 张角、粗圆线条），展开/收起旋转过渡 */
+.nav-caret{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
+  background:var(--accent);color:#fff;margin-left:6px;flex-shrink:0;
+  box-shadow:0 2px 6px var(--accent-shadow);transition:transform .25s ease}
+.nav-caret svg{display:block}
+.day-nav .nav-title.collapsed .nav-caret{transform:rotate(-90deg)}
 .day-nav .nav-link{cursor:pointer;border-radius:8px;padding:3px 4px}
 .day-nav .nav-link:hover{background:transparent}
 .day-nav button{
@@ -170,20 +176,17 @@ textarea{resize:vertical}
 .day-card.flash{animation:flashBg 1.6s ease}
 @keyframes flashBg{0%{box-shadow:0 0 0 3px rgba(255,107,107,.5)}100%{box-shadow:var(--shadow)}}
 .day-head{
-  display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);
   background:linear-gradient(135deg,#fff,#fafaff);
 }
-.day-badge{
-  min-width:56px;height:56px;border-radius:14px;background:linear-gradient(160deg,var(--accent),var(--accent2));
-  color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.25;
-  box-shadow:0 4px 12px var(--accent-shadow);flex-shrink:0;
+.day-head .day-info{flex:1;min-width:0}
+/* 日期标题：主题色加粗圆润（无底色块） */
+.day-head .day-info h3{
+  font-size:18px;font-weight:900;color:#1c1c28;letter-spacing:.5px;
+  font-family:'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif;
+  display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap;
 }
-.day-badge .n{font-size:20px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.18)}
-.day-badge .w{font-size:11px;opacity:.95;text-shadow:0 1px 2px rgba(0,0,0,.18)}
-.day-head .day-info{flex:1}
-.day-head .day-info h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0}
-.day-head .day-info h3 .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.day-head .day-cost{text-align:right;align-self:flex-end;padding-bottom:2px}
+.day-head .day-info h3 .t{color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 /* 天气徽章：胶囊浅底，悬停主题色；空态虚线占位 */
 .wx-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#55556a;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:999px;padding:2px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .wx-badge:hover{border-color:var(--accent);color:var(--accent)}
@@ -212,7 +215,6 @@ textarea{resize:vertical}
 .dp-d.today.sel::after{display:none}
 
 
-.day-head .day-cost .amt{font-size:18px;font-weight:800;color:var(--accent)}
 .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .block{padding:18px 24px;border-bottom:1px solid var(--line)}
 .block.col-left{grid-column:1;border-right:1px solid var(--line)}
@@ -255,8 +257,11 @@ textarea{resize:vertical}
 .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
 /* 时间列：内容宽、左对齐；等宽数字(tabular-nums)使 09:30-09:45 与 10:00-11:00 长度一致，不因数字字形占位不同而参差 */
 .seg-view-time{flex:none;font-size:14px;font-weight:400;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;position:relative;margin-right:4px}
-/* 跨天角标：绝对定位在时间列右缘（不占布局宽度）→ 跨天行与普通行时间列等宽，出发地列对齐 */
+/* 跨天角标：绝对定位在时间列右缘（不占布局宽度）→ 跨天行与普通行时间列等宽，出发地列对齐；
+   支持 :has 的浏览器（现代安卓 WebView）给时间列预留 16px，角标移进预留区紧贴到达时间，不再挤到出发地 */
 .seg-cross-badge{position:absolute;right:-13px;top:0;font-size:9px;font-weight:700;color:#a0a0b0;line-height:1;white-space:nowrap;pointer-events:none}
+.seg-view-time:has(.seg-cross-badge){padding-right:16px}
+.seg-view-time:has(.seg-cross-badge) .seg-cross-badge{right:2px}
 /* 路径：超长时缩小字号（优先完整显示）；极长才省略兜底 */
 .seg-view-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw;min-width:0;flex-shrink:1;font-weight:400;font-size:14px;color:var(--ink);margin-right:2px}
 .seg-view-path b{font-weight:400}
@@ -289,28 +294,17 @@ textarea{resize:vertical}
 .done-btn.gray{background:#f2f2f7;color:var(--sub)}
 .done-btn.gray:hover{background:#e6e6ee;color:#e5484d}
 .seg-row{display:flex;align-items:center;gap:5px;padding:7px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
-/* 编辑态行程表单：固定五行（①时间 ②出发地点 ③目的地 ④交通+价格 ⑤备注+按钮），不随意换行 */
+/* 编辑态行程表单：固定五行（①时间 ②起点 ③终点 ④交通+价格+确认 ⑤备注），不随意换行 */
 .seg-wrap.editing .seg-row{flex-direction:column;align-items:stretch;gap:8px;flex-wrap:nowrap}
 .seg-wrap.editing .seg-line{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}
 .seg-wrap.editing .seg-line .arr{flex-shrink:0}
+.seg-wrap.editing .seg-line-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
 .seg-wrap.editing .seg-from,.seg-wrap.editing .seg-to{width:auto;flex:1;min-width:0}
 .seg-wrap.editing .seg-trans{flex:0 1 auto;width:auto;min-width:0}
 .seg-wrap.editing .seg-vehicle{width:120px;flex:0 1 auto;min-width:0}
 .seg-wrap.editing .seg-price-row{width:118px}
 .seg-wrap.editing .seg-note-input{width:100%;flex-basis:100%}
 .seg-wrap.editing .seg-time-sel{width:64px}
-/* 时间下拉（时/分）：两个小 select + 冒号，替代系统时间滚轮；「-」= 不输入 */
-.time-sel{display:inline-flex;align-items:center;gap:1px;flex-shrink:0}
-.time-sel .seg-time-sel{width:58px;flex-shrink:0;text-align:center;color:var(--ink);padding:5px 2px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);font-size:13.5px;font-weight:700;-webkit-appearance:none;appearance:none}
-.time-sel .time-sel-colon{font-style:normal;color:var(--sub);font-weight:800}
-.ef-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
-/* 价格输入统一：无默认 0、斜体小字提示（全篇通用） */
-/* 提示文字统一：所有 placeholder 斜体 13px（参考备注输入框提示） */
-input::placeholder,textarea::placeholder{font-style:italic;font-size:13px;color:var(--sub);opacity:.8;text-align:left}
-/* 价格输入框提示文字靠右（输入框已加宽，保证完整显示） */
-.seg-price-row::placeholder,.edit-form .amount::placeholder,.edit-form .amt::placeholder,.exp-row .amt::placeholder,.lodge-grid input.amount::placeholder{text-align:right}
-.edit-form .amount{width:118px;flex:0 0 auto;text-align:right}
-.edit-form .amt{width:118px;flex:0 0 auto;text-align:right}
 /* 备注独占一行：输入长内容也能看全 */
 .seg-row input.seg-note-input{flex-basis:100%;width:100%!important;min-width:0}
 .seg-row:last-child{border-bottom:none}
@@ -333,6 +327,11 @@ input::placeholder,textarea::placeholder{font-style:italic;font-size:13px;color:
 .seg-row input.seg-time-native::-webkit-datetime-edit{text-align:center}
 .seg-row input.seg-time-native.empty{color:transparent}
 .seg-row input.seg-time-native.empty::-webkit-datetime-edit-fields-wrapper{visibility:hidden}
+/* 时间下拉（时/分）：两个小 select + 冒号，替代系统时间滚轮 */
+.time-sel{display:inline-flex;align-items:center;gap:1px;flex-shrink:0}
+.time-sel .seg-time-sel{width:58px;flex-shrink:0;text-align:center;color:var(--ink);padding:5px 2px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);font-size:13.5px;font-weight:700;-webkit-appearance:none;appearance:none}
+.time-sel .seg-time-sel:first-child{margin-right:2px}
+.time-sel .time-sel-colon{font-style:normal;color:var(--sub);font-weight:800}
 .seg-row .arr{flex-shrink:0}
 .seg-toggle{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
   color:#fff;background:var(--accent);flex-shrink:0;transition:transform .2s,background .15s;
@@ -421,7 +420,14 @@ input::placeholder,textarea::placeholder{font-style:italic;font-size:13px;color:
 .edit-form input,.edit-form select{width:100%;padding:6px 9px;font-size:13px;border-radius:9px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
 .edit-form input:focus,.edit-form select:focus{border-color:var(--accent-border);outline:none}
 .edit-form select{width:auto;flex:0 0 auto;padding:5px 8px;font-size:12.5px}
-.edit-form .ef-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+.edit-form .ef-actions,.ef-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+/* 价格输入统一：无默认 0、斜体小字提示（全篇通用） */
+/* 提示文字统一：所有 placeholder 斜体 13px（参考备注输入框提示） */
+input::placeholder,textarea::placeholder{font-style:italic;font-size:13px;color:var(--sub);opacity:.8;text-align:left}
+/* 价格输入框提示文字靠右（输入框已加宽，保证完整显示） */
+.seg-price-row::placeholder,.edit-form .amount::placeholder,.edit-form .amt::placeholder,.exp-row .amt::placeholder,.lodge-grid input.amount::placeholder{text-align:right}
+.edit-form .amount{width:118px;flex:0 0 auto;text-align:right}
+.edit-form .amt{width:118px;flex:0 0 auto;text-align:right}
 .exp-row select{width:86px;padding:4px 6px;font-size:12.5px;border-radius:8px}
 .exp-row .item{flex:1;min-width:110px;padding:4px 8px;font-size:12.5px;border-radius:8px}
 .exp-row .amt{width:118px;padding:4px 8px;font-size:12.5px;border-radius:8px;text-align:right}
@@ -670,7 +676,6 @@ body.pad .block.lodge-block { padding: 16px 20px; }
 body.pad .block.full { grid-column: 1/-1 !important; border-right: none !important; }
 body.pad .day-col.col-l { border-right: 1px solid var(--line) !important; }
 body.pad .day-head { padding: 14px 22px; }
-body.pad .day-badge { min-width: 60px; height: 60px; }
 body.pad .modal { max-width: 720px; }
 body.pad .form-grid { grid-template-columns: 1fr 1fr; }
 body.pad .doc-body { max-width: 900px; padding: 40px 48px; }
@@ -682,12 +687,7 @@ body.pad .seg-row select { width: 104px; }
 /* ============ 安卓 WebView（手机/平板）emoji 图标对齐 ============
    Noto Color Emoji 字形自带左右内边距 → 图标视觉左缘比文字偏右；
    统一左移 2px 补偿：标题类图标（block-title）、内容类图标（交通/住宿类型/花销类别/备注）左侧对齐 */
-body.pad .block-title .tag, body.phone .block-title .tag { margin-left: -2px; }
-body.pad .seg-view-trans, body.phone .seg-view-trans { margin-left: -2px; }
-body.pad .lodge-view-type, body.phone .lodge-view-type { margin-left: -2px; }
-body.pad .exp-view-cat, body.phone .exp-view-cat { margin-left: -2px; }
-body.pad .note-emoji, body.phone .note-emoji { margin-left: -2px; }
-body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px; }
+/* 安卓 emoji 图标对齐：由 JS 运行时测量字形内边距补偿（alignEmojiIcons） */
 
 /* ============ 手机端适配（≤560px） ============ */
 @media (max-width: 560px) {
@@ -699,7 +699,13 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .seg-main { column-gap: 8px; row-gap: 4px; }
   .seg-trail { gap: 8px; flex-basis: 100%; }
   .drag-handle { width: 20px; }
-  .seg-view-actions .icon-btn { width: 26px; height: 26px; }
+  /* 内容字体统一不加粗（金额保持加粗，此前用户指定）——避免手机屏上大小参差 */
+  .rem-view-title, .exp-view-item, .exp-view-cat, .lodge-view-name, .lodge-view-type, .rem-view-time, .seg-view-sub, .exp-view-note, .lodge-view-sub { font-weight: 400; }
+  /* 编辑/删除图标：更小(22px)更紧凑(间距1px)，SVG 同步缩小 */
+  .seg-view-actions .icon-btn { width: 22px; height: 22px; border-radius: 6px; }
+  .seg-view-actions { gap: 1px; }
+  .rem-view-actions, .exp-view-actions, .lodge-view-actions { gap: 1px; }
+  .icon-btn svg { width: 12px; height: 12px; }
   /* 手机端：主行剩余空间给地名设上限（按最宽时间列+跨天角标计算），保证时间+地名+按钮一行不拆散 */
   /* 手机端：地名上限=主行剩余空间（时间列最宽含跨天角标 97px + 间距），任意屏宽都保证主行一行 */
   .seg-view-path { max-width: calc(100% - 110px); }
@@ -723,7 +729,11 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .detail-body { grid-template-columns: 1fr; gap: 14px; }
   .day-nav { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px;
     padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
-  .day-nav .nav-title { display: inline-block; flex-shrink: 0; margin: 0; padding: 8px 12px; font-size: 13px; background: var(--accent-soft); border-radius: 10px; }
+  .day-nav { flex-direction: column; gap: 8px; overflow: visible; padding-bottom: 0; }
+  .day-nav .nav-titles { display: flex; flex-direction: column; gap: 6px; }
+  .day-nav .nav-dates { display: flex; flex-direction: column; gap: 6px; }
+  .day-nav .nav-dates button { display: flex; align-items: center; gap: 8px; width: 100%; }
+  .day-nav .nav-title { display: inline-flex; align-items: center; margin: 0; padding: 9px 14px; font-size: 15px; background: var(--accent-soft); border-radius: 10px; }
   .day-nav .nav-link:hover { background: transparent; }
   /* 日期按钮：纯文字全部主题色、无底色、无 hover/点击变色 */
   .day-nav button { padding: 4px 10px; font-size: 12.5px; border-radius: 8px; background: transparent; border: none; box-shadow: none; color: var(--accent); font-weight: 800; font-family: 'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif; }
@@ -734,9 +744,9 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .days-col { gap: 16px; }
 
   .day-head { padding: 12px 14px; gap: 10px; }
-  .day-badge { min-width: 46px; height: 46px; }
-  .day-badge .n { font-size: 17px; }
   .day-info h3 { font-size: 15px; }
+  /* 手机端：标题独占一行，天气徽章换行到下一行完整显示，不被截断 */
+  .day-info h3 .t { flex: 1 0 100%; }
   .block { padding: 14px 14px; }
   .block-title { margin-bottom: 10px; }
 
@@ -783,6 +793,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .cl-item.done .cl-text{color:var(--sub);text-decoration:line-through}
 /* ============ 打印 ============ */
 @media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact} /* 安卓WebView打印保留文字背景色 */
   body *{visibility:hidden!important}
   #doc,#doc *{visibility:visible!important}
   #doc{position:static!important;background:#fff!important;display:block!important}
@@ -1154,7 +1165,6 @@ function tripStats(trip) {
 function tripTravelers(trip) { return trip.travelers || []; }
 function dayTravelers(trip, day) { return day.travelers && day.travelers.length ? day.travelers : tripTravelers(trip); }
 
-
 /* ================================================================
  * 渲染
  * ================================================================ */
@@ -1295,17 +1305,20 @@ function renderDetail(id) {
   const extraDates = Object.keys(t.days).filter(d => !isInRange(t, d)).sort();
   const navDates = [...new Set([...allDates, ...extraDates])].sort();
 
-  $('#day-nav').innerHTML = `<div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
-  <div class="nav-title nav-link" data-nav="daily" title="返回每日行程">📅 每日行程</div>` + navDates.map(d => {
-    const has = !!t.days[d];
+  $('#day-nav').innerHTML = `<div class="nav-titles">
+  <div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
+  <div class="nav-title nav-link" data-nav="daily" title="展开/折叠日期列表">📅 每日行程 <span class="nav-caret"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>
+  </div><div class="nav-dates" id="nav-dates">` + navDates.map(d => {
+    const day = t.days[d];
+    const has = !!day;
     const active = has ? 'active' : 'empty';
-    const info = has ? '￥' + Math.round(dayStats(t.days[d]).exp).toLocaleString('zh-CN') : '';
+    const info = has ? '￥' + Math.round(dayStats(day).exp).toLocaleString('zh-CN') : '';
     return `<button class="${active}" data-date="${d}" title="${fmtDateCN(d)} · 周${weekdayCN(d)}">
       <span class="d">${Number(d.slice(5,7))}/${Number(d.slice(8,10))}</span>
       <span class="w">周${weekdayCN(d)}</span>
       ${info ? `<span class="info">${info}</span>` : ''}
     </button>`;
-  }).join('');
+  }).join('') + '</div>';
 
   // 每日卡片
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
@@ -1336,7 +1349,29 @@ function watchSegAlign() {
   segAlignRO = new ResizeObserver(alignSegActions);
   root.querySelectorAll('.seg-view').forEach(v => segAlignRO.observe(v));
   alignSegActions();
+  alignEmojiIcons();
 }
+/* 安卓：emoji 图标视觉左缘对齐——用 DOM Range 实测浏览器排版后的字形左缘
+   （不同 emoji 字形自带内边距不同，canvas 测量与真实渲染可能不一致，Range 最精确） */
+function alignEmojiIcons() {
+  if (!document.body.classList.contains('phone') && !document.body.classList.contains('pad')) return;
+  try {
+    document.querySelectorAll('.block-title .tag, .seg-view-trans, .lodge-view-type, .exp-view-cat, .note-emoji, .day-nav .nav-title, .cl-panel .h2-title').forEach(el => {
+      const r = document.createRange();
+      r.selectNodeContents(el);
+      const tn = r.startContainer;
+      if (tn.nodeType !== 3 || !tn.textContent.trim()) return;
+      const first = Array.from(tn.textContent)[0];
+      r.setEnd(tn, r.startOffset + first.length); // UTF-16 长度（emoji 代理对=2，Range 偏移按 code unit 计）
+      const gr = r.getBoundingClientRect();
+      const er = el.getBoundingClientRect();
+      const bearing = gr.left - er.left;
+      if (Math.abs(bearing) > 0.1) el.style.marginLeft = (-bearing) + 'px';
+    });
+  } catch (_) {}
+}
+// 字体加载完成后重新校准（首次渲染时 emoji 字体可能未就绪）
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => alignEmojiIcons());
 /* 窗口跨过 560px 阈值（手机横竖屏/平板分屏）时重渲染：路线段主行结构随窄屏切换 */
 let lastCompact = window.innerWidth <= 560;
 window.addEventListener('resize', () => {
@@ -1480,7 +1515,7 @@ function segTimes(seg) {
   const m = String(seg.time || '').match(/(\d{1,2}:\d{2})\s*[-–—→~]\s*(\d{1,2}:\d{2})/);
   return m ? { depart: m[1], arrive: m[2] } : { depart: '', arrive: '' };
 }
-/** 时间下拉组件：时（00-23）+ 分（00-59）两个下拉，组合写入 HH:MM；「-」占位表示不输入（可随时选回清除） */
+/** 时间下拉组件：时（00-23）+ 分（00-59）两个下拉，组合写入 HH:MM；空值显示「时/分」占位（可直接改，无系统滚轮弹窗） */
 function timeSelHtml(time, path) {
   const [h = '', m = ''] = String(time || '').split(':');
   const hrs = ['<option value="">-</option>'].concat(Array.from({ length: 24 }, (_, i) => {
@@ -1566,8 +1601,8 @@ function renderDayCard(t, d) {
             <span class="arr">→</span>
             ${timeSelHtml(tm.arrive, `days.${d}.segments.${i}.arriveTime`)}
           </div>
-          <input class="seg-from" maxlength="20" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="出发地点">
-          <input class="seg-to" maxlength="20" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="目的地">
+          <input class="seg-from" maxlength="20" data-path="days.${d}.segments.${i}.from" value="${esc(s.from)}" placeholder="起点">
+          <input class="seg-to" maxlength="20" data-path="days.${d}.segments.${i}.to" value="${esc(s.to)}" placeholder="终点">
           <div class="seg-line">
             <select class="seg-trans" data-path="days.${d}.segments.${i}.transport">
               ${TRANSPORTS.map(x => `<option value="${x[1]}" ${s.transport === x[1] ? 'selected' : ''}>${x[0]} ${x[1]}</option>`).join('')}
@@ -1775,6 +1810,7 @@ function renderDayCard(t, d) {
       </div>`;
   }
 
+
   // 提醒列表（自动按时间排序，草稿行排最后；双态：编辑 ✓✕ / 展示 ✏️🗑）
   if (Array.isArray(day.reminders) && day.reminders.length > 1) {
     const drafts = day.reminders.filter(r => r.draft);
@@ -1814,9 +1850,9 @@ function renderDayCard(t, d) {
 
   return `<section class="day-card" id="day-${d}">
     <div class="day-head">
-      <div class="day-badge"><span class="n">${Number(d.slice(8,10))}</span><span class="w">${Number(d.slice(5,7))}月</span></div>
       <div class="day-info">
-        <h3><span class="t">${no === '—' ? '额外行程' : '第' + no + '天'} · ${fmtDateCN(d)} 星期${weekdayCN(d)}</span>
+        <h3>
+          <span class="t">${no === '—' ? '额外行程' : '第' + no + '天'} · ${fmtDateCN(d)} 周${weekdayCN(d)}</span>
           ${day.weather && day.weather.cond
             ? `<span class="wx-badge" data-action="set-wx" data-date="${d}" title="点击设置天气">${wxEmoji(day.weather.cond)} ${esc(day.weather.cond)}${num(day.weather.low) != null ? ' ' + Math.round(num(day.weather.low)) + '°' : ''}~${num(day.weather.high) != null ? Math.round(num(day.weather.high)) + '°' : ''}</span>`
             : `<span class="wx-badge wx-empty" data-action="set-wx" data-date="${d}" title="设置天气">＋ 天气</span>`}
@@ -1879,8 +1915,17 @@ $('#view-detail').addEventListener('click', async e => {
       $('#days-col').classList.add('hidden');
       $('#cl-panel').classList.remove('hidden');
     } else if (nav === 'daily') {
+      const panelOpen = !$('#cl-panel').classList.contains('hidden');
       $('#cl-panel').classList.add('hidden');
       $('#days-col').classList.remove('hidden');
+      // 已在每日视图时：点击「每日行程」折叠/展开日期列表（留空只保留二级标题）
+      if (!panelOpen) {
+        const dates = $('#nav-dates');
+        if (dates) {
+          dates.classList.toggle('hidden');
+          navLink.classList.toggle('collapsed', dates.classList.contains('hidden'));
+        }
+      }
     }
     return;
   }
@@ -1892,12 +1937,10 @@ $('#view-detail').addEventListener('click', async e => {
     return;
   }
 
-  // 日期导航跳转
+  // 日期导航跳转（空日期只滚动定位到当天卡片，不再自动创建空白行程）
   const navBtn = e.target.closest('.day-nav button');
   if (navBtn) {
-    const d = navBtn.dataset.date;
-    if (t.days[d]) jumpToDay(d);
-    else { ensureDay(t, d); renderDetail(t.id); jumpToDay(d); }
+    jumpToDay(navBtn.dataset.date);
     return;
   }
   // 跳转并高亮
@@ -2219,7 +2262,7 @@ $('#view-detail').addEventListener('change', e => {
   const el = e.target;
   const t = getTrip(currentTripId);
   if (!t) return;
-  // 时间下拉（时/分两个 select 组合为 HH:MM 写入同一 path；选「-」清空）
+  // 时间下拉（时/分两个 select 组合为 HH:MM 写入同一 path）
   if (el.classList.contains('seg-time-sel')) {
     const wrap = el.closest('.time-sel');
     if (!wrap) return;
@@ -2525,9 +2568,6 @@ document.addEventListener('click', e => {
   if (cell && dpFor && cell.dataset.d) { pickDate(cell.dataset.d); return; }
 });
 function openTripModal(trip) {
-  const wasNewHidden = $('#btn-new').hidden;
-  $('#btn-new').hidden = true; // 弹窗打开时隐藏顶栏入口，避免「两个创建出行计划按钮」
-  $('#btn-new').dataset.wasHidden = wasNewHidden ? '1' : '0';
   const t = trip || { name: '', emoji: '', startDate: '', endDate: '',
     travelers: [], budget: 0, color: PRESET_COLORS[0], notes: '', days: {} };
   $('#modal-box').innerHTML = `
@@ -2675,7 +2715,7 @@ $('#days-col').addEventListener('drop', e => {
         && (row.dataset.type === 'expenses' || row.dataset.type === 'auto-exp')
         && row.dataset.date === dragState.date && dragState.key && row.dataset.key) {
       const allKeys = (day.expenses || []).map((_, i) => 'e' + i)
-        .concat(Object.entries((() => { const s2 = {}; (day.segments || []).forEach(x => { if (num(x.price) > 0) s2[x.transport || '交通'] = 1; }); return s2; })()).map(([tr]) => 't' + tr))
+        .concat(Object.entries((() => { const s = {}; (day.segments || []).forEach(x => { if (num(x.price) > 0) s[x.transport || '交通'] = 1; }); return s; })()).map(([tr]) => 't' + tr))
         .concat((day.lodging && (day.lodging.name || day.lodging.location) && num(day.lodging.pricePerNight) > 0) ? ['l'] : []);
       const order = (day.expOrder || []).filter(k => allKeys.includes(k));
       allKeys.forEach(k => { if (!order.includes(k)) order.push(k); });
@@ -2714,10 +2754,7 @@ $('#days-col').addEventListener('dragend', () => {
   dragState = null;
 });
 
-function closeModal() {
-  $('#modal-root').classList.add('hidden');
-  if ($('#btn-new').dataset.wasHidden === '0') $('#btn-new').hidden = false; // 恢复顶栏入口（原为可见时）
-}
+function closeModal() { $('#modal-root').classList.add('hidden'); }
 $('#modal-root').addEventListener('click', e => { if (e.target === $('#modal-root')) closeModal(); });
 
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 地图定位针（行程主题图标） -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26 C43,26 34,35 34,46 C34,60 54,80 54,80 C54,80 74,60 74,46 C74,35 65,26 54,26 Z M54,38 C58.4,38 62,41.6 62,46 C62,50.4 58.4,54 54,54 C49.6,54 46,50.4 46,46 C46,41.6 49.6,38 54,38 Z" />
+</vector>
