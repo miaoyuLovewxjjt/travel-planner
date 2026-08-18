@@ -792,6 +792,64 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .cl-item .cl-check{font-size:16px;flex-shrink:0}
 .cl-item .cl-text{font-size:14px;color:var(--ink);flex:1}
 .cl-item.done .cl-text{color:var(--sub);text-decoration:line-through}
+/* ============ 旅行清单正式版（对齐行程页区块/标题/字体规范） ============ */
+.pk-wrap{display:flex;flex-direction:column;gap:16px;margin-top:6px}
+.pk-card{border:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow);padding:18px 20px}
+.pk-card .block-hint{margin-bottom:12px}
+.pk-groups{display:flex;flex-direction:column;gap:10px}
+.pk-group{border:1px dashed var(--line);border-radius:14px;padding:10px 12px;background:#fcfcfd}
+.pk-group-head{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin-bottom:6px}
+.pk-group-ic{font-size:15px}
+.pk-group-count{margin-left:auto;font-size:11.5px;color:var(--sub)}
+.pk-row{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px dashed #f0f0f5;line-height:1.5;flex-wrap:wrap}
+.pk-row:last-child{border-bottom:none}
+.pk-cat{font-size:12px;color:var(--sub);background:#f0f0f5;border-radius:8px;padding:2px 8px;white-space:nowrap;flex-shrink:0}
+.pk-name{font-weight:600;font-size:14px;min-width:0;flex:1}
+.pk-imp{font-size:11px;border-radius:99px;padding:1px 8px;white-space:nowrap;flex-shrink:0}
+.pk-imp[data-imp="必需品"]{background:#ffe9e9;color:#c0392b}
+.pk-imp[data-imp="非必需"]{background:#eef2f7;color:#5b6b7f}
+.pk-imp[data-imp="待定"]{background:#f4f1e8;color:#8a7a45}
+.pk-status{font-size:11.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;color:var(--sub);padding:2px 9px;border-radius:99px;border:1px solid var(--line);background:#fff}
+.pk-status.on{color:var(--ink);font-weight:700;border-color:var(--accent)}
+.pk-bag-tag{font-size:11px;color:#4a5d78;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:99px;padding:1px 8px;white-space:nowrap;flex-shrink:0}
+.pk-note-ic{font-size:12px;cursor:help;flex-shrink:0}
+.pk-actions{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
+/* 物品编辑表单（沿用 .edit-form 风格） */
+.pk-edit{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:10px 12px;margin:8px 0;display:flex;flex-direction:column;gap:8px}
+.pk-edit .ef-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.pk-edit input,.pk-edit select{padding:6px 9px;font-size:13px;border-radius:9px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.pk-edit select{width:auto;flex:0 0 auto;padding:5px 8px;font-size:12.5px}
+.pk-edit input{flex:1;min-width:120px}
+.pk-edit .pk-custom-cat{flex:0 1 190px}
+.pk-edit .ef-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+/* 行李模拟 */
+.lug-row{display:flex;flex-wrap:wrap;gap:12px;margin:4px 0 10px}
+.lug-card{flex:1 1 210px;min-width:190px;border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:10px 12px;transition:border-color .15s,background .15s}
+.lug-card.pk-drop{border-color:var(--accent);background:#fff7f7}
+.lug-card.editing{border-color:var(--accent-border);background:#fffaf5}
+.lug-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px;color:var(--ink)}
+.lug-head input{flex:1;min-width:0;padding:5px 9px;font-size:13px;border-radius:9px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.lug-head .ef-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+.lug-ic{font-size:18px;flex-shrink:0}
+.lug-name{cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lug-count{font-size:11.5px;color:var(--sub);font-weight:600;flex-shrink:0}
+.lug-body{min-height:44px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.lug-empty{font-size:12px;color:var(--sub);font-style:italic;align-self:center}
+.pk-chip{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:12.5px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.06);user-select:none;max-width:100%}
+.pk-chip b{color:#c9c9d4;cursor:pointer;font-weight:700;padding:0 2px;font-size:13px}
+.pk-chip b:hover{color:#e5484d}
+.pk-imp-dot{font-style:normal;color:#fff;background:#c0392b;border-radius:99px;font-size:10px;padding:0 5px;line-height:14px}
+.pk-pool-head{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:var(--ink);margin:12px 0 8px}
+.pk-pool-head .btn{margin-left:auto}
+.pk-pool{display:flex;flex-wrap:wrap;gap:8px;border:1.5px dashed var(--line);border-radius:14px;padding:12px;min-height:52px;background:#fafafc;align-content:flex-start}
+.pk-pool-empty{font-size:12.5px;color:var(--sub)}
+.pk-feas-line{margin:10px 0 4px}
+.pk-feas{font-size:13px;border-radius:12px;padding:8px 12px;font-weight:600}
+.pk-feas.ok{background:#e8f7ee;color:#1a7f3d}
+.pk-feas.warn{background:#fff4e5;color:#b26a00}
+.pk-row.dragging,.pk-chip.dragging{opacity:.35}
+.pk-row.drag-over{box-shadow:0 -3px 0 0 var(--accent)}
+.pk-row.drag-over-after{box-shadow:0 3px 0 0 var(--accent)}
 /* ============ 打印 ============ */
 @media print{
   body *{visibility:hidden!important}
@@ -1415,22 +1473,202 @@ function openWxModal(d) {
   });
 }
 
-/* 旅行清单：详情页内嵌面板（数据模型 t.checklist=[{done,text}]，PDF 同步该数据） */
+/* ================================================================
+ * 旅行清单（正式版）：① 计划携带物品 ② 行李携带可行性模拟
+ * 数据模型（挂在 trip 上，随 state 整体保存/导出）：
+ *   t.packing      [{id, category, name, importance, status, notes, bag}]
+ *   t.packingOrder [itemId, ...] 扁平顺序（支持整表/跨组拖动）
+ *   t.luggageBags  [{id, name, icon}]
+ * ================================================================ */
+const PACK_CATS = [['🪪','证件'],['🔌','电子设备'],['👕','衣物'],['🧴','洗护用品'],['💊','药品'],['🍫','食品'],['📌','其他']];
+const PACK_IMPORTANCE = ['待定', '必需品', '非必需'];   // 默认待定
+const PACK_STATUS = ['未携带', '已携带'];
+const bagIconOf = i => ['🧳','👜','🎒','🧰','📦','🛄'][i] || '🧳';
+const packCatIcon = c => (PACK_CATS.find(x => x[1] === c) || ['📦', c])[0];
+/** 分类下拉选项：默认项 + 用过的自定义分类（保证可再次直接选） + 其他 */
+function packCatOptions(t) {
+  const used = [...new Set((t.packing || []).map(p => p.category).filter(c => c && c !== '其他' && !PACK_CATS.some(x => x[1] === c)))];
+  const opts = PACK_CATS.slice();
+  used.forEach(c => opts.push(['📦', c]));
+  return opts;
+}
+/** 惰性初始化：老 demo 清单(t.checklist) 一次性迁移为物品（其他/待定/未携带）；补全 id/字段 */
+function ensurePacking(t) {
+  if (!Array.isArray(t.packing)) {
+    t.packing = [];
+    if (Array.isArray(t.checklist)) {
+      t.checklist.forEach((c, i) => {
+        if (c && (c.text || '').trim()) {
+          t.packing.push({ id: 'pk' + uid() + i, category: '其他', name: c.text.trim(),
+            importance: '待定', status: c.done ? '已携带' : '未携带', notes: '', bag: null });
+        }
+      });
+      t.checklist = [];
+    }
+  }
+  t.packing.forEach((p, i) => { if (!p.id) p.id = 'pk' + uid() + i; });
+  t.packingOrder = Array.isArray(t.packingOrder) ? t.packingOrder.filter(id => t.packing.some(p => p.id === id)) : t.packing.map(p => p.id);
+  t.packing.forEach(p => {
+    p.bag = p.bag || null;
+    if (!PACK_IMPORTANCE.includes(p.importance)) p.importance = '待定';
+    if (!PACK_STATUS.includes(p.status)) p.status = '未携带';
+  });
+  if (!Array.isArray(t.luggageBags) || !t.luggageBags.length) {
+    t.luggageBags = [['1号行李箱','🧳'],['2号手提袋','👜'],['3号随身携带','🎒']]
+      .map(([nm, ic], i) => ({ id: 'bag' + uid() + i, name: nm, icon: ic }));
+  }
+  t.luggageBags.forEach((b, i) => { if (!b.id) b.id = 'bag' + uid() + i; if (!b.icon) b.icon = bagIconOf(i); });
+  return t;
+}
+/** 旅行清单专用重渲染：保留面板显示状态（renderDetail 默认会隐藏清单面板，避免操作后跳回每日视图） */
+function pkSaveAndRender(t) {
+  const wasOn = !$('#cl-panel').classList.contains('hidden');
+  saveAndRender(t);
+  if (wasOn) {
+    $('#cl-panel').classList.remove('hidden');
+    $('#days-col').classList.add('hidden');
+  }
+}
+
+/** 旅行清单：详情页内嵌面板（两块：物品清单 + 行李模拟，对齐行程页区块/标题/字体规范） */
 function checklistPanelHtml(t) {
-  const items = Array.isArray(t.checklist) ? t.checklist : [];
-  const rows = items.map((c, i) =>
-    `<div class="cl-item${c.done ? ' done' : ''}">
-      <span class="cl-check">${c.done ? '✅' : '⬜'}</span>
-      <span class="cl-text">${esc(c.text || '')}</span>
-    </div>`).join('');
+  ensurePacking(t);
+  const items = t.packing;
+  const byId = {};
+  items.forEach(p => byId[p.id] = p);
+  // 展示顺序：packingOrder 优先，未收录的追加
+  const order = (t.packingOrder || []).filter(id => byId[id]);
+  items.forEach(p => { if (!order.includes(p.id)) order.push(p.id); });
+  // 同品类自动分组（按出现顺序）
+  const groups = [];
+  order.forEach(id => {
+    const it = byId[id];
+    const g = groups.find(x => x.cat === it.category);
+    if (g) g.items.push(it); else groups.push({ cat: it.category, items: [it] });
+  });
+
+  // —— 物品行（展示态 / 编辑态） ——
+  const catOpts = packCatOptions(t);
+  const itemRow = it => {
+    const cat = it.category || '';
+    if (it.draft) {
+      const isAwaitCustom = !cat || cat === '__custom__';
+      const selOpts = catOpts.map(([ic, name]) =>
+          `<option value="${esc(name)}" ${!isAwaitCustom && cat === name ? 'selected' : ''}>${ic}${esc(name)}</option>`).join('')
+        + `<option value="__custom__" ${isAwaitCustom ? 'selected' : ''}>✏️ 其他（自定义）</option>`;
+      return `<div class="pk-edit">
+        <div class="ef-line">
+          <select data-path="__pk.${it.id}.category">${selOpts}</select>
+          <input class="pk-custom-cat" data-path="__pk.${it.id}.category" data-custom-cat maxlength="12"
+            placeholder="自定义分类（不填则归「其他」）" value="${isAwaitCustom ? esc(it.category === '__custom__' ? '' : cat) : ''}" ${isAwaitCustom ? '' : 'hidden'}>
+          <input data-path="__pk.${it.id}.name" maxlength="20" value="${esc(it.name)}" placeholder="物品名称（最多20字）">
+        </div>
+        <div class="ef-line">
+          <select data-path="__pk.${it.id}.importance">${PACK_IMPORTANCE.map(v => `<option value="${v}" ${it.importance === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          <select data-path="__pk.${it.id}.status">${PACK_STATUS.map(v => `<option value="${v}" ${it.status === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          <input data-path="__pk.${it.id}.notes" maxlength="30" placeholder="备注（可选）" value="${esc(it.notes || '')}">
+          <span class="ef-actions">
+            <button class="done-btn" data-action="pk-done" data-id="${it.id}" title="确认保存">✓</button>
+            <button class="done-btn gray" data-action="pk-cancel" data-id="${it.id}" title="取消（删除）">✕</button>
+          </span>
+        </div>
+      </div>`;
+    }
+    const c = it.category || '其他';
+    const bag = it.bag ? (t.luggageBags.find(b => b.id === it.bag) || null) : null;
+    return `<div class="pk-row" draggable="true" data-id="${it.id}" data-type="packing" title="拖到其他位置排序，或拖入下方行李箱">
+      <span class="drag-handle">≡</span>
+      <span class="pk-cat"><i class="ic">${packCatIcon(c)}</i>${esc(c)}</span>
+      <span class="pk-name">${esc(it.name)}</span>
+      <span class="pk-imp" data-imp="${it.importance}">${it.importance}</span>
+      <span class="pk-status ${it.status === '已携带' ? 'on' : ''}" data-action="pk-toggle-status" data-id="${it.id}" title="点击切换 已携带/未携带">${it.status === '已携带' ? '☑ 已携带' : '☐ 未携带'}</span>
+      ${bag ? `<span class="pk-bag-tag">${bag.icon} ${esc(bag.name)}</span>` : ''}
+      ${it.notes ? `<span class="pk-note-ic" title="${esc(it.notes)}">💬</span>` : ''}
+      <span class="pk-actions">
+        <button class="icon-btn" data-action="pk-edit" data-id="${it.id}" title="编辑">${pencilIcon()}</button>
+        <button class="icon-btn" data-action="pk-del" data-id="${it.id}" title="删除">${trashIcon()}</button>
+      </span>
+    </div>`;
+  };
+
+  const groupHtml = groups.map(g => `<div class="pk-group" data-cat="${esc(g.cat)}">
+      <div class="pk-group-head"><span class="pk-group-ic">${packCatIcon(g.cat)}</span><b>${esc(g.cat)}</b><span class="pk-group-count">${g.items.length} 件</span></div>
+      <div class="pk-group-body">${g.items.map(itemRow).join('')}</div>
+    </div>`).join('')
+    || '<div class="empty-state"><div class="big">🎒</div><p>还没有携带物品</p><p style="margin-top:6px">点下方「＋ 添加物品」开始规划要带什么</p></div>';
+
+  // —— 块2 行李携带可行性模拟 ——
+  const real = items.filter(p => !p.draft); // 编辑中的草稿不计入模拟
+  const lugBags = t.luggageBags;
+  const bagBody = b => {
+    const inB = real.filter(p => p.bag === b.id);
+    return inB.map(p =>
+      `<span class="pk-chip" draggable="true" data-type="chip" data-id="${p.id}" data-bag="${b.id}" data-imp="${p.importance}" title="拖到其他行李卡或拖回下方物品池">
+        ${packCatIcon(p.category)} ${esc(p.name)}<b data-action="chip-out" data-id="${p.id}" title="移回物品池">×</b>
+      </span>`).join('') || '<span class="pk-bag-empty">把下方物品拖到这里</span>';
+  };
+  const lugCard = b => {
+    if (b.editing) {
+      return `<div class="lug-card editing">
+        <div class="lug-head">
+          <span class="lug-ic">${b.icon}</span>
+          <input data-path="__bag.${b.id}.name" maxlength="12" placeholder="行李名称" value="${esc(b.name || '')}">
+          <span class="ef-actions">
+            <button class="done-btn" data-action="bag-done" data-id="${b.id}" title="确认">✓</button>
+            <button class="done-btn gray" data-action="bag-cancel" data-id="${b.id}" title="取消">✕</button>
+          </span>
+        </div>
+        <div class="lug-body">${bagBody(b)}</div>
+      </div>`;
+    }
+    const n = real.filter(p => p.bag === b.id).length;
+    return `<div class="lug-card" data-bag-id="${b.id}" title="把物品拖入 ${esc(b.name)}">
+      <div class="lug-head">
+        <span class="lug-ic">${b.icon}</span>
+        <span class="lug-name" data-action="bag-rename" data-id="${b.id}" title="点击改名">${esc(b.name)}</span>
+        <span class="lug-count">${n} 件</span>
+        <button class="icon-btn" data-action="bag-del" data-id="${b.id}" title="删除该行李">${trashIcon()}</button>
+      </div>
+      <div class="lug-body">${bagBody(b)}</div>
+    </div>`;
+  };
+  const free = real.filter(p => !p.bag);
+  const packed = real.length - free.length;
+  const allPacked = real.length > 0 && packed === real.length;
+  const feas = real.length === 0
+    ? '<div class="pk-feas">🪄 添加物品后，把物品拖进行李箱模拟收纳</div>'
+    : (allPacked
+        ? `<div class="pk-feas ok">✅ 已全部收纳（${real.length} 件），可点下面按钮同步为「已携带」</div>`
+        : `<div class="pk-feas warn">⚠️ 还有 ${free.length} 件未放入行李箱（已放 ${packed}/${real.length}）</div>`);
+
   return `
     <div class="cl-panel-head">
-      <div class="h2-title">📋 旅行清单</div>
+      <div class="h2-title">🧳 旅行清单</div>
       <button class="btn btn-ghost btn-small" data-action="cl-back">← 返回每日行程</button>
     </div>
-    <p class="cl-hint">出行前要准备 / 完成的事项清单（开发中 Demo，数据与 PDF 同步）</p>
-    ${rows || '<div class="empty-state"><div class="big">📋</div><p>清单还是空的</p><p style="margin-top:6px">后续在这里添加出发前待办、打包物品、预订确认等事项</p></div>'}
-  `;
+    <div class="pk-wrap">
+      <section class="pk-card">
+        <div class="block-title"><span class="tag">🎒</span>计划携带物品</div>
+        <div class="block-hint">💡 按品类自动归类；名称 ≤20 字；拖 ≡ 整表排序，拖到别的品类组内即自动改分类</div>
+        <div class="pk-groups">${groupHtml}</div>
+        <button class="add-row-btn" data-action="add-pk">＋ 添加物品</button>
+      </section>
+      <section class="pk-card">
+        <div class="block-title"><span class="tag">🧳</span>行李携带可行性模拟</div>
+        <div class="block-hint">💡 自定行李箱／袋，把全部物品拖进去模拟收纳；模拟成功后点按钮更新上方清单的携带状态</div>
+        <div class="lug-row">${lugBags.map(lugCard).join('')}</div>
+        <button class="add-row-btn" data-action="add-bag">＋ 新增行李箱／袋</button>
+        <div class="pk-feas-line">${feas}</div>
+        <div class="pk-pool-head"><span>待收纳物品池（${free.length}）</span>
+          <button class="btn btn-primary btn-small" data-action="pk-sync" title="已放入=已携带，未放入=未携带">✓ 同步到清单状态</button>
+        </div>
+        <div class="pk-pool">
+          ${free.map(p => `<span class="pk-chip" draggable="true" data-type="chip" data-id="${p.id}" data-bag="" data-imp="${p.importance}" title="拖到上方行李箱/袋">
+            ${packCatIcon(p.category)} ${esc(p.name)}${p.importance === '必需品' ? '<em class="pk-imp-dot">必</em>' : ''}
+          </span>`).join('') || '<span class="pk-pool-empty">🎉 全部物品已放入行李箱</span>'}
+        </div>
+      </section>
+    </div>`;
 }
 
 /** 公共交通（显示车次/座位/乘客详情的交通方式） */
@@ -1925,6 +2163,77 @@ $('#view-detail').addEventListener('click', async e => {
     return;
   }
 
+  // ===== 旅行清单（正式版）：物品 & 行李 =====
+  const addPk = e.target.closest('[data-action="add-pk"]');
+  if (addPk) {
+    ensurePacking(t);
+    const it = { id: 'pk' + uid(), category: '其他', name: '', importance: '待定', status: '未携带', notes: '', bag: null, draft: true };
+    t.packing.push(it); t.packingOrder.push(it.id);
+    pkSaveAndRender(t);
+    return;
+  }
+  const pkAct = e.target.closest('[data-action^="pk-"]:not([data-action="pk-sync"])');
+  if (pkAct) {
+    ensurePacking(t);
+    const i = t.packing.findIndex(p => p.id === pkAct.dataset.id);
+    if (i < 0) return;
+    const it = t.packing[i], act = pkAct.dataset.action;
+    if (act === 'pk-done') {
+      it.name = (it.name || '').trim();
+      if (!it.category || it.category === '__custom__') it.category = '其他';
+      if (!it.name) { t.packing.splice(i, 1); t.packingOrder = (t.packingOrder || []).filter(x => x !== it.id); }
+      else { delete it.draft; delete it._snap; }
+    } else if (act === 'pk-cancel') {
+      if (cancelEdit(it)) { t.packing.splice(i, 1); t.packingOrder = (t.packingOrder || []).filter(x => x !== it.id); }
+    } else if (act === 'pk-edit') { editSnap(it); it.draft = true; }
+    else if (act === 'pk-del') { t.packing.splice(i, 1); t.packingOrder = (t.packingOrder || []).filter(x => x !== it.id); }
+    else if (act === 'pk-toggle-status') { it.status = it.status === '已携带' ? '未携带' : '已携带'; }
+    pkSaveAndRender(t);
+    return;
+  }
+  const addBag = e.target.closest('[data-action="add-bag"]');
+  if (addBag) {
+    ensurePacking(t);
+    t.luggageBags.push({ id: 'bag' + uid(), name: '', icon: bagIconOf(t.luggageBags.length), editing: true });
+    pkSaveAndRender(t);
+    return;
+  }
+  const bagAct = e.target.closest('[data-action^="bag-"]');
+  if (bagAct) {
+    ensurePacking(t);
+    const b = t.luggageBags.find(x => x.id === bagAct.dataset.id);
+    const act = bagAct.dataset.action;
+    if (!b) return;
+    if (act === 'bag-rename') { b._snap = JSON.parse(JSON.stringify(b)); b.editing = true; }
+    else if (act === 'bag-done') { b.name = (b.name || '').trim() || ('行李' + (t.luggageBags.indexOf(b) + 1)); delete b.editing; delete b._snap; }
+    else if (act === 'bag-cancel') {
+      if (b._snap) { Object.assign(b, b._snap); delete b._snap; delete b.editing; }
+      else t.luggageBags = t.luggageBags.filter(x => x.id !== b.id);
+    }
+    else if (act === 'bag-del') {
+      t.packing.forEach(p => { if (p.bag === b.id) p.bag = null; });
+      t.luggageBags = t.luggageBags.filter(x => x.id !== b.id);
+    }
+    pkSaveAndRender(t);
+    return;
+  }
+  const chipOut = e.target.closest('[data-action="chip-out"]');
+  if (chipOut) {
+    ensurePacking(t);
+    const p = t.packing.find(x => x.id === chipOut.dataset.id);
+    if (p) p.bag = null;
+    pkSaveAndRender(t);
+    return;
+  }
+  const pkSync = e.target.closest('[data-action="pk-sync"]');
+  if (pkSync) {
+    ensurePacking(t);
+    t.packing.forEach(p => { if (p.name && !p.draft) p.status = p.bag ? '已携带' : '未携带'; });
+    pkSaveAndRender(t);
+    showToast('✔ 已按收纳结果同步：放入的=已携带，未放入的=未携带');
+    return;
+  }
+
   // 日期导航跳转
   const navBtn = e.target.closest('.day-nav button');
   if (navBtn) {
@@ -2135,6 +2444,15 @@ $('#view-detail').addEventListener('input', e => {
   if (el.dataset.path) {
     const t = getTrip(currentTripId);
     if (!t) return;
+    // 旅行清单：__pk.<itemId>.<field> / __bag.<bagId>.<field> → 直接写对象
+    if (el.dataset.path.startsWith('__pk.') || el.dataset.path.startsWith('__bag.')) {
+      const [ns, id, field] = el.dataset.path.split('.');
+      const src = ns === '__pk' ? t.packing : t.luggageBags;
+      const obj = (src || []).find(o => o.id === id);
+      if (obj) obj[field] = el.dataset.num ? num(el.value) : el.value;
+      scheduleSave();
+      return;
+    }
     // 滑动开关：checkbox 读 checked 写入 enabled，并即时重新同步系统提醒
     if (el.type === 'checkbox') {
       setByPath(t, el.dataset.path, el.checked);
@@ -2155,6 +2473,28 @@ $('#view-detail').addEventListener('input', e => {
     scheduleSave();
     updateTotalsUI(t, el.dataset.path); // 金额变化时局部刷新合计，不重渲染、不打断输入
   }
+});
+
+/** 旅行清单：分类选择「其他（自定义）」时展开自定义输入框 */
+$('#cl-panel').addEventListener('change', e => {
+  const sel = e.target.closest('select[data-path]');
+  if (!sel) return;
+  const m = (sel.dataset.path || '').match(/^__pk\.([^.]+)\.category$/);
+  if (!m) return;
+  const t = getTrip(currentTripId);
+  if (!t) return;
+  ensurePacking(t);
+  const it = t.packing.find(p => p.id === m[1]);
+  if (!it) return;
+  const customInp = sel.closest('.pk-edit') ? sel.closest('.pk-edit').querySelector('[data-custom-cat]') : null;
+  if (sel.value === '__custom__') {
+    it.category = '';
+    if (customInp) { customInp.hidden = false; customInp.focus(); }
+  } else {
+    it.category = sel.value;
+    if (customInp) customInp.hidden = true;
+  }
+  scheduleSave();
 });
 
 /** 出发/到达时间变化后的联动：组合 time 字段、跨天自动 +1/清除、同步跨天下拉 */
@@ -2751,6 +3091,70 @@ $('#days-col').addEventListener('dragend', () => {
   dragState = null;
 });
 
+/* ============ 旅行清单：物品行 & 行李chip 拖拽（排序 / 跨组改分类 / 拖入行李） ============ */
+let pkDrag = null;
+$('#cl-panel').addEventListener('dragstart', e => {
+  const row = e.target.closest('.pk-row, .pk-chip');
+  if (!row) return;
+  pkDrag = { id: row.dataset.id, type: row.dataset.type };
+  row.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', 'pk'); } catch (_) {}
+});
+$('#cl-panel').addEventListener('dragover', e => {
+  if (!pkDrag) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  // 行李卡高亮
+  const bag = e.target.closest('.lug-card:not(.editing)');
+  document.querySelectorAll('.lug-card').forEach(el => el.classList.remove('pk-drop'));
+  if (bag) bag.classList.add('pk-drop');
+  // 物品行排序指示线
+  const row = e.target.closest('.pk-row:not(.dragging)');
+  document.querySelectorAll('.pk-row').forEach(el => el.classList.remove('drag-over', 'drag-over-after'));
+  if (row && pkDrag.type === 'packing') {
+    const rect = row.getBoundingClientRect();
+    row.classList.add(e.clientY > rect.top + rect.height / 2 ? 'drag-over-after' : 'drag-over');
+  }
+});
+$('#cl-panel').addEventListener('drop', e => {
+  if (!pkDrag) return;
+  e.preventDefault();
+  const t = currentTripId ? getTrip(currentTripId) : null;
+  if (!t) { pkDrag = null; return; }
+  ensurePacking(t);
+  const p = t.packing.find(x => x.id === pkDrag.id);
+  const bag = e.target.closest('.lug-card:not(.editing)');
+  const row = e.target.closest('.pk-row:not(.dragging)');
+  if (bag && p) {                       // 拖入行李卡
+    if (p.bag !== bag.dataset.bagId) { p.bag = bag.dataset.bagId; pkSaveAndRender(t); }
+  } else if (e.target.closest('.pk-pool') && p) {  // 拖回物品池
+    if (p.bag) { p.bag = null; pkSaveAndRender(t); }
+  } else if (row && p && pkDrag.type === 'packing') { // 整表排序（跨组即改品类）
+    const order = (t.packingOrder || []).filter(id => t.packing.some(x => x.id === id));
+    const from = order.indexOf(pkDrag.id);
+    let to = order.indexOf(row.dataset.id);
+    if (from >= 0 && to >= 0 && from !== to) {
+      const rect = row.getBoundingClientRect();
+      let dest = to + (e.clientY > rect.top + rect.height / 2 ? 1 : 0);
+      if (dest > from) dest--;
+      const [id] = order.splice(from, 1);
+      order.splice(dest, 0, id);
+      t.packingOrder = order;
+      // 拖到别的品类组内 → 该物品自动改为目标组品类
+      const target = t.packing.find(x => x.id === row.dataset.id);
+      if (target && target.category !== p.category) p.category = target.category;
+      pkSaveAndRender(t);
+    }
+  }
+  pkDrag = null;
+});
+$('#cl-panel').addEventListener('dragend', () => {
+  document.querySelectorAll('.pk-row, .pk-chip').forEach(el => el.classList.remove('dragging', 'drag-over', 'drag-over-after'));
+  document.querySelectorAll('.lug-card').forEach(el => el.classList.remove('pk-drop'));
+  pkDrag = null;
+});
+
 function closeModal() {
   $('#modal-root').classList.add('hidden');
   if ($('#btn-new').dataset.wasHidden === '0') $('#btn-new').hidden = false; // 恢复顶栏入口（原为可见时）
@@ -2854,10 +3258,12 @@ function buildDoc(t) {
   }).join('');
 
   const remain = st.budget - st.exp;
-  // 旅行清单章节（与清单页数据同步：t.checklist=[{done,text}]，无数据则不显示）
-  const checklist = Array.isArray(t.checklist) ? t.checklist.filter(c => c.text) : [];
-  const clHtml = checklist.length ? `<div class="doc-day"><h3 class="doc-day-title">📋 旅行清单</h3>
-      ${checklist.map(c => `<div class="doc-cl-item"><span>${c.done ? '☑' : '☐'}</span> ${esc(c.text)}</div>`).join('')}
+  // 旅行清单章节（与清单页数据同步：t.packing=[{category,name,importance,status}]，兼容旧 t.checklist）
+  const pkItems = (Array.isArray(t.packing) && t.packing.length)
+    ? t.packing.filter(p => (p.name || '').trim())
+    : (Array.isArray(t.checklist) ? t.checklist.filter(c => c.text).map(c => ({ category: '其他', name: c.text, importance: '待定', status: c.done ? '已携带' : '未携带' })) : []);
+  const clHtml = pkItems.length ? `<div class="doc-day"><h3 class="doc-day-title">🧳 旅行清单</h3>
+      ${pkItems.map(p => `<div class="doc-cl-item"><span>${packCatIcon(p.category)} ${esc(p.category)}</span><b style="flex:1">${esc(p.name)}</b><span style="font-size:12px;color:var(--sub)">${p.importance} · ${p.status === '已携带' ? '☑已携带' : '☐待带'}</span></div>`).join('')}
     </div>` : '';
   $('#doc-body').innerHTML = `
     <div class="doc-cover" style="background:${grad}">
