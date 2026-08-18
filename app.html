@@ -795,7 +795,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 /* ============ 旅行清单正式版（对齐行程页区块/标题/字体规范） ============ */
 .pk-wrap{display:flex;flex-direction:column;gap:16px;margin-top:6px}
 .pk-card{border:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow);padding:18px 20px}
-.pk-card .block-hint{margin-bottom:12px}
+.pk-card .block-hint{margin-bottom:12px;font-size:12px}
 .pk-groups{display:flex;flex-direction:column;gap:10px}
 .pk-group{border:1px dashed var(--line);border-radius:14px;padding:10px 12px;background:#fcfcfd}
 .pk-group-head{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin-bottom:6px}
@@ -812,7 +812,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .pk-status{font-size:11.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;color:var(--sub);padding:2px 9px;border-radius:99px;border:1px solid var(--line);background:#fff}
 .pk-status.on{color:var(--ink);font-weight:700;border-color:var(--accent)}
 .pk-bag-tag{font-size:11px;color:#4a5d78;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:99px;padding:1px 8px;white-space:nowrap;flex-shrink:0}
-.pk-note-ic{font-size:12px;cursor:help;flex-shrink:0}
+.pk-note{flex:1 1 100%;min-width:100%;margin-left:34px;font-size:12px;color:var(--sub);line-height:1.5;padding-right:8px}
 .pk-actions{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
 /* 物品编辑表单（沿用 .edit-form 风格） */
 .pk-edit{border:1.5px dashed var(--accent-border);background:#fffaf5;border-radius:14px;padding:10px 12px;margin:8px 0;display:flex;flex-direction:column;gap:8px}
@@ -824,7 +824,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .pk-edit .ef-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
 /* 行李模拟 */
 .lug-row{display:flex;flex-wrap:wrap;gap:12px;margin:4px 0 10px}
-.lug-card{flex:1 1 210px;min-width:190px;border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:10px 12px;transition:border-color .15s,background .15s}
+.lug-card{flex:0 0 calc((100% - 24px)/3);box-sizing:border-box;border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:10px 12px;transition:border-color .15s,background .15s}
 .lug-card.pk-drop{border-color:var(--accent);background:#fff7f7}
 .lug-card.editing{border-color:var(--accent-border);background:#fffaf5}
 .lug-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px;color:var(--ink)}
@@ -1583,7 +1583,7 @@ function checklistPanelHtml(t) {
       <span class="pk-imp" data-imp="${it.importance}">${it.importance}</span>
       <span class="pk-status ${it.status === '已携带' ? 'on' : ''}" data-action="pk-toggle-status" data-id="${it.id}" title="点击切换 已携带/未携带">${it.status === '已携带' ? '☑ 已携带' : '☐ 未携带'}</span>
       ${bag ? `<span class="pk-bag-tag">${bag.icon} ${esc(bag.name)}</span>` : ''}
-      ${it.notes ? `<span class="pk-note-ic" title="${esc(it.notes)}">💬</span>` : ''}
+      ${it.notes ? `<span class="pk-note">💬 ${esc(it.notes)}</span>` : ''}
       <span class="pk-actions">
         <button class="icon-btn" data-action="pk-edit" data-id="${it.id}" title="编辑">${pencilIcon()}</button>
         <button class="icon-btn" data-action="pk-del" data-id="${it.id}" title="删除">${trashIcon()}</button>
@@ -1595,7 +1595,7 @@ function checklistPanelHtml(t) {
       <div class="pk-group-head"><span class="pk-group-ic">${packCatIcon(g.cat)}</span><b>${esc(g.cat)}</b><span class="pk-group-count">${g.items.length} 件</span></div>
       <div class="pk-group-body">${g.items.map(itemRow).join('')}</div>
     </div>`).join('')
-    || '<div class="empty-state"><div class="big">🎒</div><p>还没有携带物品</p><p style="margin-top:6px">点下方「＋ 添加物品」开始规划要带什么</p></div>';
+    || '';
 
   // —— 块2 行李携带可行性模拟 ——
   const real = items.filter(p => !p.draft); // 编辑中的草稿不计入模拟
@@ -3288,7 +3288,7 @@ function buildDoc(t) {
     ? t.packing.filter(p => (p.name || '').trim())
     : (Array.isArray(t.checklist) ? t.checklist.filter(c => c.text).map(c => ({ category: '其他', name: c.text, importance: '待定', status: c.done ? '已携带' : '未携带' })) : []);
   const clHtml = pkItems.length ? `<div class="doc-day"><h3 class="doc-day-title">🧳 旅行清单</h3>
-      ${pkItems.map(p => `<div class="doc-cl-item"><span>${packCatIcon(p.category)} ${esc(p.category)}</span><b style="flex:1">${esc(p.name)}</b><span style="font-size:12px;color:var(--sub)">${p.importance} · ${p.status === '已携带' ? '☑已携带' : '☐待带'}</span></div>`).join('')}
+      ${pkItems.map(p => `<div class="doc-cl-item"><span style="font-size:14px">${p.status === '已携带' ? '☑' : '☐'}</span><b style="flex:1">${esc(p.name)}</b><span style="font-size:12px;color:var(--sub)">${packCatIcon(p.category)} ${esc(p.category)} · ${p.importance}</span></div>`).join('')}
     </div>` : '';
   $('#doc-body').innerHTML = `
     <div class="doc-cover" style="background:${grad}">
