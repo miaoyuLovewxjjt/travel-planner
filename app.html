@@ -157,7 +157,7 @@ textarea{resize:vertical}
 .day-nav button:hover{background:transparent;transform:none;color:var(--ink)}
 .day-nav button .d{font-weight:900;font-size:13px;min-width:34px;color:var(--ink)}
 .day-nav button .w{font-size:13px;font-weight:600;color:var(--ink)}
-.day-nav button .info{color:var(--accent);font-weight:800;font-size:13px;margin-left:auto;white-space:nowrap}
+.day-nav button .info{color:var(--accent);font-weight:800;font-size:13px;margin-left:auto;white-space:nowrap;font-style:italic;text-align:right}
 .day-nav button.empty{opacity:.45}
 .day-nav .nav-dates.hidden{display:none}
 /* 折叠箭头：主题色钝角箭头（约110°张角）；展开朝上 ▲（收起列表）、收起朝下 ▼（展开列表），180°翻转不变形；与标题文字垂直居中 */
@@ -740,7 +740,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .day-nav button { padding: 4px 10px; font-size: 12.5px; border-radius: 8px; background: transparent; border: none; box-shadow: none; color: var(--ink); font-weight: 800; font-family: 'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif; }
   .day-nav button .d { font-size: 12.5px; min-width: 24px; font-weight: 900; color: var(--ink); }
   .day-nav button .w { font-size: 12.5px; color: var(--ink); font-weight: 600; }
-  .day-nav button .info { display: block; margin-left: auto; font-size: 12.5px; color: var(--accent); font-weight: 800; }
+  .day-nav button .info { display: block; margin-left: auto; font-size: 12.5px; color: var(--accent); font-weight: 800; font-style: italic; text-align: right; }
   .day-nav button.empty { opacity: .4; }
   .days-col { gap: 16px; }
 
@@ -2126,6 +2126,21 @@ function renderDayCard(t, d) {
 /* ================================================================
  * 事件：详情页（委托）
  * ================================================================ */
+/** 每日行程 ↔ 旅行清单 切换：各自记住滚动位置，避免切回每日行程时跳到第一天 */
+let savedScrollDaily = 0, savedScrollCl = 0;
+function switchDetailView(showCl) {
+  if (showCl) {
+    savedScrollDaily = window.scrollY || 0;
+    $('#days-col').classList.add('hidden');
+    $('#cl-panel').classList.remove('hidden');
+    requestAnimationFrame(() => window.scrollTo(0, savedScrollCl));
+  } else {
+    savedScrollCl = window.scrollY || 0;
+    $('#cl-panel').classList.add('hidden');
+    $('#days-col').classList.remove('hidden');
+    requestAnimationFrame(() => window.scrollTo(0, savedScrollDaily));
+  }
+}
 $('#view-detail').addEventListener('click', async e => {
   const t = currentTripId ? getTrip(currentTripId) : null;
   if (!t) return;
@@ -2138,14 +2153,14 @@ $('#view-detail').addEventListener('click', async e => {
   if (navLink) {
     const nav = navLink.dataset.nav;
     if (nav === 'checklist') {
-      $('#days-col').classList.add('hidden');
-      $('#cl-panel').classList.remove('hidden');
+      switchDetailView(true);
     } else if (nav === 'daily') {
       const panelOpen = !$('#cl-panel').classList.contains('hidden');
-      $('#cl-panel').classList.add('hidden');
-      $('#days-col').classList.remove('hidden');
-      // 已在每日视图时：点击「每日行程」折叠/展开日期列表（收起时只保留标题）
-      if (!panelOpen) {
+      if (panelOpen) {
+        // 从旅行清单切回每日行程：不跳转回第一天，恢复上次每日视图的滚动位置
+        switchDetailView(false);
+      } else {
+        // 已在每日视图时：点击「每日行程」折叠/展开日期列表（收起时只保留标题）
         const dates = $('#nav-dates');
         if (dates) {
           dates.classList.toggle('hidden');
@@ -2158,8 +2173,7 @@ $('#view-detail').addEventListener('click', async e => {
   // 清单面板内返回按钮
   const clBack = e.target.closest('[data-action="cl-back"]');
   if (clBack) {
-    $('#cl-panel').classList.add('hidden');
-    $('#days-col').classList.remove('hidden');
+    switchDetailView(false);
     return;
   }
 
