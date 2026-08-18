@@ -144,26 +144,25 @@ textarea{resize:vertical}
 .stat-long .sl-div{width:1px;height:30px;background:var(--line)}
 .detail-body{display:grid;grid-template-columns:210px 1fr;gap:26px;margin-top:20px;align-items:start}
 .day-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:8px}
-/* 二级标题（左侧导航）：旅行清单 / 每日行程 / 旅行随记，可点击跳转；字体加大加粗、颜色随行程主题 */
-.day-nav .nav-title{font-size:15px;font-weight:800;color:var(--accent);margin:8px 0 4px;padding-left:4px}
+/* 二级标题（左侧导航）：旅行清单 / 每日行程；文字黑色，金额（日期旁￥）保持主题色 */
+.day-nav .nav-title{font-size:15px;font-weight:800;color:var(--ink);margin:8px 0 4px;padding-left:4px}
 .day-nav .nav-link{cursor:pointer;border-radius:8px;padding:3px 4px}
 .day-nav .nav-link:hover{background:transparent}
 .day-nav button{
   text-align:left;padding:6px 8px;border-radius:8px;background:transparent;border:none;
-  display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:var(--accent);
+  display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:var(--ink);
   font-family:'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif;letter-spacing:.5px;
 }
-/* 纯文字日期导航：全部主题色、无底色、无 hover/点击变色 */
-.day-nav button:hover{background:transparent;transform:none;color:var(--accent)}
-.day-nav button .d{font-weight:900;font-size:13px;min-width:34px;color:var(--accent)}
-.day-nav button .w{font-size:13px;font-weight:600;color:var(--accent)}
+/* 纯文字日期导航：文字黑色、无底色；金额（日期旁￥）保持主题色 */
+.day-nav button:hover{background:transparent;transform:none;color:var(--ink)}
+.day-nav button .d{font-weight:900;font-size:13px;min-width:34px;color:var(--ink)}
+.day-nav button .w{font-size:13px;font-weight:600;color:var(--ink)}
 .day-nav button .info{color:var(--accent);font-weight:800;font-size:13px;margin-left:auto;white-space:nowrap}
 .day-nav button.empty{opacity:.45}
 .day-nav .nav-dates.hidden{display:none}
-/* 折叠按钮：浅主题色圆底 + 主题色钝角箭头（约110°张角）；展开朝上 ▲（收起列表）、收起朝下 ▼（展开列表），180°翻转尺寸不变 */
-.nav-caret{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;
-  background:var(--accent-soft);color:var(--accent);margin-left:6px;flex-shrink:0;
-  box-shadow:0 1px 4px var(--accent-shadow);transition:transform .3s cubic-bezier(.4,1.4,.4,1)}
+/* 折叠箭头：主题色钝角箭头（约110°张角）；展开朝上 ▲（收起列表）、收起朝下 ▼（展开列表），180°翻转不变形；与标题文字垂直居中 */
+.nav-caret{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:5px;flex-shrink:0;
+  color:var(--accent);vertical-align:middle;transition:transform .3s cubic-bezier(.4,1.4,.4,1)}
 .nav-caret svg{display:block}
 .day-nav .nav-title.collapsed .nav-caret{transform:rotate(180deg)}
 .days-col{display:flex;flex-direction:column;gap:20px}
@@ -444,9 +443,10 @@ input[type=number]{-webkit-appearance:none;appearance:none;-moz-appearance:textf
 .exp-view-item{font-weight:400;font-size:14px;flex:1;min-width:90px}
 .exp-view-amt{font-weight:800;color:var(--accent);white-space:nowrap;font-size:14px;min-width:84px;text-align:right;flex-shrink:0}
 .exp-view-actions{display:flex;gap:4px;min-width:64px;justify-content:flex-end;flex-shrink:0}
-/* 自动计入条目（路线交通/住宿）：来源标签 */
+/* 自动计入条目（路线交通/住宿）：来源标签与手动行编辑/删除图标同列并居中（视觉对齐） */
 .exp-wrap.auto-row .exp-view{opacity:.9}
-.auto-tag{font-size:10px;color:var(--sub);background:#f0f0f5;border-radius:99px;padding:1px 8px;margin-left:6px;flex-shrink:0;align-self:center}
+.exp-wrap.auto-row .exp-view-actions{justify-content:center}
+.auto-tag{font-size:11px;color:var(--sub);background:#f0f0f5;border-radius:99px;padding:2px 10px;flex-shrink:0;align-self:center}
 .exp-view[draggable="true"]{cursor:grab}
 .exp-view[draggable="true"]:active{cursor:grabbing}
 /* 当日合计：金额右缘与各行金额对齐（各行金额右侧有编辑/删除按钮占 74px，合计行留出同宽内边距）；
@@ -736,10 +736,10 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .day-nav .nav-dates { display: flex; gap: 6px; }
   .day-nav .nav-title { display: inline-flex; align-items: center; flex-shrink: 0; margin: 0; padding: 8px 12px; font-size: 13px; background: var(--accent-soft); border-radius: 10px; }
   .day-nav .nav-link:hover { background: transparent; }
-  /* 日期按钮：纯文字全部主题色、无底色、无 hover/点击变色 */
-  .day-nav button { padding: 4px 10px; font-size: 12.5px; border-radius: 8px; background: transparent; border: none; box-shadow: none; color: var(--accent); font-weight: 800; font-family: 'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif; }
-  .day-nav button .d { font-size: 12.5px; min-width: 24px; font-weight: 900; color: var(--accent); }
-  .day-nav button .w { font-size: 12.5px; color: var(--accent); font-weight: 600; }
+  /* 日期按钮：黑色文字（金额保持主题色）、无底色 */
+  .day-nav button { padding: 4px 10px; font-size: 12.5px; border-radius: 8px; background: transparent; border: none; box-shadow: none; color: var(--ink); font-weight: 800; font-family: 'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif; }
+  .day-nav button .d { font-size: 12.5px; min-width: 24px; font-weight: 900; color: var(--ink); }
+  .day-nav button .w { font-size: 12.5px; color: var(--ink); font-weight: 600; }
   .day-nav button .info { display: block; margin-left: auto; font-size: 12.5px; color: var(--accent); font-weight: 800; }
   .day-nav button.empty { opacity: .4; }
   .days-col { gap: 16px; }
@@ -2657,11 +2657,15 @@ $('#days-col').addEventListener('click', e => {
   if (e.target.closest('#btn-add-day')) {
     const t = getTrip(currentTripId);
     if (!t) return;
-    // 找一个范围内还没有行程的日期
-    let next = t.startDate;
+    // 找一个范围内还没有行程的日期；范围内排满则在已有行程最后一天之后追加一天
+    let next = null;
     for (let i = 0; i <= diffDays(t.startDate, t.endDate); i++) {
       const d = addDays(t.startDate, i);
       if (!t.days[d]) { next = d; break; }
+    }
+    if (!next) {
+      const keys = Object.keys(t.days || {}).sort();
+      next = addDays(keys[keys.length - 1] || t.endDate, 1);
     }
     ensureDay(t, next);
     saveAndRender(t);
