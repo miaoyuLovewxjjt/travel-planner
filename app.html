@@ -144,7 +144,7 @@ textarea{resize:vertical}
 .stat-long .sl-div{width:1px;height:30px;background:var(--line)}
 .detail-body{display:grid;grid-template-columns:210px 1fr;gap:26px;margin-top:20px;align-items:start}
 .day-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:8px}
-/* 二级标题（左侧导航）：旅行清单 / 每日行程；文字黑色，金额（日期旁￥）保持主题色 */
+/* 二级标题（左侧导航）：行李清单 / 每日行程；文字黑色，金额（日期旁￥）保持主题色 */
 .day-nav .nav-title{font-size:15px;font-weight:800;color:var(--ink);margin:8px 0 4px;padding-left:4px}
 .day-nav .nav-link{cursor:pointer;border-radius:8px;padding:3px 4px}
 .day-nav .nav-link:hover{background:transparent}
@@ -627,6 +627,14 @@ body.font-large .btn{font-size:14.5px}
 .doc-day{padding:22px 0 6px;border-top:1px solid var(--line);margin-top:18px}
 .doc-day-title{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:900;margin-bottom:12px}
 .doc-cl-item{display:flex;gap:8px;padding:5px 0;font-size:14px;border-bottom:1px dashed #e5e5ec}
+.doc-lug-title{font-size:14px;font-weight:800;color:var(--ink);margin:4px 0 8px}
+.doc-lug-group{border-left:3px solid #e8e8ee;padding:2px 0 6px 12px;margin:0 0 8px}
+.doc-lug-bag{font-size:13.5px;font-weight:800;color:var(--ink);margin:6px 0 2px}
+.doc-lug-n{font-size:11.5px;font-weight:700;color:var(--sub);margin-left:6px}
+.doc-cl-check{font-size:14px;flex:0 0 auto}
+.doc-cl-ic{flex:0 0 auto}
+.doc-cl-name{flex:1;font-weight:600}
+.doc-cl-imp{font-size:10px;color:#fff;background:#c0392b;border-radius:99px;padding:0 5px;line-height:14px;flex:0 0 auto}
 .doc-day-no{background:linear-gradient(160deg,var(--accent),var(--accent2));color:#fff;font-size:12px;font-weight:900;padding:4px 12px;border-radius:999px;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 .doc-day-wk{color:var(--sub);font-weight:600;font-size:13px}
 .doc-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0 12px}
@@ -777,10 +785,10 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 }
 
 /* ============ 标题层级 ============
-   二级标题：页面/区块（每日行程、旅行清单）；三级标题：子区块 */
+   二级标题：页面/区块（每日行程、行李清单）；三级标题：子区块 */
 .h2-title{font-size:16px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;margin:6px 0 10px}
 .h3-title{font-size:13.5px;font-weight:700;color:var(--sub);margin:10px 0 6px}
-/* 旅行清单面板（详情页内嵌，点击左侧标题切换显示） */
+/* 行李清单面板（详情页内嵌，点击左侧标题切换显示） */
 .cl-panel{max-width:760px;margin:0 auto;padding:6px 0 40px;width:100%}
 .cl-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .cl-panel .h2-title{margin-bottom:4px}
@@ -792,7 +800,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .cl-item .cl-check{font-size:16px;flex-shrink:0}
 .cl-item .cl-text{font-size:14px;color:var(--ink);flex:1}
 .cl-item.done .cl-text{color:var(--sub);text-decoration:line-through}
-/* ============ 旅行清单正式版（对齐行程页区块/标题/字体规范） ============ */
+/* ============ 行李清单正式版（对齐行程页区块/标题/字体规范） ============ */
 .pk-wrap{display:flex;flex-direction:column;gap:16px;margin-top:6px}
 .pk-card{border:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow);padding:18px 20px}
 .pk-card .block-hint{margin-bottom:12px;font-size:12px}
@@ -1388,11 +1396,18 @@ function renderDetail(id) {
       ${info ? `<span class="info">${info}</span>` : ''}
     </button>`;
   }).join('') + '</div>';
+  // 恢复日期列表折叠状态（重渲染如切换物品状态后不自动展开）
+  if (dailyDatesCollapsed) {
+    const dT = $('#day-nav .nav-title[data-nav="daily"]');
+    const dd = $('#nav-dates');
+    if (dT) dT.classList.add('collapsed');
+    if (dd) dd.classList.add('hidden');
+  }
 
   // 每日卡片
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
-  $('#cl-panel').innerHTML = checklistPanelHtml(t); // 旅行清单：详情页内嵌面板（点击左侧标题切换，不刷新）
+  $('#cl-panel').innerHTML = checklistPanelHtml(t); // 行李清单：详情页内嵌面板（点击左侧标题切换，不刷新）
   $('#cl-panel').classList.add('hidden');
   $('#days-col').classList.remove('hidden');
   watchSegAlign();
@@ -1474,7 +1489,7 @@ function openWxModal(d) {
 }
 
 /* ================================================================
- * 旅行清单（正式版）：① 计划携带物品 ② 行李携带可行性模拟
+ * 行李清单（正式版）：① 计划携带物品 ② 行李携带可行性模拟
  * 数据模型（挂在 trip 上，随 state 整体保存/导出）：
  *   t.packing      [{id, category, name, importance, status, notes, bag}]
  *   t.packingOrder [itemId, ...] 扁平顺序（支持整表/跨组拖动）
@@ -1520,7 +1535,7 @@ function ensurePacking(t) {
   t.luggageBags.forEach((b, i) => { if (!b.id) b.id = 'bag' + uid() + i; if (!b.icon) b.icon = bagIconOf(i); });
   return t;
 }
-/** 旅行清单专用重渲染：保留面板显示状态（renderDetail 默认会隐藏清单面板，避免操作后跳回每日视图） */
+/** 行李清单专用重渲染：保留面板显示状态（renderDetail 默认会隐藏清单面板，避免操作后跳回每日视图） */
 function pkSaveAndRender(t) {
   const wasOn = !$('#cl-panel').classList.contains('hidden');
   saveAndRender(t);
@@ -1530,7 +1545,7 @@ function pkSaveAndRender(t) {
   }
 }
 
-/** 旅行清单：详情页内嵌面板（两块：物品清单 + 行李模拟，对齐行程页区块/标题/字体规范） */
+/** 行李清单：详情页内嵌面板（两块：物品清单 + 行李模拟，对齐行程页区块/标题/字体规范） */
 function checklistPanelHtml(t) {
   ensurePacking(t);
   const items = t.packing;
@@ -1643,7 +1658,7 @@ function checklistPanelHtml(t) {
 
   return `
     <div class="cl-panel-head">
-      <div class="h2-title">🧳 旅行清单</div>
+      <div class="h2-title">🧳 行李清单</div>
       <button class="btn btn-ghost btn-small" data-action="cl-back">← 返回每日行程</button>
     </div>
     <div class="pk-wrap">
@@ -2126,8 +2141,9 @@ function renderDayCard(t, d) {
 /* ================================================================
  * 事件：详情页（委托）
  * ================================================================ */
-/** 每日行程 ↔ 旅行清单 切换：各自记住滚动位置，避免切回每日行程时跳到第一天 */
+/** 每日行程 ↔ 行李清单 切换：各自记住滚动位置，避免切回每日行程时跳到第一天 */
 let savedScrollDaily = 0, savedScrollCl = 0;
+let dailyDatesCollapsed = false; // 日期列表折叠状态（重渲染后恢复，避免切换状态时自动展开）
 function switchDetailView(showCl) {
   if (showCl) {
     savedScrollDaily = window.scrollY || 0;
@@ -2148,7 +2164,7 @@ $('#view-detail').addEventListener('click', async e => {
   // 天气徽章：打开天气设置
   const wxBtn = e.target.closest('[data-action="set-wx"]');
   if (wxBtn) { openWxModal(wxBtn.dataset.date); return; }
-  // 左侧二级标题导航：旅行清单（页内切换）/ 每日行程（返回日期视图）
+  // 左侧二级标题导航：行李清单（页内切换）/ 每日行程（返回日期视图）
   // 每日行程右侧的折叠图标：只负责折叠/展开下面的日期列表，不跳转、不切换面板（在清单页点它也不跳回每日行程）
   const navCaret = e.target.closest('.day-nav .nav-caret');
   if (navCaret) {
@@ -2157,6 +2173,7 @@ $('#view-detail').addEventListener('click', async e => {
     if (title && dates) {
       dates.classList.toggle('hidden');
       title.classList.toggle('collapsed', dates.classList.contains('hidden'));
+      dailyDatesCollapsed = dates.classList.contains('hidden');
     }
     return;
   }
@@ -2168,7 +2185,7 @@ $('#view-detail').addEventListener('click', async e => {
     } else if (nav === 'daily') {
       const panelOpen = !$('#cl-panel').classList.contains('hidden');
       if (panelOpen) {
-        // 从旅行清单切回每日行程：不跳转回第一天，恢复上次每日视图的滚动位置
+        // 从行李清单切回每日行程：不跳转回第一天，恢复上次每日视图的滚动位置
         switchDetailView(false);
       } else {
         // 已在每日视图时：点击「每日行程」折叠/展开日期列表（收起时只保留标题）
@@ -2176,6 +2193,7 @@ $('#view-detail').addEventListener('click', async e => {
         if (dates) {
           dates.classList.toggle('hidden');
           navLink.classList.toggle('collapsed', dates.classList.contains('hidden'));
+          dailyDatesCollapsed = dates.classList.contains('hidden');
         }
       }
     }
@@ -2188,7 +2206,7 @@ $('#view-detail').addEventListener('click', async e => {
     return;
   }
 
-  // ===== 旅行清单（正式版）：物品 & 行李 =====
+  // ===== 行李清单（正式版）：物品 & 行李 =====
   const addPk = e.target.closest('[data-action="add-pk"]');
   if (addPk) {
     ensurePacking(t);
@@ -2259,7 +2277,7 @@ $('#view-detail').addEventListener('click', async e => {
     return;
   }
 
-  // 日期导航跳转（在旅行清单页点日期同样生效：切回每日视图并定位到该天）
+  // 日期导航跳转（在行李清单页点日期同样生效：切回每日视图并定位到该天）
   const navBtn = e.target.closest('.day-nav button');
   if (navBtn) {
     const d = navBtn.dataset.date;
@@ -2474,7 +2492,7 @@ $('#view-detail').addEventListener('input', e => {
   if (el.dataset.path) {
     const t = getTrip(currentTripId);
     if (!t) return;
-    // 旅行清单：__pk.<itemId>.<field> / __bag.<bagId>.<field> → 直接写对象
+    // 行李清单：__pk.<itemId>.<field> / __bag.<bagId>.<field> → 直接写对象
     if (el.dataset.path.startsWith('__pk.') || el.dataset.path.startsWith('__bag.')) {
       const [ns, id, field] = el.dataset.path.split('.');
       const src = ns === '__pk' ? t.packing : t.luggageBags;
@@ -2505,7 +2523,7 @@ $('#view-detail').addEventListener('input', e => {
   }
 });
 
-/** 旅行清单：分类选择「其他（自定义）」时展开自定义输入框 */
+/** 行李清单：分类选择「其他（自定义）」时展开自定义输入框 */
 $('#cl-panel').addEventListener('change', e => {
   const sel = e.target.closest('select[data-path]');
   if (!sel) return;
@@ -3121,7 +3139,7 @@ $('#days-col').addEventListener('dragend', () => {
   dragState = null;
 });
 
-/* ============ 旅行清单：物品行 & 行李chip 拖拽（排序 / 跨组改分类 / 拖入行李） ============ */
+/* ============ 行李清单：物品行 & 行李chip 拖拽（排序 / 跨组改分类 / 拖入行李） ============ */
 let pkDrag = null;
 $('#cl-panel').addEventListener('dragstart', e => {
   const row = e.target.closest('.pk-row, .pk-chip');
@@ -3213,6 +3231,11 @@ function buildDoc(t) {
   const travelers = tripTravelers(t);
   const grad = `linear-gradient(135deg,${t.color},${shade(t.color, -35)})`;
 
+  // 行李清单数据（兼容旧 t.checklist）：供目录与「行李携带可行性模拟」章节使用
+  const pkItems = (Array.isArray(t.packing) && t.packing.length)
+    ? t.packing.filter(p => (p.name || '').trim())
+    : (Array.isArray(t.checklist) ? t.checklist.filter(c => c.text).map(c => ({ category: '其他', name: c.text, importance: '待定', status: c.done ? '已携带' : '未携带', bag: null })) : []);
+
   const tocHtml = dates.map(d => {
     const s = dayStats(t.days[d]);
     return `<a class="toc-item" href="#doc-day-${d}">
@@ -3221,7 +3244,12 @@ function buildDoc(t) {
       <span class="toc-dots"></span>
       <span class="toc-sum">${fmtMoney(s.exp)} · ${s.segs} 段</span>
     </a>`;
-  }).join('');
+  }).join('') + (pkItems.length ? `<a class="toc-item" href="#doc-lug">
+      <span class="toc-no">🧳</span>
+      <span class="toc-date">行李清单</span>
+      <span class="toc-dots"></span>
+      <span class="toc-sum">${pkItems.length} 件</span>
+    </a>` : '');
 
   const daysHtml = dates.map(d => {
     const day = t.days[d];
@@ -3288,12 +3316,33 @@ function buildDoc(t) {
   }).join('');
 
   const remain = st.budget - st.exp;
-  // 旅行清单章节（与清单页数据同步：t.packing=[{category,name,importance,status}]，兼容旧 t.checklist）
-  const pkItems = (Array.isArray(t.packing) && t.packing.length)
-    ? t.packing.filter(p => (p.name || '').trim())
-    : (Array.isArray(t.checklist) ? t.checklist.filter(c => c.text).map(c => ({ category: '其他', name: c.text, importance: '待定', status: c.done ? '已携带' : '未携带' })) : []);
-  const clHtml = pkItems.length ? `<div class="doc-day"><h3 class="doc-day-title">🧳 旅行清单</h3>
-      ${pkItems.map(p => `<div class="doc-cl-item"><span style="font-size:14px">${p.status === '已携带' ? '☑' : '☐'}</span><b style="flex:1">${esc(p.name)}</b><span style="font-size:12px;color:var(--sub)">${packCatIcon(p.category)} ${esc(p.category)} · ${p.importance}</span></div>`).join('')}
+  // 行李清单章节：目录 + 行李携带可行性模拟（按行李箱/袋分组展示，必备品带「必」标）
+  const lugBags = Array.isArray(t.luggageBags) ? t.luggageBags : [];
+  const realItems = pkItems.filter(p => !p.draft);
+  const clItemRow = p => `<div class="doc-cl-item">
+      <span class="doc-cl-check">${p.status === '已携带' ? '☑' : '☐'}</span>
+      <span class="doc-cl-ic">${packCatIcon(p.category)}</span>
+      <span class="doc-cl-name">${esc(p.name)}</span>
+      ${p.importance === '必需品' ? '<span class="doc-cl-imp">必</span>' : ''}
+    </div>`;
+  const bagSections = lugBags.map(b => {
+    const inB = realItems.filter(p => p.bag === b.id);
+    if (!inB.length) return '';
+    return `<div class="doc-lug-group">
+      <div class="doc-lug-bag">${b.icon || '🧳'} ${esc(b.name || '行李')}<span class="doc-lug-n">${inB.length} 件</span></div>
+      ${inB.map(clItemRow).join('')}
+    </div>`;
+  }).join('');
+  const unplaced = realItems.filter(p => !p.bag);
+  const unplacedHtml = unplaced.length ? `<div class="doc-lug-group">
+      <div class="doc-lug-bag">📦 未放入行李箱<span class="doc-lug-n">${unplaced.length} 件</span></div>
+      ${unplaced.map(clItemRow).join('')}
+    </div>` : '';
+  const clHtml = (bagSections || unplacedHtml) ? `<div class="doc-day" id="doc-lug">
+      <h3 class="doc-day-title">🧳 行李清单</h3>
+      <h4 class="doc-lug-title">行李携带可行性模拟</h4>
+      ${bagSections || '<p class="doc-empty">还没有把物品放入行李箱</p>'}
+      ${unplacedHtml}
     </div>` : '';
   $('#doc-body').innerHTML = `
     <div class="doc-cover" style="background:${grad}">
