@@ -2259,10 +2259,15 @@ $('#view-detail').addEventListener('click', async e => {
     return;
   }
 
-  // 日期导航跳转
+  // 日期导航跳转（在旅行清单页点日期同样生效：切回每日视图并定位到该天）
   const navBtn = e.target.closest('.day-nav button');
   if (navBtn) {
     const d = navBtn.dataset.date;
+    if (!$('#cl-panel').classList.contains('hidden')) {
+      savedScrollCl = window.scrollY || 0;
+      $('#cl-panel').classList.add('hidden');
+      $('#days-col').classList.remove('hidden');
+    }
     if (t.days[d]) jumpToDay(d);
     else { ensureDay(t, d); renderDetail(t.id); jumpToDay(d); }
     return;
