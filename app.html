@@ -1604,7 +1604,7 @@ function checklistPanelHtml(t) {
     const inB = real.filter(p => p.bag === b.id);
     return inB.map(p =>
       `<span class="pk-chip" draggable="true" data-type="chip" data-id="${p.id}" data-bag="${b.id}" data-imp="${p.importance}" title="拖到其他行李卡或拖回下方物品池">
-        ${packCatIcon(p.category)} ${esc(p.name)}<b data-action="chip-out" data-id="${p.id}" title="移回物品池">×</b>
+        ${packCatIcon(p.category)} ${esc(p.name)}${p.importance === '必需品' ? '<em class="pk-imp-dot">必</em>' : ''}<b data-action="chip-out" data-id="${p.id}" title="移回物品池">×</b>
       </span>`).join('') || '<span class="pk-bag-empty">把下方物品拖到这里</span>';
   };
   const lugCard = b => {
