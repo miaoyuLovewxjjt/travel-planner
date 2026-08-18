@@ -503,8 +503,7 @@ input[type=number]{-webkit-appearance:none;appearance:none;-moz-appearance:textf
 .donut-hole{position:absolute;inset:22%;background:#fff;border-radius:50%}
 .donut-col{display:flex;align-items:flex-start;flex-shrink:0}
 .donut-leader{width:40px;height:30px;display:block;margin-top:-18px}
-.donut-side{display:flex;flex-direction:column;gap:6px;min-width:0;margin-top:-24px}
-.donut-amount{font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap;margin-top:-2px}
+.donut-side{display:flex;flex-direction:column;gap:6px;min-width:0}
 .donut-legend{display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--sub);margin-top:2px}
 .donut-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .donut-legend span{white-space:nowrap;cursor:pointer;padding:2px 6px;border-radius:6px;transition:background .15s}
@@ -1129,22 +1128,33 @@ function donutChart(expByCat) {
   for (let k = 0; k < diff; k++) ints[order[k % order.length].i]++;
   const legend = cats.map((c, i) =>
     `<span data-cat="${c}" title="点击查看该类别明细"><i style="background:${CAT_COLORS[c] || '#B0B0BC'}"></i>${catEmoji(c)}${c} ${ints[i]}%</span>`).join('');
-  const totalTxt = fmtMoneyShort(total);
-  // 圆环保留；右上角折线引导 → 总金额显示在图例比例文字上方
+  // 占比环形图：总额由左侧「记账 → 当日合计」承担，此处只保留类别占比，不重复显示金额
   return `<div class="donut-wrap">
     <div class="donut-col">
       <div class="donut" style="background:conic-gradient(${stops})"><div class="donut-hole"></div></div>
-      <svg class="donut-leader" viewBox="0 0 40 30" preserveAspectRatio="none"><path d="M2 11 L9 3 L38 3" fill="none" stroke="var(--accent)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <div class="donut-side">
-      <div class="donut-amount">${totalTxt}</div>
       <div class="donut-legend">${legend}</div>
     </div>
   </div>`;
 }
-/** 某类别下每一笔明细（仅手动记账；交通/住宿在路线与住宿区块体现） */
+/** 某类别下每一笔明细：手动记账 + 自动计入（交通=各段路线价格、住宿=住宿价格），确保图例点击都有数据 */
 function catDetails(day, cat) {
   const rows = [];
+  if (cat === '交通') {
+    (day.segments || []).forEach(s => {
+      const p = num(s.price);
+      if (p > 0) {
+        const path = [s.from, s.to].filter(Boolean).join('→');
+        rows.push({ label: `${emojiOf(s.transport)} ${s.transport || '交通'}${path ? ' ' + path : ''}`.trim(), amt: p });
+      }
+    });
+  } else if (cat === '住宿') {
+    const lg = day.lodging;
+    if (lg && (lg.name || lg.location) && num(lg.pricePerNight) > 0) {
+      rows.push({ label: lg.name || lg.location || '住宿', amt: num(lg.pricePerNight) });
+    }
+  }
   (day.expenses || []).forEach(e => { if (e.category === cat && num(e.amount)) rows.push({ label: e.item || '未命名', amt: num(e.amount) }); });
   return rows;
 }
@@ -2538,7 +2548,7 @@ function openTripModal(trip) {
     <h2>${trip ? '✏️ 编辑出行计划' : '✨ 新建出行计划'}</h2>
     <div class="form-grid">
       <div class="form-field full"><label>行程名称</label><input id="m-name" maxlength="30" value="${esc(t.name)}" placeholder="如：2026 国庆川西自驾"></div>
-      <div class="form-field full emoji-row"><label>请输入emoji</label><input id="m-emoji" maxlength="20" value="${esc(t.emoji)}"></div>
+      <div class="form-field full emoji-row"><label>自定义emoji</label><input id="m-emoji" maxlength="20" value="${esc(t.emoji)}"></div>
       <div class="form-field"><label>开始日期</label>
         <div class="dp-trigger" data-for="m-start" id="dp-start"></div>
         <input type="hidden" id="m-start" value="${esc(t.startDate)}">
