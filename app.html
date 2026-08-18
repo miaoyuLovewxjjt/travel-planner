@@ -1376,7 +1376,7 @@ function renderDetail(id) {
   const navDates = [...new Set([...allDates, ...extraDates])].sort();
 
   $('#day-nav').innerHTML = `<div class="nav-titles">
-  <div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
+  <div class="nav-title nav-link" data-nav="checklist" title="行李清单">📋 行李清单</div>
   <div class="nav-title nav-link" data-nav="daily" title="展开/折叠日期列表">📅 每日行程 <span class="nav-caret"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6 -4 6 4"/></svg></span></div>
   </div><div class="nav-dates" id="nav-dates">` + navDates.map(d => {
     const has = !!t.days[d];
