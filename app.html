@@ -845,8 +845,8 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .pk-edit .pk-custom-cat{flex:0 1 190px}
 .pk-edit .ef-actions{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
 /* 行李模拟 */
-.lug-row{display:flex;flex-wrap:wrap;gap:12px;margin:4px 0 10px}
-.lug-card{flex:0 0 calc((100% - 24px)/3);box-sizing:border-box;border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:10px 12px;transition:border-color .15s,background .15s}
+.lug-row{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:4px 0 10px}
+.lug-card{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:10px 12px;transition:border-color .15s,background .15s}
 .lug-card.pk-drop{border-color:var(--accent);background:#fff7f7}
 .lug-card.editing{border-color:var(--accent-border);background:#fffaf5}
 .lug-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px;color:var(--ink)}
@@ -1584,7 +1584,7 @@ function checklistPanelHtml(t) {
       const isAwaitCustom = !cat || cat === '__custom__';
       const selOpts = catOpts.map(([ic, name]) =>
           `<option value="${esc(name)}" ${!isAwaitCustom && cat === name ? 'selected' : ''}>${ic}${esc(name)}</option>`).join('')
-        + `<option value="__custom__" ${isAwaitCustom ? 'selected' : ''}>✏️ 其他（自定义）</option>`;
+        + `<option value="__custom__" ${isAwaitCustom ? 'selected' : ''}>✏️ 自定义</option>`;
       return `<div class="pk-edit">
         <div class="ef-line">
           <select data-path="__pk.${it.id}.category">${selOpts}</select>
