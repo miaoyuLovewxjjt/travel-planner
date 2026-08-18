@@ -160,6 +160,12 @@ textarea{resize:vertical}
 .day-nav button .info{color:var(--accent);font-weight:800;font-size:13px;margin-left:auto;white-space:nowrap}
 .day-nav button.empty{opacity:.45}
 .day-nav .nav-dates.hidden{display:none}
+/* 折叠按钮：浅主题色圆底 + 主题色钝角箭头（约110°张角）；展开朝上 ▲（收起列表）、收起朝下 ▼（展开列表），180°翻转尺寸不变 */
+.nav-caret{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;
+  background:var(--accent-soft);color:var(--accent);margin-left:6px;flex-shrink:0;
+  box-shadow:0 1px 4px var(--accent-shadow);transition:transform .3s cubic-bezier(.4,1.4,.4,1)}
+.nav-caret svg{display:block}
+.day-nav .nav-title.collapsed .nav-caret{transform:rotate(180deg)}
 .days-col{display:flex;flex-direction:column;gap:20px}
 
 /* —— 每日卡片 —— */
@@ -726,7 +732,9 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .detail-body { grid-template-columns: 1fr; gap: 14px; }
   .day-nav { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px;
     padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
-  .day-nav .nav-title { display: inline-block; flex-shrink: 0; margin: 0; padding: 8px 12px; font-size: 13px; background: var(--accent-soft); border-radius: 10px; }
+  .day-nav .nav-titles { display: contents; }
+  .day-nav .nav-dates { display: flex; gap: 6px; }
+  .day-nav .nav-title { display: inline-flex; align-items: center; flex-shrink: 0; margin: 0; padding: 8px 12px; font-size: 13px; background: var(--accent-soft); border-radius: 10px; }
   .day-nav .nav-link:hover { background: transparent; }
   /* 日期按钮：纯文字全部主题色、无底色、无 hover/点击变色 */
   .day-nav button { padding: 4px 10px; font-size: 12.5px; border-radius: 8px; background: transparent; border: none; box-shadow: none; color: var(--accent); font-weight: 800; font-family: 'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif; }
@@ -1309,8 +1317,10 @@ function renderDetail(id) {
   const extraDates = Object.keys(t.days).filter(d => !isInRange(t, d)).sort();
   const navDates = [...new Set([...allDates, ...extraDates])].sort();
 
-  $('#day-nav').innerHTML = `<div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
-  <div class="nav-title nav-link" data-nav="daily" title="返回每日行程">📅 每日行程</div>` + navDates.map(d => {
+  $('#day-nav').innerHTML = `<div class="nav-titles">
+  <div class="nav-title nav-link" data-nav="checklist" title="旅行清单">📋 旅行清单</div>
+  <div class="nav-title nav-link" data-nav="daily" title="展开/折叠日期列表">📅 每日行程 <span class="nav-caret"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6 -4 6 4"/></svg></span></div>
+  </div><div class="nav-dates" id="nav-dates">` + navDates.map(d => {
     const has = !!t.days[d];
     const active = has ? 'active' : 'empty';
     const info = has ? '￥' + Math.round(dayStats(t.days[d]).exp).toLocaleString('zh-CN') : '';
@@ -1319,7 +1329,7 @@ function renderDetail(id) {
       <span class="w">周${weekdayCN(d)}</span>
       ${info ? `<span class="info">${info}</span>` : ''}
     </button>`;
-  }).join('');
+  }).join('') + '</div>';
 
   // 每日卡片
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
@@ -1893,8 +1903,17 @@ $('#view-detail').addEventListener('click', async e => {
       $('#days-col').classList.add('hidden');
       $('#cl-panel').classList.remove('hidden');
     } else if (nav === 'daily') {
+      const panelOpen = !$('#cl-panel').classList.contains('hidden');
       $('#cl-panel').classList.add('hidden');
       $('#days-col').classList.remove('hidden');
+      // 已在每日视图时：点击「每日行程」折叠/展开日期列表（收起时只保留标题）
+      if (!panelOpen) {
+        const dates = $('#nav-dates');
+        if (dates) {
+          dates.classList.toggle('hidden');
+          navLink.classList.toggle('collapsed', dates.classList.contains('hidden'));
+        }
+      }
     }
     return;
   }
