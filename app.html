@@ -2149,6 +2149,17 @@ $('#view-detail').addEventListener('click', async e => {
   const wxBtn = e.target.closest('[data-action="set-wx"]');
   if (wxBtn) { openWxModal(wxBtn.dataset.date); return; }
   // 左侧二级标题导航：旅行清单（页内切换）/ 每日行程（返回日期视图）
+  // 每日行程右侧的折叠图标：只负责折叠/展开下面的日期列表，不跳转、不切换面板（在清单页点它也不跳回每日行程）
+  const navCaret = e.target.closest('.day-nav .nav-caret');
+  if (navCaret) {
+    const title = navCaret.closest('.day-nav .nav-link[data-nav="daily"]');
+    const dates = $('#nav-dates');
+    if (title && dates) {
+      dates.classList.toggle('hidden');
+      title.classList.toggle('collapsed', dates.classList.contains('hidden'));
+    }
+    return;
+  }
   const navLink = e.target.closest('.day-nav .nav-link');
   if (navLink) {
     const nav = navLink.dataset.nav;
