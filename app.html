@@ -155,7 +155,7 @@ textarea{resize:vertical}
 }
 /* 纯文字日期导航：文字黑色、无底色；金额（日期旁￥）保持主题色 */
 .day-nav button:hover{background:transparent;transform:none;color:var(--ink)}
-.day-nav button .d{font-weight:900;font-size:13px;min-width:34px;color:var(--ink)}
+.day-nav button .d{font-weight:900;font-size:13px;min-width:40px;flex:0 0 40px;text-align:left;color:var(--ink)}
 .day-nav button .w{font-size:13px;font-weight:600;color:var(--ink)}
 .day-nav button .info{color:var(--accent);font-weight:800;font-size:13px;margin-left:auto;white-space:nowrap;font-style:italic;text-align:right}
 .day-nav button.empty{opacity:.45}
@@ -738,7 +738,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   .day-nav .nav-link:hover { background: transparent; }
   /* 日期按钮：黑色文字（金额保持主题色）、无底色 */
   .day-nav button { padding: 4px 10px; font-size: 12.5px; border-radius: 8px; background: transparent; border: none; box-shadow: none; color: var(--ink); font-weight: 800; font-family: 'PingFang SC','HarmonyOS Sans SC','MiSans','Noto Sans CJK SC',sans-serif; }
-  .day-nav button .d { font-size: 12.5px; min-width: 24px; font-weight: 900; color: var(--ink); }
+  .day-nav button .d { font-size: 12.5px; min-width: 40px; flex: 0 0 40px; font-weight: 900; color: var(--ink); }
   .day-nav button .w { font-size: 12.5px; color: var(--ink); font-weight: 600; }
   .day-nav button .info { display: block; margin-left: auto; font-size: 12.5px; color: var(--accent); font-weight: 800; font-style: italic; text-align: right; }
   .day-nav button.empty { opacity: .4; }
