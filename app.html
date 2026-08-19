@@ -874,10 +874,10 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .pk-row.drag-over-after{box-shadow:0 3px 0 0 var(--accent)}
 /* ============ 打印 ============ */
 @media print{
-  body *{visibility:hidden!important}
-  #doc,#doc *{visibility:visible!important}
-  #doc{position:static!important;background:#fff!important;display:block!important}
+  body > *:not(#doc){display:none!important}
+  #doc{position:static!important;background:#fff!important;display:block!important;height:auto!important;overflow:visible!important}
   .doc-toolbar{display:none!important}
+  .doc-scroll{display:block!important;overflow:visible!important;padding:0!important;height:auto!important}
   .doc-body{max-width:100%!important;border-radius:0!important;box-shadow:none!important;padding:0!important;height:auto!important}
   .doc-cover{border-radius:0!important}
   .doc-table tr{page-break-inside:avoid}
