@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>🌍 我的行程</title>
+<title>我的行程</title>
 <!-- Leaflet 地图（动态加载：jsdelivr 优先，失败自动切 unpkg；免费无需 Key） -->
 <script>
 (function () {
@@ -673,6 +673,8 @@ a.toc-main:hover .toc-name{color:var(--accent)}
 .doc-day-note{font-style:italic;color:var(--sub);background:#fafafc;border-radius:10px;padding:8px 12px;margin:4px 0 10px;font-size:12.5px}
 .doc-note{font-style:italic;color:var(--sub);flex-basis:100%}
 .doc-total{display:flex;flex-wrap:wrap;gap:10px 30px;background:linear-gradient(135deg,var(--ink),#3a3a52);color:#fff;border-radius:16px;padding:18px 26px;margin-top:26px;font-size:14px}
+.doc-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--sub);margin-top:18px;padding-top:10px;border-top:1px solid #eee}
+.doc-footer-git{word-break:break-all;text-align:right}
 .doc-total b{color:#FFC24B}
 
 /* ============ 平板适配（HD 版，body.pad） ============ */
@@ -3347,19 +3349,31 @@ function buildDoc(t) {
   const bagOf = id => lugBags.find(b => b.id === id) || null;
   // 品类（图标+文字）与状态方框 ☑/☐ 均如实导出；方框放在行尾
   const catSpan = p => `<span class="doc-cl-cat">${packCatIcon(p.category)} ${esc(p.category)}</span>`;
-  // ① 计划携带物品：品类/名称/重要度/所属行李/备注/携带状态
-  const pkRow = p => {
+  // ① 计划携带物品：按品类归组导出为表格（与网页分组一致），保留携带状态文字
+  const pkOrder = (t.packingOrder || []).filter(id => realItems.some(p => p.id === id));
+  realItems.forEach(p => { if (!pkOrder.includes(p.id)) pkOrder.push(p.id); });
+  const pkOrdered = pkOrder.map(id => realItems.find(p => p.id === id));
+  const pkGroups = [];
+  pkOrdered.forEach(p => {
+    const g = pkGroups.find(x => x.cat === p.category);
+    if (g) g.items.push(p); else pkGroups.push({ cat: p.category, items: [p] });
+  });
+  const pkTableRows = pkGroups.map(g => g.items.map(p => {
     const b = bagOf(p.bag);
-    return `<div class="doc-pk-row">
-      ${catSpan(p)}
-      <span class="doc-pk-name">${esc(p.name)}</span>
-      ${p.importance === '必需品' ? '<span class="doc-cl-imp">必</span>' : `<span class="doc-pk-imp">${p.importance}</span>`}
-      ${b ? `<span class="doc-pk-bag">${b.icon || '🧳'} ${esc(b.name)}</span>` : ''}
-      <span class="doc-sp"></span>
-      <span class="doc-cl-check">${p.status === '已携带' ? '☑' : '☐'}</span>
-    </div>${p.notes ? `<div class="doc-pk-note">💬 ${escNL(p.notes)}</div>` : ''}`;
-  };
-  const pkSection = realItems.length ? `<h4 class="doc-lug-title">🎒 计划携带物品</h4>${realItems.map(pkRow).join('')}` : '';
+    return `<tr>
+      <td class="d-cat">${packCatIcon(p.category)} ${esc(p.category)}</td>
+      <td class="d-name">${esc(p.name)}</td>
+      <td>${p.importance === '必需品' ? '必' : esc(p.importance)}</td>
+      <td>${p.status === '已携带' ? '☑ 已携带' : '☐ 未携带'}</td>
+      <td>${b ? `${b.icon || '🧳'} ${esc(b.name)}` : '—'}</td>
+      <td>${p.notes ? escNL(p.notes) : '—'}</td>
+    </tr>`;
+  }).join('')).join('');
+  const pkSection = pkGroups.length ? `<h4 class="doc-lug-title">🎒 计划携带物品</h4>
+    <table class="doc-table pk">
+      <thead><tr><th>品类</th><th>物品</th><th>重要度</th><th>是否携带</th><th>所属行李</th><th>备注</th></tr></thead>
+      <tbody>${pkTableRows}</tbody>
+    </table>` : '';
   // ② 行李携带可行性模拟：每个袋后面标注本袋件数；物品同样带品类与状态方框
   const clItemRow = p => `<div class="doc-cl-item">
       ${catSpan(p)}
@@ -3405,6 +3419,10 @@ function buildDoc(t) {
       <span>行程总花费 <b>${fmtMoney(st.exp)}</b></span>
       ${st.budget ? `<span>预算 <b>${fmtMoney(st.budget)}</b> · 结余 <b>${fmtMoney(remain)}</b></span>` : ''}
       <span>行程天数 <b>${st.days} 天</b> · 路线 <b>${st.segs} 段</b> · 住宿 <b>${st.lodges} 晚</b></span>
+    </div>
+    <div class="doc-footer">
+      <span>🧳 我的行程（个人旅行规划）</span>
+      <span class="doc-footer-git">${GITHUB_URL}</span>
     </div>`;
 }
 
