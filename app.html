@@ -1353,6 +1353,15 @@ function applyTripTheme(root, color) {
 }
 
 /* ---------- 详情页 ---------- */
+// 记忆每日备注框手动调整的高度，重渲染不重置
+let notesHeights = {};
+function captureNotesHeights() {
+  document.querySelectorAll('.notes-box textarea').forEach(el => {
+    const card = el.closest('.day-card');
+    const d = card ? card.id.slice(4) : null;
+    if (d) notesHeights[d] = el.offsetHeight;
+  });
+}
 function renderDetail(id) {
   currentTripId = id;
   const t = getTrip(id);
@@ -1421,6 +1430,8 @@ function renderDetail(id) {
   }
 
   // 每日卡片
+  // 先记下当前备注框的手动高度，再重建（避免重渲染后高度被重置）
+  captureNotesHeights();
   $('#days-col').innerHTML = navDates.map(d => renderDayCard(t, d)).join('')
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
   $('#cl-panel').innerHTML = checklistPanelHtml(t); // 行李清单：详情页内嵌面板（点击左侧标题切换，不刷新）
@@ -2118,8 +2129,8 @@ function renderDayCard(t, d) {
     </div>
     <div class="day-grid">
       <div class="block notes-box col-left">
-        <div class="block-title"><span class="tag">📝</span>备注</div>
-        <textarea maxlength="80" data-path="days.${d}.notes" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
+        <div class="block-title"><span class="tag">📝</span>备忘录</div>
+        <textarea maxlength="80" data-path="days.${d}.notes" style="${notesHeights[d] ? 'height:' + notesHeights[d] + 'px' : ''}" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
       </div>
       <div class="block col-right">
         <div class="block-title"><span class="tag">⏰</span>提醒</div>
