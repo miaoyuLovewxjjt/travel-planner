@@ -1595,7 +1595,7 @@ function checklistPanelHtml(t) {
         <div class="ef-line">
           <select data-path="__pk.${it.id}.importance">${PACK_IMPORTANCE.map(v => `<option value="${v}" ${it.importance === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
           <select data-path="__pk.${it.id}.status">${PACK_STATUS.map(v => `<option value="${v}" ${it.status === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
-          <input data-path="__pk.${it.id}.notes" maxlength="30" placeholder="备注（可选）" value="${esc(it.notes || '')}">
+          <input data-path="__pk.${it.id}.notes" maxlength="80" placeholder="备注（可选）" value="${esc(it.notes || '')}">
           <span class="ef-actions">
             <button class="done-btn" data-action="pk-done" data-id="${it.id}" title="确认保存">✓</button>
             <button class="done-btn gray" data-action="pk-cancel" data-id="${it.id}" title="取消（删除）">✕</button>
@@ -1865,7 +1865,7 @@ function renderDayCard(t, d) {
             <input class="seg-vehicle" maxlength="30" data-path="days.${d}.segments.${i}.vehicleNo" value="${esc(s.vehicleNo || '')}" placeholder="班次号（如 G1234）">
             <input class="seg-price-row" type="number" min="0" data-num data-path="days.${d}.segments.${i}.price" value="${num(s.price) || ''}" placeholder="请输入价格" title="费用自动计入当日账本">
           </div>
-          <input class="seg-note-input" maxlength="30" data-path="days.${d}.segments.${i}.notes" value="${esc(s.notes)}" placeholder="备注（可选）">
+          <input class="seg-note-input" maxlength="80" data-path="days.${d}.segments.${i}.notes" value="${esc(s.notes)}" placeholder="备注（可选）">
         </div>
         ${pub ? `
         <div class="seg-detail${detailCls}">
@@ -1952,7 +1952,7 @@ function renderDayCard(t, d) {
           <input class="amt" type="number" min="0" data-num data-path="days.${d}.expenses.${i}.amount" value="${num(e.amount) || ''}" placeholder="请输入价格">
         </div>
         <input class="item" maxlength="30" data-path="days.${d}.expenses.${i}.item" value="${esc(e.item)}" placeholder="项目（如：午餐 / 门票 / 打车）">
-        <input class="exp-note-input" maxlength="30" data-path="days.${d}.expenses.${i}.note" value="${esc(e.note || '')}" placeholder="备注（如：和谁吃的、哪家店）">
+        <input class="exp-note-input" maxlength="80" data-path="days.${d}.expenses.${i}.note" value="${esc(e.note || '')}" placeholder="备注（如：和谁吃的、哪家店）">
         <div class="ef-line">
           <span class="ef-actions">
             <button class="done-btn" data-action="exp-done" data-date="${d}" data-idx="${i}" title="确认保存">✓</button>
@@ -2038,7 +2038,7 @@ function renderDayCard(t, d) {
         </div>
         <input maxlength="30" data-path="days.${d}.lodging.name" value="${esc(lodge.name)}" placeholder="${lodgeType}名（如：西湖边青旅）">
         <input maxlength="30" data-path="days.${d}.lodging.location" value="${esc(lodge.location)}" placeholder="位置（如：杭州西湖区）">
-        <input maxlength="30" data-path="days.${d}.lodging.notes" value="${esc(lodge.notes)}" placeholder="备注（如：含早餐）">
+        <input maxlength="80" data-path="days.${d}.lodging.notes" value="${esc(lodge.notes)}" placeholder="备注（如：含早餐）">
         <div class="ef-line">
           <span class="ef-actions">
             <button class="done-btn" data-action="lodge-done" data-date="${d}" title="确认保存">✓</button>
@@ -2978,7 +2978,7 @@ function openTripModal(trip) {
       </div>
       <div class="form-field"><label>出行人（逗号分隔）</label><input id="m-travelers" maxlength="30" value="${esc(t.travelers.join('，'))}" placeholder="我，小美，老王"></div>
       <div class="form-field"><label>总预算（元）</label><input id="m-budget" type="number" min="0" value="${num(t.budget)}" placeholder="0 = 不设预算"></div>
-      <div class="form-field full"><label>行程备注</label><textarea id="m-notes" maxlength="30" rows="2" placeholder="旅行主题、注意事项…">${esc(t.notes)}</textarea></div>
+      <div class="form-field full"><label>行程备注</label><textarea id="m-notes" maxlength="80" rows="2" placeholder="旅行主题、注意事项…">${esc(t.notes)}</textarea></div>
       <div class="form-field full"><label>主题色</label><div class="color-row" id="m-colors">
         ${PRESET_COLORS.map(c => `<span class="color-dot ${c === t.color ? 'sel' : ''}" style="background:${c}" data-c="${c}"></span>`).join('')}
         <span class="color-dot custom-btn" id="m-custom-btn" title="更多颜色">🎨</span>
