@@ -1673,7 +1673,6 @@ function checklistPanelHtml(t) {
   return `
     <div class="cl-panel-head">
       <div class="h2-title">🧳 行李清单</div>
-      <button class="btn btn-ghost btn-small" data-action="cl-back">← 返回每日行程</button>
     </div>
     <div class="pk-wrap">
       <section class="pk-card">
@@ -2214,12 +2213,6 @@ $('#view-detail').addEventListener('click', async e => {
     return;
   }
   // 清单面板内返回按钮
-  const clBack = e.target.closest('[data-action="cl-back"]');
-  if (clBack) {
-    switchDetailView(false);
-    return;
-  }
-
   // ===== 行李清单（正式版）：物品 & 行李 =====
   const addPk = e.target.closest('[data-action="add-pk"]');
   if (addPk) {
