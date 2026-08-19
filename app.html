@@ -942,6 +942,8 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 const $  = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// 保留换行的转义（PDF 备注用，换行转 <br>）
+const escNL = s => esc(s).replace(/\r?\n/g, '<br>');
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const pad2 = n => String(n).padStart(2, '0');
 /** 时间输入自动格式化：冒号始终保留（空时显示冒号占位；9 → 9:；0900 → 09:00） */
@@ -3282,7 +3284,7 @@ function buildDoc(t) {
         <td>${esc(paxNames || '—')}</td>
         <td>${esc(seats || '—')}</td>
         <td class="d-price">${num(seg.price) ? fmtMoney(seg.price) : '—'}</td>
-        <td class="d-note">${esc(seg.notes || '—')}</td>
+        <td class="d-note">${seg.notes ? escNL(seg.notes) : '—'}</td>
       </tr>`;
     }).join('');
 
@@ -3310,12 +3312,12 @@ function buildDoc(t) {
 
     return `<section class="doc-day" id="doc-day-${d}">
       <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span></h2>
-      ${day.notes ? `<div class="doc-day-note">📝 ${esc(day.notes)}</div>` : ''}
+      ${day.notes ? `<div class="doc-day-note">📝 ${escNL(day.notes)}</div>` : ''}
       ${remRows ? `<table class="doc-table rem"><thead><tr><th>提醒时间</th><th>提醒内容</th></tr></thead><tbody>${remRows}</tbody></table>` : ''}
       ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次</th><th>乘客</th><th>座位</th><th>价格</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
       ${lodge ? `<div class="doc-lodge">
         <div class="doc-lodge-main">${lodgeEmoji(lodgeType)} ${esc(lodgeType)} · <b>${esc(lodge.name)}</b>${lodge.location ? ' · ' + esc(lodge.location) : ''}<span class="doc-lodge-price">${num(lodge.pricePerNight) ? fmtMoney(lodge.pricePerNight) + '/晚' : '价格未填'}</span></div>
-        ${lodge.notes ? `<div class="doc-lodge-note">💬 ${esc(lodge.notes)}</div>` : ''}
+        ${lodge.notes ? `<div class="doc-lodge-note">💬 ${escNL(lodge.notes)}</div>` : ''}
       </div>` : ''}
       ${expRows ? `<table class="doc-table exp"><thead><tr><th>类别</th><th>项目</th><th>金额</th></tr></thead><tbody>${expRows}</tbody></table>` : ''}
       <div class="doc-day-sum">
@@ -3344,7 +3346,7 @@ function buildDoc(t) {
       ${b ? `<span class="doc-pk-bag">${b.icon || '🧳'} ${esc(b.name)}</span>` : ''}
       <span class="doc-sp"></span>
       <span class="doc-cl-check">${p.status === '已携带' ? '☑' : '☐'}</span>
-    </div>${p.notes ? `<div class="doc-pk-note">💬 ${esc(p.notes)}</div>` : ''}`;
+    </div>${p.notes ? `<div class="doc-pk-note">💬 ${escNL(p.notes)}</div>` : ''}`;
   };
   const pkSection = realItems.length ? `<h4 class="doc-lug-title">🎒 计划携带物品</h4>${realItems.map(pkRow).join('')}` : '';
   // ② 行李携带可行性模拟：每个袋后面标注本袋件数；物品同样带品类与状态方框
