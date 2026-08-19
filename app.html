@@ -3334,13 +3334,38 @@ function buildDoc(t) {
       </tr>`;
     }).join('');
 
-    const expRows = (day.expenses || []).filter(e => !e.draft).map(e => {
-      return `<tr>
-        <td>${catEmoji(e.category)} ${esc(e.category)}</td>
-        <td>${esc(e.item || '—')}</td>
-        <td class="d-amt">${fmtMoney(e.amount)}</td>
-      </tr>`;
-    }).join('');
+    // 记账表格：手动记账 + 自动计入（交通=各段路线价格、住宿=住宿价格），与页面记账一致
+    const expRows = (() => {
+      const rows = [];
+      const transSum = {};
+      (day.segments || []).forEach(s => {
+        const p = num(s.price);
+        if (p > 0) transSum[s.transport || '交通'] = (transSum[s.transport || '交通'] || 0) + p;
+      });
+      Object.entries(transSum).forEach(([tr, p]) => {
+        rows.push(`<tr>
+          <td>${emojiOf(tr)} 交通</td>
+          <td>${esc(tr)}</td>
+          <td class="d-amt">${fmtMoney(p)}</td>
+        </tr>`);
+      });
+      const lg = day.lodging;
+      if (lg && (lg.name || lg.location) && num(lg.pricePerNight) > 0) {
+        rows.push(`<tr>
+          <td>${lodgeEmoji(lg.type || '酒店')} 住宿</td>
+          <td>${esc(lg.type || '住宿')}</td>
+          <td class="d-amt">${fmtMoney(num(lg.pricePerNight))}</td>
+        </tr>`);
+      }
+      (day.expenses || []).filter(e => !e.draft).forEach(e => {
+        rows.push(`<tr>
+          <td>${catEmoji(e.category)} ${esc(e.category)}</td>
+          <td>${esc(e.item || '—')}</td>
+          <td class="d-amt">${fmtMoney(e.amount)}</td>
+        </tr>`);
+      });
+      return rows.join('');
+    })();
 
     // 提醒（仅已确认的，按时间排序）
     const remRows = (day.reminders || []).filter(r => r.title && r.date && !r.draft)
