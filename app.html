@@ -2967,6 +2967,37 @@ document.addEventListener('click', e => {
   const cell = e.target.closest('.dp-d:not(.disabled)');
   if (cell && dpFor && cell.dataset.d) { pickDate(cell.dataset.d); return; }
 });
+/** 出行人变更后同步引用（车票/座位 passengers、当日出行人 day.travelers）。
+ *  同槽位改名 → 旧名引用跟随改名；被删除的名字 → 移除其引用 */
+function syncTravelerRefs(trip, oldT, newT) {
+  if (!trip || !Array.isArray(oldT) || !Array.isArray(newT)) return;
+  if (oldT.join('\u0001') === newT.join('\u0001')) return;
+  const rename = {}, removed = {};
+  oldT.forEach((on, i) => {
+    if (newT.includes(on)) return;
+    const cand = newT[i];
+    if (cand && !oldT.includes(cand)) rename[on] = cand; // 同槽位新名 → 视为改名
+    else removed[on] = true;                              // 否则视为删除
+  });
+  Object.keys(trip.days || {}).forEach(d => {
+    const day = trip.days[d];
+    if (Array.isArray(day.travelers)) {
+      day.travelers = day.travelers.map(nm => rename[nm] || nm).filter(nm => !removed[nm]);
+    }
+    (day.segments || []).forEach(seg => {
+      if (!Array.isArray(seg.passengers)) return;
+      seg.passengers = seg.passengers.map(p => {
+        if (typeof p === 'string') return removed[p] ? null : (rename[p] || p);
+        if (p && typeof p.name === 'string') {
+          if (removed[p.name]) return null;
+          if (rename[p.name]) return Object.assign({}, p, { name: rename[p.name] });
+        }
+        return p;
+      }).filter(Boolean);
+    });
+  });
+}
+
 function openTripModal(trip) {
   const wasNewHidden = $('#btn-new').hidden;
   $('#btn-new').hidden = true; // 弹窗打开时隐藏顶栏入口，避免「两个创建出行计划按钮」
@@ -3045,8 +3076,10 @@ function openTripModal(trip) {
     const travelers = $('#m-travelers').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
     const emoji = $('#m-emoji').value.trim();
     if (trip) {
+      const oldT = (trip.travelers || []).slice();
       Object.assign(trip, { name, emoji, startDate: start, endDate: end,
         travelers, budget: num($('#m-budget').value), color: selColor, wall: 'gradient', notes: $('#m-notes').value.trim() });
+      syncTravelerRefs(trip, oldT, travelers); // 出行人改动 → 同步车票/座位等引用
     } else {
       state.trips.unshift({ id: uid(), name, emoji, startDate: start, endDate: end,
         travelers, budget: num($('#m-budget').value), color: selColor, wall: 'gradient', notes: $('#m-notes').value.trim(), days: {} });
