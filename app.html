@@ -3108,8 +3108,8 @@ $('#days-col').addEventListener('dragover', e => {
   row.classList.add(after ? 'drag-over-after' : 'drag-over');
 });
 $('#days-col').addEventListener('drop', e => {
+  if (!dragState) return;   // 外部拖入（如把别处文本拖进备忘录）不拦截，交给浏览器默认行为
   e.preventDefault();
-  if (!dragState) return;
   const row = dragRowFrom(e);
   if (!row) return;
   const t = getTrip(currentTripId);
