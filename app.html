@@ -2130,7 +2130,7 @@ function renderDayCard(t, d) {
     <div class="day-grid">
       <div class="block notes-box col-left">
         <div class="block-title"><span class="tag">📝</span>备忘录</div>
-        <textarea maxlength="80" data-path="days.${d}.notes" style="${notesHeights[d] ? 'height:' + notesHeights[d] + 'px' : ''}" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
+        <textarea maxlength="200" data-path="days.${d}.notes" style="${notesHeights[d] ? 'height:' + notesHeights[d] + 'px' : ''}" placeholder="今日行程备注、提醒、注意事项…">${esc(day.notes || '')}</textarea>
       </div>
       <div class="block col-right">
         <div class="block-title"><span class="tag">⏰</span>提醒</div>
