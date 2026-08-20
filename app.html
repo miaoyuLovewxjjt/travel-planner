@@ -874,9 +874,6 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .sum-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-soft);border:1px solid var(--accent-border);
   border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;color:var(--ink)}
 .sum-chip b{color:var(--accent);font-size:13.5px}
-.sum-poster{max-width:480px;margin:0 auto;border-radius:22px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);margin-top:6px}
-.sum-poster svg{display:block;width:100%;height:auto}
-.sum-map-tip{font-size:12px;color:var(--sub);font-style:italic;margin-top:6px;line-height:1.6;text-align:center}
 .sum-cat-detail{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:4px}
 .sum-donut{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:6px 0}
 .sum-note{font-size:12.5px;color:var(--sub);font-style:italic;line-height:1.6}
@@ -891,7 +888,6 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 @media (max-width: 560px) {
   .sum-card{padding:14px 16px}
   .sum-hero .sum-name{font-size:17px}
-  .sum-poster{max-width:100%}
   .sum-stats{gap:8px}
   .sum-stat{flex:1 1 calc(50% - 4px);min-width:calc(50% - 4px)}
 }
@@ -2173,7 +2169,6 @@ function renderDayCard(t, d) {
 /* ================================================================
  * 行程总结（自动生成、只读：进入面板时聚合每日数据重算；不写回数据）
  * ================================================================ */
-const geocodeCache = {}; // 地名 → [lat,lng]|null，会话内缓存，避免重复请求
 /** 聚合所有天的路线段：按交通方式统计段数与时长（跳过草稿段），按常用交通顺序排列 */
 function sumSegAgg(t) {
   const m = {};
@@ -2260,7 +2255,7 @@ function sumTimeDetailRows(t, tr) {
   });
   return { rows, totalMin };
 }
-/** 行程总结面板 HTML（进入时生成；行程路线画由 buildTripPoster 异步补画） */
+/** 行程总结面板 HTML（进入时生成；数据自动聚合） */
 function summaryPanelHtml(t) {
   const st = tripStats(t);
   const remain = st.budget - st.exp;
@@ -2304,11 +2299,6 @@ function summaryPanelHtml(t) {
       <div class="block-title" style="margin:14px 0 6px"><span class="tag">⏱️</span>在途时长分布</div>
       ${sumTimeDonutHtml(timeV)}
     </div>
-    <div class="sub-card">
-      <div class="block-title" style="margin-bottom:4px"><span class="tag">🎨</span>行程路线画<span class="sum-auto" style="margin-left:auto">依据真实地名坐标排布</span></div>
-      <div class="sum-poster" id="sum-poster"></div>
-      <div class="sum-map-tip" id="sum-poster-tip"></div>
-    </div>
   </section>
   <section class="sum-card">
     <div class="block-title"><span class="tag">💰</span>花销总结</div>
@@ -2326,282 +2316,12 @@ function summaryPanelHtml(t) {
     </div>
   </section>`;
 }
-/** 进入行程总结面板：生成内容 → 切换面板 → 异步绘制行程路线画 */
+/** 进入行程总结面板：生成内容 → 切换面板 */
 function showSummary(t) {
   $('#sum-panel').innerHTML = summaryPanelHtml(t);
   switchDetailView('summary');
-  setTimeout(buildTripPoster, 60); // 面板可见后再排布
 }
-/** 免费免 Key 地理编码源（按解析中国地名命中率排序；某源网络不通会自动标记 down 跳过、切下一个源） */
-const GEOCODERS = [
-  {
-    key: 'photon',
-    url: n => 'https://photon.komoot.io/api/?q=' + encodeURIComponent(n) + '&limit=1', // 注意：Photon 不支持 lang=zh 参数（会返回 400）
-    parse: j => (j && j.features && j.features[0]) ? [j.features[0].geometry.coordinates[1], j.features[0].geometry.coordinates[0]] : null,
-  },
-  {
-    key: 'ometeo',
-    url: n => 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(n) + '&count=1&language=zh&format=json',
-    parse: j => (j && j.results && j.results[0]) ? [j.results[0].latitude, j.results[0].longitude] : null,
-  },
-  {
-    key: 'nominatim',
-    url: n => 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(n),
-    parse: j => (Array.isArray(j) && j[0]) ? [parseFloat(j[0].lat), parseFloat(j[0].lon)] : null,
-  },
-];
-let geocodeNetOk = false;    // 本轮是否成功连上过至少一个源（用于区分「网络不通」与「地名查不到」）
-let geocodeSourceDown = {};  // 网络连不上的源标记：本轮后续直接跳过，避免反复等超时
-/** 带超时的 JSON 请求：ok=false 表示网络/超时故障 */
-function fetchGeocode(url) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 5000);
-  return fetch(url, { signal: ctrl.signal })
-    .then(r => r.json())
-    .then(data => ({ ok: true, data }))
-    .catch(() => ({ ok: false, data: null }))
-    .finally(() => clearTimeout(timer));
-}
-/** 单个地名：依次试各源，命中即返回 [lat,lng]；某源网络故障则标记 down 并跳过 */
-function geocodeName(nm) {
-  if (geocodeCache[nm] !== undefined) return Promise.resolve({ hit: geocodeCache[nm], cached: true });
-  const trySrc = i => {
-    if (i >= GEOCODERS.length) return Promise.resolve({ hit: null, cached: false });
-    const src = GEOCODERS[i];
-    if (geocodeSourceDown[src.key]) return trySrc(i + 1);
-    return fetchGeocode(src.url(nm)).then(res => {
-      if (!res.ok) { geocodeSourceDown[src.key] = true; return trySrc(i + 1); } // 该源网络不通 → 换下一个源
-      geocodeNetOk = true;
-      const hit = res.data ? src.parse(res.data) : null;
-      return hit ? Promise.resolve({ hit, cached: false }) : trySrc(i + 1);    // 该源查无 → 换下一个源
-    });
-  };
-  return trySrc(0);
-}
-/** 并发解析地名坐标（限 3 并发；多源自动切换）→ Promise<{coords, netOk}> */
-function geocodePlaces(names) {
-  const results = {};
-  geocodeNetOk = false;         // 每轮重新探测网络/来源
-  geocodeSourceDown = {};       // 每轮重新探测（网络恢复后能自动切回）
-  names.forEach(n => { if (geocodeCache[n] !== undefined) results[n] = geocodeCache[n]; });
-  const queue = names.filter(n => geocodeCache[n] === undefined);
-  return new Promise(resolve => {
-    let inflight = 0;
-    const pump = () => {
-      while (inflight < 3 && queue.length) {
-        const nm = queue.shift();
-        inflight++;
-        geocodeName(nm).then(res => {
-          inflight--;
-          if (!res.cached) { geocodeCache[nm] = res.hit; results[nm] = res.hit; }
-          pump();
-        });
-      }
-      if (!inflight) {
-        names.forEach(n => { if (results[n] === undefined) results[n] = null; });
-        resolve({ coords: results, netOk: geocodeNetOk });
-      }
-    };
-    pump();
-  });
-}
-/* —— 行程路线画（Ins 风静态海报，非可缩放地图） —— */
-/** 确定性伪随机（同一行程每次生成一致，避免抖动） */
-function posterRandom(seed) {
-  let x = (Math.abs(seed * 9301) + 49297) % 233280;
-  return x / 233280;
-}
-const posterCut = (s, n = 12) => (s.length > n ? s.slice(0, n) + '…' : s);
-/** 把全部路线段展平成「连续地点 + 相邻连接边（含交通方式）」 */
-function posterPoints(t) {
-  const pts = [], edges = [];
-  Object.keys(t.days || {}).sort().forEach(d => {
-    (t.days[d].segments || []).filter(s => !s.draft && ((s.from || '').trim() || (s.to || '').trim())).forEach(s => {
-      const from = (s.from || '').trim() || '(?)', to = (s.to || '').trim() || '(?)';
-      if (!pts.length || pts[pts.length - 1].name !== from) pts.push({ name: from, x: null, y: null, lat: null, lng: null });
-      const i0 = pts.length - 1;
-      pts.push({ name: to, x: null, y: null, lat: null, lng: null });
-      edges.push({ i0, i1: pts.length - 1, transport: s.transport || '其他' });
-    });
-  });
-  return { pts, edges };
-}
-/** 经纬度 → 画面坐标：有坐标按真实地理排布；个别地名查不到时插入到相邻已解析点之间 */
-function posterLayout(t, coords) {
-  const W = 1000, H = 1250, TOP = 150, BOT = 210, P = 150;
-  const { pts, edges } = posterPoints(t);
-  pts.forEach(p => {
-    const c = coords && coords[p.name];
-    if (Array.isArray(c)) { p.lat = c[0]; p.lng = c[1]; }
-  });
-  const resolved = pts.filter(p => p.lat != null);
-  const hasCoords = resolved.length >= 2;
-  if (hasCoords) {
-    const lats = resolved.map(p => p.lat), lngs = resolved.map(p => p.lng);
-    const minLat = Math.min(...lats), maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-    const iw = W - P * 2, ih = H - TOP - BOT;
-    const scale = Math.min(iw / Math.max(maxLng - minLng, 1e-3), ih / Math.max(maxLat - minLat, 1e-3));
-    const offX = P + (iw - scale * (maxLng - minLng)) / 2;
-    const offY = TOP + (ih - scale * (maxLat - minLat)) / 2;
-    pts.forEach(p => { if (p.lng != null) { p.x = offX + (p.lng - minLng) * scale; p.y = offY + (maxLat - p.lat) * scale; } });
-  }
-  for (let pass = 0; pass < pts.length; pass++) {
-    let changed = false;
-    pts.forEach((p, i) => {
-      if (p.x != null) return;
-      let a = null, b = null;
-      for (let k = i - 1; k >= 0 && !a; k--) if (pts[k].x != null) a = pts[k];
-      for (let k = i + 1; k < pts.length && !b; k++) if (pts[k].x != null) b = pts[k];
-      if (a && b) { p.x = (a.x + b.x) / 2; p.y = (a.y + b.y) / 2; changed = true; }
-      else if (a) { const d = (posterRandom(p.name.length + i) - 0.5) * 130; p.x = a.x + d; p.y = a.y + d * 0.6; changed = true; }
-      else if (b) { const d = (posterRandom(p.name.length + i) - 0.5) * 130; p.x = b.x + d; p.y = b.y - d * 0.6; changed = true; }
-    });
-    if (!changed) break;
-  }
-  pts.forEach(p => { if (p.x == null) { p.x = W / 2 + (posterRandom(p.name.length + 7) - 0.5) * 240; p.y = TOP + (H - TOP - BOT) * (0.28 + posterRandom(p.name.length + 13) * 0.42); } });
-  return { pts, edges, hasCoords, W, H, TOP, BOT, P };
-}
-/** Catmull-Rom 平滑曲线路径 */
-function posterSmoothPath(pts) {
-  if (!pts.length) return '';
-  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
-    const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
-    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
-  }
-  return d;
-}
-/** 凸包（Andrew 单调链）：求出包围全部路线点的外轮廓骨架 */
-function convexHullXY(pts) {
-  const arr = pts.filter(p => p.x != null).map(p => [p.x, p.y]);
-  if (arr.length < 3) return arr;
-  arr.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const lo = [];
-  for (const p of arr) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
-  const up = [];
-  for (let i = arr.length - 1; i >= 0; i--) { const p = arr[i]; while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
-  lo.pop(); up.pop();
-  return lo.concat(up);
-}
-/** 闭合平滑路径（手绘轮廓用） */
-function posterSmoothClosed(pts) {
-  if (pts.length < 3) return '';
-  const n = pts.length;
-  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < n; i++) {
-    const a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n], e = pts[(i + 2) % n];
-    const c1x = b[0] + (c[0] - a[0]) / 6, c1y = b[1] + (c[1] - a[1]) / 6;
-    const c2x = c[0] - (e[0] - b[0]) / 6, c2y = c[1] - (e[1] - b[1]) / 6;
-    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${c[0].toFixed(1)} ${c[1].toFixed(1)}`;
-  }
-  return d + ' Z';
-}
-/** 只挑重点地名：起终点 + 出现次数最多的几个（最多 5 个） */
-function posterKeyNames(pts) {
-  const freq = {};
-  pts.forEach(p => { freq[p.name] = (freq[p.name] || 0) + 1; });
-  const key = [];
-  const add = n => { if (n && !key.includes(n)) key.push(n); };
-  if (pts.length) { add(pts[0].name); add(pts[pts.length - 1].name); }
-  Object.keys(freq).sort((a, b) => freq[b] - freq[a]).forEach(n => { if (key.length < 5) add(n); });
-  return key;
-}
-/** 生成 Ins 风情行程画（SVG 海报）：勾勒出行程途经的区域轮廓，只标记几个重点地名，纯插画无说明文字 */
-function tripPosterSvg(t, coords) {
-  const { pts, edges, W, H } = posterLayout(t, coords || {});
-  if (!pts.length) return '<div class="sum-note">还没有路线，画不出行程画。</div>';
-  const uidP = 'ps' + (t.id.length * 7 + pts.length) + Math.random().toString(36).slice(2, 6);
-  const ac = /^#[0-9a-fA-F]{6}$/.test(t.color || '') ? t.color : '#FF6B6B';
-  const ac2 = mixWhite(ac, 0.42);
-  const smooth = posterSmoothPath(pts);
-  // 区域轮廓：凸包外扩 + 闭合平滑（像手绘描出「这次去的这片地儿」）+ 一道错位的虚影线增强手绘感
-  const hull = convexHullXY(pts);
-  const hullPts = hull.length
-    ? (() => {
-        const cx = hull.reduce((s, p) => s + p[0], 0) / hull.length;
-        const cy = hull.reduce((s, p) => s + p[1], 0) / hull.length;
-        return hull.map(p => [cx + (p[0] - cx) * 1.24, cy + (p[1] - cy) * 1.18]);
-      })()
-    : [];
-  const outline = hullPts.length >= 3 ? posterSmoothClosed(hullPts) : '';
-  const segEmojis = edges.map(e => {
-    const a = pts[e.i0], b = pts[e.i1];
-    return `<text x="${((a.x + b.x) / 2).toFixed(1)}" y="${((a.y + b.y) / 2 - 26).toFixed(1)}" text-anchor="middle" font-size="28" opacity="0.85" style="paint-order:stroke;stroke:#fff;stroke-width:5px">${emojiOf(e.transport)}</text>`;
-  }).join('');
-  const keyNames = posterKeyNames(pts);
-  const keySet = {};
-  keyNames.forEach(n => { keySet[n] = true; });
-  // 重点地名标牌（方向按重要度交错摆放）
-  const labels = keyNames.map((nm, ki) => {
-    const p = pts.find(x => x.name === nm);
-    if (!p) return '';
-    const dir = ki % 4; // 0 上 1 下 2 左 3 右
-    const w = Math.min(nm.length * 20 + 36, 300), h = 32;
-    let lx = p.x, ly = p.y;
-    if (dir === 0) ly = p.y - 44; else if (dir === 1) ly = p.y + 44; else if (dir === 2) lx = p.x - w / 2 - 22; else lx = p.x + w / 2 + 22;
-    lx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, lx));
-    ly = Math.max(26, Math.min(H - 22, ly));
-    return `<g><rect x="${(lx - w / 2).toFixed(1)}" y="${(ly - h / 2).toFixed(1)}" width="${w}" height="${h}" rx="${h / 2}" fill="#fff" fill-opacity="0.95" stroke="${mixWhite(ac, 0.55)}" stroke-width="2"/><text x="${lx.toFixed(1)}" y="${(ly + 5).toFixed(1)}" text-anchor="middle" font-size="18" font-weight="800" fill="#1c1c28">${esc(posterCut(nm))}</text></g>`;
-  }).join('');
-  // 重点地点实心标记，其余只留浅浅的小点（知道路了）、不标字
-  const dots = pts.map((p, i) => {
-    if (keySet[p.name]) {
-      const isStart = i === 0, isEnd = i === pts.length - 1;
-      return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${isStart || isEnd ? 15 : 10}" fill="${isStart ? ac : (isEnd ? '#FFC24B' : ac2)}" stroke="#fff" stroke-width="3"/>`;
-    }
-    return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5" fill="${ac}" opacity="0.32"/>`;
-  }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="行程路线画" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="${uidP}g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="${mixWhite(ac, 0.94)}"/><stop offset="1" stop-color="#ffffff"/>
-      </linearGradient>
-      <filter id="${uidP}f" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="30"/></filter>
-    </defs>
-    <rect width="${W}" height="${H}" rx="24" fill="url(#${uidP}g)"/>
-    <circle cx="${W * 0.22}" cy="${H * 0.32}" r="${H * 0.34}" fill="${ac}" opacity="0.09" filter="url(#${uidP}f)"/>
-    <circle cx="${W * 0.84}" cy="${H * 0.7}" r="${H * 0.3}" fill="${mixWhite(ac, 0.45)}" opacity="0.55" filter="url(#${uidP}f)"/>
-    ${outline ? `<path d="${outline}" fill="${mixWhite(ac, 0.9)}" fill-opacity="0.55" stroke="${ac}" stroke-opacity="0.4" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-    <path d="${outline}" fill="none" stroke="${mixWhite(ac, 0.45)}" stroke-width="1.6" stroke-dasharray="7 11" transform="translate(6 5)" opacity="0.9"/>` : ''}
-    <path d="${smooth}" fill="none" stroke="${ac2}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
-    <path d="${smooth}" fill="none" stroke="${ac}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-    ${segEmojis}
-    ${dots}
-    ${labels}
-  </svg>`;
-}
-/** 构建行程路线画：解析地名坐标后画入 #sum-poster（坐标解析失败不影响出画，自动用示意排布） */
-function buildTripPoster() {
-  const el = document.getElementById('sum-poster');
-  const tip = document.getElementById('sum-poster-tip');
-  const t = getTrip(currentTripId);
-  if (!el || !tip || !t) return;
-  const targetId = t.id;
-  tip.textContent = '⏳ 正在解析地名坐标排布行程画…';
-  const names = [];
-  Object.keys(t.days || {}).sort().forEach(d => {
-    (t.days[d].segments || []).filter(s => !s.draft).forEach(s => {
-      if (s.from && s.from.trim()) names.push(s.from.trim());
-      if (s.to && s.to.trim()) names.push(s.to.trim());
-    });
-  });
-  const uniq = [...new Set(names)].slice(0, 40);
-  geocodePlaces(uniq).then(({ coords, netOk }) => {
-    if (!el.isConnected || currentTripId !== targetId) return; // 已离开/切换行程
-    el.innerHTML = tripPosterSvg(t, coords);
-    const has = uniq.some(n => Array.isArray(coords[n]));
-    tip.textContent = has
-      ? '✅ 按真实地名坐标排布（多源在线解析）'
-      : (netOk
-        ? '🌐 未解析到标准地名坐标，已用示意排布（把详细地点改成标准名后重新进入即可按真实坐标排布）'
-        : '⚠️ 地名解析服务不可用，已用示意排布（网络恢复后重新进入即可按真实坐标排布）');
-  });
-}
-/** 行程总结章节（导出 PDF 用：不含真实地图，时长分布/花销构成均为纯 CSS 图表，打印稳定） */
+/** 行程总结章节（导出 PDF 用：时长分布/花销构成均为纯 CSS 图表，打印稳定） */
 function summaryDocHtml(t) {
   const st = tripStats(t);
   const remain = st.budget - st.exp;
@@ -2628,8 +2348,6 @@ function summaryDocHtml(t) {
     <h4 class="doc-lug-title" style="margin-top:14px">🗺️ 路程行程总结</h4>
     ${sumSegChipsHtml(timeV.list)}
     ${sumTimeDonutHtml(timeV)}
-    <h4 class="doc-lug-title" style="margin-top:16px">🎨 行程路线画</h4>
-    ${tripPosterSvg(t, geocodeCache)}
     <h4 class="doc-lug-title" style="margin-top:16px">💰 花销总结</h4>
     ${donut ? `<div class="sum-donut">${donut}</div>` : '<p class="doc-empty">暂无花销记录</p>'}
   </div>`;
