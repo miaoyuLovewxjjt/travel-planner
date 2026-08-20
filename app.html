@@ -874,6 +874,56 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .pk-row.dragging,.pk-chip.dragging{opacity:.35}
 .pk-row.drag-over{box-shadow:0 -3px 0 0 var(--accent)}
 .pk-row.drag-over-after{box-shadow:0 3px 0 0 var(--accent)}
+/* ============ 行程总结 ============ */
+.sum-panel{max-width:820px;margin:0 auto;padding:6px 0 40px;width:100%}
+.sum-panel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+.sum-panel-head .sum-auto{font-size:12px;color:var(--sub);font-style:italic}
+.sum-card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px 24px;margin-bottom:16px}
+.sum-hero{display:flex;flex-direction:column;gap:3px;padding:0 0 6px}
+.sum-hero .sum-name{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
+.sum-hero .sum-meta{display:flex;flex-wrap:wrap;gap:4px 20px;color:var(--sub);font-size:13px}
+.sum-hero .sum-meta b{color:var(--ink)}
+.sum-stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.sum-stat{flex:1 1 120px;min-width:110px;background:#fafafc;border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.sum-stat .num{font-size:18px;font-weight:800;white-space:nowrap}
+.sum-stat .num.over{color:#e5484d}
+.sum-stat .lbl{font-size:11.5px;color:var(--sub)}
+.sum-stat .bar{height:6px;border-radius:99px;background:#ececf1;overflow:hidden;margin-top:6px}
+.sum-stat .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.sub-card{background:#fafafc;border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-top:10px}
+.sub-card + .sub-card{margin-top:10px}
+.sum-chips{display:flex;flex-wrap:wrap;gap:6px}
+.sum-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-soft);border:1px solid var(--accent-border);
+  border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;color:var(--ink)}
+.sum-chip b{color:var(--accent);font-size:13.5px}
+.sum-bar{display:flex;height:26px;border-radius:99px;overflow:hidden;background:#ececf1;margin:8px 0 10px}
+.sum-bar i{display:block;height:100%;min-width:0}
+.sum-legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--sub)}
+.sum-legend .lg{display:inline-flex;align-items:center;gap:6px}
+.sum-legend .dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.sum-legend b{color:var(--ink)}
+.sum-map{height:280px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:#eef0f4;margin-top:6px}
+.sum-map-tip{font-size:12px;color:var(--sub);font-style:italic;margin-top:6px;line-height:1.6}
+.sum-diagram{background:#fafafc;border:1px solid var(--line);border-radius:14px;padding:12px 14px;overflow-x:auto;margin-top:4px}
+.sum-diagram svg{display:block;width:100%;height:auto}
+.sum-donut{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:6px 0}
+.sum-note{font-size:12.5px;color:var(--sub);font-style:italic;line-height:1.6}
+.sum-note b{color:var(--ink)}
+/* PDF 行程总结 */
+.doc-sum-row{display:flex;flex-wrap:wrap;gap:6px 22px;color:var(--sub);font-size:13px;margin:2px 0 4px}
+.doc-sum-row b{color:var(--ink)}
+.doc-sum-grid{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 4px}
+.doc-sum-box{flex:1 1 130px;min-width:118px;background:#fafafc;border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;color:var(--sub)}
+.doc-sum-box b{display:block;font-size:16px;color:var(--ink);margin-top:2px;white-space:nowrap}
+.doc-sum-box b.over{color:#e5484d}
+@media (max-width: 560px) {
+  .sum-card{padding:14px 16px}
+  .sum-hero .sum-name{font-size:17px}
+  .sum-map{height:210px}
+  .sum-stats{gap:8px}
+  .sum-stat{flex:1 1 calc(50% - 4px);min-width:calc(50% - 4px)}
+}
+
 /* ============ 打印 ============ */
 @media print{
   body > *:not(#doc){display:none!important}
@@ -916,6 +966,7 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
       <aside class="day-nav" id="day-nav"></aside>
       <div class="days-col" id="days-col"></div>
       <div class="cl-panel hidden" id="cl-panel"></div>
+      <div class="sum-panel hidden" id="sum-panel"></div>
     </div>
   </section>
 
@@ -972,10 +1023,10 @@ const fmtDateCN = d => { const [y, m, dd] = d.split('-'); return `${Number(m)}�
 const isInRange = (trip, d) => trip.startDate <= d && d <= trip.endDate;
 const dayNo = (trip, d) => isInRange(trip, d) ? diffDays(trip.startDate, d) + 1 : '—';
 
-const TRANSPORTS = [['🚇','地铁'],['✈️','飞机'],['🚕','打车'],['🚌','公交'],['🚶','步行'],['🚄','高铁'],['🚗','自驾'],['🚙','租车'],['🛥️','游船'],['🚲','骑行'],['🧭','其他']];
+const TRANSPORTS = [['🚇','地铁'],['🚕','打车'],['🚌','公交'],['✈️','飞机'],['🚄','高铁'],['🚂','火车'],['🚗','自驾'],['🚙','租车'],['🛥️','游船'],['🚶','步行'],['🚲','骑行'],['🧭','其他']];
 
 /** 版本信息（设置 → 额外设置 → 版本管理） */
-const APP_VERSION = '2.0';
+const APP_VERSION = '3.0';
 const GITHUB_URL = 'https://github.com/miaoyuLovewxjjt/travel-planner';
 
 /** 设备模式：'pad'（平板版 App）| 'phone'（手机版 App）| 'web'（浏览器）；支持 ?device=pad 模拟（调试用） */
@@ -1413,6 +1464,7 @@ function renderDetail(id) {
   $('#day-nav').innerHTML = `<div class="nav-titles">
   <div class="nav-title nav-link" data-nav="checklist" title="行李清单">📋 行李清单</div>
   <div class="nav-title nav-link" data-nav="daily" title="展开/折叠日期列表">📅 每日行程 <span class="nav-caret"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6 -4 6 4"/></svg></span></div>
+  <div class="nav-title nav-link" data-nav="summary" title="行程总结">📊 行程总结</div>
   </div><div class="nav-dates" id="nav-dates">` + navDates.map(d => {
     const has = !!t.days[d];
     const active = has ? 'active' : 'empty';
@@ -1438,6 +1490,7 @@ function renderDetail(id) {
     + `<div class="add-day-wrap"><button class="add-day-btn" id="btn-add-day">＋ 添加一天的行程</button></div>`;
   $('#cl-panel').innerHTML = checklistPanelHtml(t); // 行李清单：详情页内嵌面板（点击左侧标题切换，不刷新）
   $('#cl-panel').classList.add('hidden');
+  $('#sum-panel').classList.add('hidden'); // 行程总结为懒渲染：进入该面板时才生成
   $('#days-col').classList.remove('hidden');
   watchSegAlign();
 }
@@ -2167,23 +2220,333 @@ function renderDayCard(t, d) {
 }
 
 /* ================================================================
+ * 行程总结（自动生成、只读：进入面板时聚合每日数据重算；不写回数据）
+ * ================================================================ */
+let summaryMap = null;
+const geocodeCache = {}; // 地名 → [lat,lng]|null，会话内缓存，避免重复请求
+/** 聚合所有天的路线段：按交通方式统计段数与时长（跳过草稿段），按常用交通顺序排列 */
+function sumSegAgg(t) {
+  const m = {};
+  Object.keys(t.days || {}).sort().forEach(d => {
+    (t.days[d].segments || []).filter(s => !s.draft).forEach(s => {
+      const tr = s.transport || '其他';
+      m[tr] = m[tr] || { count: 0, min: 0 };
+      m[tr].count++;
+      m[tr].min += segDuration(s);
+    });
+  });
+  const order = TRANSPORTS.map(x => x[1]);
+  return Object.entries(m)
+    .map(([name, v]) => ({ name, count: v.count, min: v.min }))
+    .sort((a, b) => (order.indexOf(a.name) >= 0 ? order.indexOf(a.name) : 99) - (order.indexOf(b.name) >= 0 ? order.indexOf(b.name) : 99));
+}
+/** 交通时长分布：总时长 = 行程天数 × 24h；已标注交通求和后，余量记「其他」 */
+function sumTransportTimes(t) {
+  const list = sumSegAgg(t);
+  const totalDays = Math.max(1, diffDays(t.startDate, t.endDate) + 1);
+  const totalMin = totalDays * 1440;
+  const segMin = list.reduce((s, x) => s + x.min, 0);
+  const other = Math.max(0, totalMin - segMin);
+  return { list, other, totalDays, totalMin, segMin, denom: Math.max(totalMin, segMin) || 1 };
+}
+/** 聚合所有天的消费构成 {类别:金额}（与每日消费构成算法一致） */
+function sumExpByCat(t) {
+  const expByCat = {};
+  Object.keys(t.days || {}).forEach(d => {
+    Object.entries(dayStats(t.days[d]).expByCat).forEach(([c, v]) => { expByCat[c] = (expByCat[c] || 0) + v; });
+  });
+  return expByCat;
+}
+/** 某类别所有天的逐笔明细（总结页环图图例展开用） */
+function sumCatDetailRows(t, cat) {
+  const rows = [];
+  Object.keys(t.days || {}).sort().forEach(d => {
+    catDetails(t.days[d], cat).forEach(r => rows.push({ d, label: r.label, amt: r.amt }));
+  });
+  return rows;
+}
+/** 名字截断（示意图节点标签） */
+const sumCut = (s, n = 12) => (s.length > n ? s.slice(0, n) + '…' : s);
+/** 交通段数 chips（高铁 3 段 · 火车 1 段 …） */
+function sumSegChipsHtml(list) {
+  const chips = list.map(x => `<span class="sum-chip">${emojiOf(x.name)} ${esc(x.name)}<b>${x.count} 段</b></span>`).join('');
+  return chips || '<div class="sum-note">还没有路线安排</div>';
+}
+/** 交通时长分布：横向堆叠条 + 图例（按总时间 天数×24h 计） */
+function sumTimeBarHtml(v) {
+  if (!v.segMin) return '<div class="sum-note">路线未填写起止时间，暂无法统计在途时长（总时长按「天数 × 24h」计）</div>';
+  const parts = v.list.filter(x => x.min > 0);
+  const bar = parts.map(x =>
+    `<i style="width:${(x.min / v.denom * 100).toFixed(2)}%;background:${transColor(x.name)}" title="${esc(x.name)} ${fmtDur(x.min)}"></i>`).join('')
+    + (v.other > 0 ? `<i style="width:${(v.other / v.denom * 100).toFixed(2)}%;background:#B0B0BC" title="其他 ${fmtDur(v.other)}"></i>` : '');
+  const legend = parts.map(x =>
+    `<span class="lg"><i class="dot" style="background:${transColor(x.name)}"></i>${emojiOf(x.name)} ${esc(x.name)} <b>${x.min ? fmtDur(x.min) : '—'}</b> · ${x.count} 段</span>`).join('')
+    + (v.other > 0 ? `<span class="lg"><i class="dot" style="background:#B0B0BC"></i>🧭 其他（休整/未标注） <b>${fmtDur(v.other)}</b></span>` : '');
+  return `<div class="sum-bar" title="总时长 ${fmtDur(v.totalMin)}">${bar}</div>
+    <div class="sum-legend">${legend}</div>
+    <div class="sum-note" style="margin-top:8px">按总时长 ${fmtDur(v.totalMin)}（${v.totalDays} 天 × 24h）计：已标注交通 ${fmtDur(v.segMin)}，其余为休整/未标注时间。</div>`;
+}
+/** 全程路线示意图（SVG 蛇形排布：节点=地点、连线=路线段、按交通方式着色；不依赖网络，PDF/离线均可用） */
+function routeDiagramHtml(t) {
+  const segs = [];
+  Object.keys(t.days || {}).sort().forEach(d => {
+    (t.days[d].segments || []).filter(s => !s.draft && ((s.from || '').trim() || (s.to || '').trim())).forEach(s => {
+      segs.push({ from: (s.from || '').trim() || '(?)', to: (s.to || '').trim() || '(?)', transport: s.transport || '其他' });
+    });
+  });
+  if (!segs.length) return '<div class="sum-note">还没有路线，画不出路线图</div>';
+  // 展开成连续节点序列：相邻段共享地点时只放一次
+  const flat = [], edges = [];
+  segs.forEach(s => {
+    if (!flat.length || flat[flat.length - 1] !== s.from) flat.push(s.from);
+    const i0 = flat.length - 1;
+    flat.push(s.to);
+    edges.push({ i0, i1: flat.length - 1, transport: s.transport });
+  });
+  const perRow = 6, CW = 168, CH = 96, R = 8;
+  const W = perRow * CW;
+  const pts = [];
+  let col = 0, row = 0, dir = 1;
+  flat.forEach((name, i) => {
+    const x = dir === 1 ? 30 + col * CW + CW / 2 : W - 30 - col * CW - CW / 2;
+    const y = 34 + row * CH;
+    pts.push({ name, x, y, row });
+    col++;
+    if (col >= perRow) { col = 0; row++; dir *= -1; }
+  });
+  const lastRow = pts.length ? pts[pts.length - 1].row : 0;
+  const H = (lastRow + 1) * CH;
+  const edgesSvg = edges.map(e => {
+    const a = pts[e.i0], b = pts[e.i1];
+    const d = a.y === b.y
+      ? `M ${a.x} ${a.y} L ${b.x} ${b.y}`
+      : `M ${a.x} ${a.y} L ${a.x} ${(a.y + b.y) / 2} L ${b.x} ${(a.y + b.y) / 2} L ${b.x} ${b.y}`;
+    const path = `<path d="${d}" fill="none" stroke="${transColor(e.transport)}" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>`;
+    const lbl = e.transport !== '其他'
+      ? `<text x="${(a.x + b.x) / 2}" y="${(a.y + b.y) / 2 - 4}" text-anchor="middle" font-size="15" style="paint-order:stroke;stroke:#fff;stroke-width:3px">${emojiOf(e.transport)}</text>`
+      : '';
+    return `<g>${path}${lbl}</g>`;
+  }).join('');
+  const nodesSvg = pts.map((p, i) =>
+    `<g>
+      <circle cx="${p.x}" cy="${p.y}" r="${R}" fill="var(--accent)" stroke="#fff" stroke-width="2"/>
+      <text x="${p.x + R + 4}" y="${p.y + 4}" font-size="9" fill="var(--sub)" text-anchor="start">${i + 1}</text>
+      <text x="${p.x}" y="${p.y + (p.row % 2 ? -R - 8 : R + 16)}" text-anchor="middle" font-size="11" fill="var(--ink)" font-weight="600">${esc(sumCut(p.name))}</text>
+    </g>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="行程路线示意图">${edgesSvg}${nodesSvg}</svg>`;
+}
+/** 行程总结面板 HTML（进入时生成；真实地图由 initSummaryMap 异步补画） */
+function summaryPanelHtml(t) {
+  const st = tripStats(t);
+  const remain = st.budget - st.exp;
+  const travelers = tripTravelers(t);
+  const totalDays = Math.max(1, diffDays(t.startDate, t.endDate) + 1);
+  const timeV = sumTransportTimes(t);
+  const expByCat = sumExpByCat(t);
+  const budgetPct = st.budget > 0 ? Math.min(100, Math.round(st.exp / st.budget * 100)) : 0;
+  const donut = donutChart(expByCat);
+  const stat = (num, lbl, extra = '', over = false) =>
+    `<div class="sum-stat"><span class="num ${over ? 'over' : ''}">${num}</span><span class="lbl">${lbl}</span>${extra}</div>`;
+  return `
+  <div class="sum-panel-head">
+    <div class="h2-title">📊 行程总结</div>
+    <span class="sum-auto">自动生成 · 数据来自每日行程与记账</span>
+  </div>
+  <section class="sum-card">
+    <div class="sum-hero">
+      <div class="sum-name">${t.emoji || ''} ${esc(t.name)}</div>
+      <div class="sum-meta">
+        <span>🗓️ <b>${esc(t.startDate || '—')}</b> — <b>${esc(t.endDate || '—')}</b> · 共 ${totalDays} 天</span>
+        <span>👥 <b>${esc(travelers.join('、') || '—')}</b></span>
+      </div>
+    </div>
+    <div class="sum-stats">
+      ${stat(fmtMoney(st.exp), '总花费')}
+      ${stat(st.budget ? fmtMoney(st.budget) : '—', '总预算')}
+      ${stat(st.budget ? fmtMoney(remain) : '—', '预算结余', '', remain < 0)}
+      ${stat(st.days + ' 天', '行程天数')}
+      ${stat(st.lodges + ' 晚', '住宿晚数')}
+      ${stat(st.segs + ' 段', '路线段数')}
+    </div>
+  </section>
+  <section class="sum-card">
+    <div class="block-title"><span class="tag">🗺️</span>路程行程总结</div>
+    <div class="sub-card">
+      <div class="block-title" style="margin-bottom:4px"><span class="tag">🏠</span>住宿</div>
+      <div class="sum-note">共住宿 <b style="color:var(--accent)">${st.lodges} 晚</b>，全程路线共 <b>${st.segs} 段</b></div>
+      <div class="block-title" style="margin:14px 0 6px"><span class="tag">🧭</span>路线（共 ${st.segs} 段）</div>
+      <div class="sum-chips">${sumSegChipsHtml(timeV.list)}</div>
+      <div class="block-title" style="margin:14px 0 6px"><span class="tag">⏱️</span>在途时长分布</div>
+      ${sumTimeBarHtml(timeV)}
+    </div>
+    <div class="sub-card">
+      <div class="block-title" style="margin-bottom:4px"><span class="tag">🌐</span>真实地图路线<span class="sum-auto" style="margin-left:auto">地名可解析坐标时自动连线</span></div>
+      <div class="sum-map" id="sum-map"></div>
+      <div class="sum-map-tip" id="sum-map-tip"></div>
+      <div class="block-title" style="margin:14px 0 6px"><span class="tag">🖌️</span>路线示意图（按到达顺序）</div>
+      <div class="sum-diagram">${routeDiagramHtml(t)}</div>
+    </div>
+  </section>
+  <section class="sum-card">
+    <div class="block-title"><span class="tag">💰</span>花销总结</div>
+    <div class="sub-card">
+      <div class="block-title" style="margin-bottom:4px"><span class="tag">🧮</span>预算</div>
+      <div class="sum-stats" style="margin-top:0">
+        ${stat(fmtMoney(st.exp), '总花费')}
+        ${stat(st.budget ? fmtMoney(st.budget) : '—', '总预算')}
+        ${stat(st.budget ? fmtMoney(remain) : '—', '预算结余', '', remain < 0)}
+        ${st.budget > 0 ? stat(budgetPct + '%', '预算使用', `<div class="bar"><i style="width:${budgetPct}%"></i></div>`) : ''}
+      </div>
+      <div class="block-title" style="margin:14px 0 8px"><span class="tag">🧾</span>消费构成</div>
+      ${donut ? `<div class="sum-donut">${donut}</div><div class="sum-cat-detail" hidden></div>`
+               : '<div class="sum-note">还没有任何花销记录</div>'}
+    </div>
+  </section>`;
+}
+/** 进入行程总结面板：生成内容 → 切换面板 → 异步补画真实地图 */
+function showSummary(t) {
+  $('#sum-panel').innerHTML = summaryPanelHtml(t);
+  switchDetailView('summary');
+  setTimeout(initSummaryMap, 60); // 面板可见后再量取地图尺寸
+}
+/** 单个地名解析：6 秒超时；hit=null 表示该名查无坐标，ok=false 表示网络/超时故障 */
+function geocodePlace(nm) {
+  if (geocodeCache[nm] !== undefined) return Promise.resolve({ ok: true, hit: geocodeCache[nm], cached: true });
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(nm);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  return fetch(url, { signal: ctrl.signal })
+    .then(r => r.json())
+    .then(arr => ({ ok: true, hit: (Array.isArray(arr) && arr[0]) ? [parseFloat(arr[0].lat), parseFloat(arr[0].lon)] : null }))
+    .catch(() => ({ ok: false, hit: null }))
+    .finally(() => clearTimeout(timer));
+}
+/** 并发解析地名坐标（限 2 并发）：任一网络故障即整体放弃，避免长期卡住（离线/被墙时自动降级为示意图） */
+function geocodePlaces(names) {
+  const results = {};
+  names.forEach(n => { if (geocodeCache[n] !== undefined) results[n] = geocodeCache[n]; });
+  const queue = names.filter(n => geocodeCache[n] === undefined);
+  return new Promise(resolve => {
+    let inflight = 0, failedNet = false;
+    const pump = () => {
+      while (inflight < 2 && queue.length && !failedNet) {
+        const nm = queue.shift();
+        inflight++;
+        geocodePlace(nm).then(res => {
+          inflight--;
+          if (!res.cached) { geocodeCache[nm] = res.hit; results[nm] = res.hit; }
+          if (!res.ok) failedNet = true; // 网络故障：放弃剩余解析
+          pump();
+        });
+      }
+      if (!inflight && (failedNet || !queue.length)) {
+        names.forEach(n => { if (results[n] === undefined) results[n] = null; });
+        resolve(results);
+      }
+    };
+    pump();
+  });
+}
+/** 真实地图：把能解析出坐标的路线段按顺序连成 Polyline（无法解析的地段跳过） */
+function initSummaryMap() {
+  const el = document.getElementById('sum-map');
+  const tip = document.getElementById('sum-map-tip');
+  const t = getTrip(currentTripId);
+  if (!el || !tip || !t) return;
+  if (window.__mapFail) { tip.textContent = '⚠️ 地图库加载失败，请查看下方路线示意图。'; return; }
+  if (!isMapReady()) { setTimeout(initSummaryMap, 250); return; } // Leaflet 异步加载中
+  const targetId = t.id;
+  tip.textContent = '⏳ 正在将地名解析为地图坐标…';
+  const names = [];
+  Object.keys(t.days || {}).sort().forEach(d => {
+    (t.days[d].segments || []).filter(s => !s.draft).forEach(s => {
+      if (s.from && s.from.trim()) names.push(s.from.trim());
+      if (s.to && s.to.trim()) names.push(s.to.trim());
+    });
+  });
+  const uniq = [...new Set(names)].slice(0, 40);
+  geocodePlaces(uniq).then(coords => {
+    if (!el.isConnected || currentTripId !== targetId) return; // 已离开/切换行程
+    const edges = [];
+    Object.keys(t.days || {}).sort().forEach(d => {
+      (t.days[d].segments || []).filter(s => !s.draft && s.from && s.to).forEach(s => {
+        const a = coords[s.from.trim()], b = coords[s.to.trim()];
+        if (a && b) edges.push({ a, b, transport: s.transport || '其他' });
+      });
+    });
+    if (!edges.length) {
+      tip.textContent = '🌐 地名无法解析到坐标（可能不是真实地名或当前离线），请查看下方路线示意图。';
+      return;
+    }
+    tip.textContent = '✅ 已在真实地图上连线 ' + edges.length + ' 段路线（仅能解析坐标的地段）· 图例为交通方式。';
+    if (summaryMap) summaryMap.remove();
+    summaryMap = L.map(el, { zoomControl: true });
+    baseTileLayer().addTo(summaryMap);
+    const lats = [];
+    edges.forEach(e => { lats.push(e.a, e.b); });
+    if (lats.length >= 4 && L.latLngBounds(lats).isValid()) summaryMap.fitBounds(L.latLngBounds(lats).pad(0.18));
+    else if (lats.length) summaryMap.setView(lats[0], 12);
+    edges.forEach(e => {
+      const col = transColor(e.transport);
+      L.polyline([e.a, e.b], { color: col, weight: 3, opacity: .85 }).addTo(summaryMap)
+        .bindTooltip(emojiOf(e.transport) + ' ' + (e.transport || ''), { direction: 'top' });
+      [e.a, e.b].forEach(pt => {
+        L.circleMarker(pt, { radius: 5, color: '#fff', weight: 2, fillColor: col, fillOpacity: 1 }).addTo(summaryMap);
+      });
+    });
+  });
+}
+/** 行程总结章节（导出 PDF 用：不含真实地图，固定用路线示意图，打印稳定） */
+function summaryDocHtml(t) {
+  const st = tripStats(t);
+  const remain = st.budget - st.exp;
+  const travelers = tripTravelers(t);
+  const totalDays = Math.max(1, diffDays(t.startDate, t.endDate) + 1);
+  const timeV = sumTransportTimes(t);
+  const expByCat = sumExpByCat(t);
+  const budgetPct = st.budget > 0 ? Math.min(100, Math.round(st.exp / st.budget * 100)) : 0;
+  const donut = donutChart(expByCat);
+  return `<div class="doc-day" id="doc-sum">
+    <h3 class="doc-day-title">📊 行程总结</h3>
+    <div class="doc-sum-row">
+      <span>🗓️ <b>${esc(t.startDate || '—')}</b> — <b>${esc(t.endDate || '—')}</b> · 共 ${totalDays} 天</span>
+      <span>👥 <b>${esc(travelers.join('、') || '—')}</b></span>
+    </div>
+    <div class="doc-sum-grid">
+      <div class="doc-sum-box">总花费<b>${fmtMoney(st.exp)}</b></div>
+      <div class="doc-sum-box">总预算<b>${st.budget ? fmtMoney(st.budget) : '—'}</b></div>
+      <div class="doc-sum-box">预算结余<b class="${remain < 0 ? 'over' : ''}">${st.budget ? fmtMoney(remain) + (st.budget > 0 ? '（' + budgetPct + '%）' : '') : '—'}</b></div>
+      <div class="doc-sum-box">行程天数<b>${st.days} 天</b></div>
+      <div class="doc-sum-box">住宿<b>${st.lodges} 晚</b></div>
+      <div class="doc-sum-box">路线<b>${st.segs} 段</b></div>
+    </div>
+    <h4 class="doc-lug-title" style="margin-top:14px">🗺️ 路程行程总结</h4>
+    ${sumSegChipsHtml(timeV.list)}
+    ${sumTimeBarHtml(timeV)}
+    <h4 class="doc-lug-title" style="margin-top:16px">🖌️ 全程路线图</h4>
+    <div class="sum-diagram">${routeDiagramHtml(t)}</div>
+    <h4 class="doc-lug-title" style="margin-top:16px">💰 花销总结</h4>
+    ${donut ? `<div class="sum-donut">${donut}</div>` : '<p class="doc-empty">暂无花销记录</p>'}
+  </div>`;
+}
+
+/* ================================================================
  * 事件：详情页（委托）
  * ================================================================ */
-/** 每日行程 ↔ 行李清单 切换：各自记住滚动位置，避免切回每日行程时跳到第一天 */
-let savedScrollDaily = 0, savedScrollCl = 0;
+/** 每日行程 ↔ 行李清单 ↔ 行程总结 三面板切换：各自记住滚动位置，避免切回时跳到页面顶部 */
+let savedScrollDaily = 0, savedScrollCl = 0, savedScrollSummary = 0;
 let dailyDatesCollapsed = false; // 日期列表折叠状态（重渲染后恢复，避免切换状态时自动展开）
-function switchDetailView(showCl) {
-  if (showCl) {
-    savedScrollDaily = window.scrollY || 0;
-    $('#days-col').classList.add('hidden');
-    $('#cl-panel').classList.remove('hidden');
-    requestAnimationFrame(() => window.scrollTo(0, savedScrollCl));
-  } else {
-    savedScrollCl = window.scrollY || 0;
-    $('#cl-panel').classList.add('hidden');
-    $('#days-col').classList.remove('hidden');
-    requestAnimationFrame(() => window.scrollTo(0, savedScrollDaily));
-  }
+function switchDetailView(panel) {
+  // 先记住当前可见面板的滚动位置
+  if (!$('#cl-panel').classList.contains('hidden')) savedScrollCl = window.scrollY || 0;
+  else if (!$('#sum-panel').classList.contains('hidden')) savedScrollSummary = window.scrollY || 0;
+  else savedScrollDaily = window.scrollY || 0;
+  const to = panel === 'checklist' ? $('#cl-panel') : panel === 'summary' ? $('#sum-panel') : $('#days-col');
+  $('#days-col').classList.toggle('hidden', to !== $('#days-col'));
+  $('#cl-panel').classList.toggle('hidden', to !== $('#cl-panel'));
+  $('#sum-panel').classList.toggle('hidden', to !== $('#sum-panel'));
+  const mem = panel === 'checklist' ? savedScrollCl : panel === 'summary' ? savedScrollSummary : savedScrollDaily;
+  requestAnimationFrame(() => window.scrollTo(0, mem));
 }
 $('#view-detail').addEventListener('click', async e => {
   const t = currentTripId ? getTrip(currentTripId) : null;
@@ -2209,12 +2572,12 @@ $('#view-detail').addEventListener('click', async e => {
   if (navLink) {
     const nav = navLink.dataset.nav;
     if (nav === 'checklist') {
-      switchDetailView(true);
+      switchDetailView('checklist');
     } else if (nav === 'daily') {
-      const panelOpen = !$('#cl-panel').classList.contains('hidden');
-      if (panelOpen) {
-        // 从行李清单切回每日行程：不跳转回第一天，恢复上次每日视图的滚动位置
-        switchDetailView(false);
+      const onOther = !$('#cl-panel').classList.contains('hidden') || !$('#sum-panel').classList.contains('hidden');
+      if (onOther) {
+        // 从行李清单/行程总结切回每日行程：不跳转回第一天，恢复上次每日视图的滚动位置
+        switchDetailView('daily');
       } else {
         // 已在每日视图时：点击「每日行程」折叠/展开日期列表（收起时只保留标题）
         const dates = $('#nav-dates');
@@ -2224,6 +2587,9 @@ $('#view-detail').addEventListener('click', async e => {
           dailyDatesCollapsed = dates.classList.contains('hidden');
         }
       }
+    } else if (nav === 'summary') {
+      // 行程总结：每次进入重新生成（数据随每日行程/记账自动汇总，只读）
+      showSummary(t);
     }
     return;
   }
@@ -2303,9 +2669,15 @@ $('#view-detail').addEventListener('click', async e => {
   const navBtn = e.target.closest('.day-nav button');
   if (navBtn) {
     const d = navBtn.dataset.date;
+    // 在行李清单/行程总结页点日期同样生效：切回每日视图并定位到该天
     if (!$('#cl-panel').classList.contains('hidden')) {
       savedScrollCl = window.scrollY || 0;
       $('#cl-panel').classList.add('hidden');
+      $('#days-col').classList.remove('hidden');
+      $('#sum-panel').classList.add('hidden');
+    } else if (!$('#sum-panel').classList.contains('hidden')) {
+      savedScrollSummary = window.scrollY || 0;
+      $('#sum-panel').classList.add('hidden');
       $('#days-col').classList.remove('hidden');
     }
     if (t.days[d]) jumpToDay(d);
@@ -2358,6 +2730,22 @@ $('#view-detail').addEventListener('click', async e => {
     else if (act === 'lodge-edit') { editSnap(lg); lg.draft = true; }
     else if (act === 'lodge-del') delete t.days[d].lodging; // 直接删除，不确认
     saveAndRender(t);
+    return;
+  }
+  /* 行程总结：环形图图例点击 → 展开该类别跨日明细 */
+  const sumLeg = e.target.closest('#sum-panel .donut-legend span[data-cat]');
+  if (sumLeg) {
+    const card = sumLeg.closest('.sum-card');
+    const box = card ? card.querySelector('.sum-cat-detail') : null;
+    if (box) {
+      if (!box.hidden && box.dataset.cat === sumLeg.dataset.cat) { box.hidden = true; return; }
+      const rows = sumCatDetailRows(t, sumLeg.dataset.cat);
+      box.innerHTML = rows.length
+        ? rows.map(r => `<div class="dd-row"><span>${fmtDateCN(r.d)} ${esc(r.label)}</span><b>${fmtMoney(r.amt)}</b></div>`).join('')
+        : '<div class="dd-row"><span style="color:var(--sub)">无明细</span></div>';
+      box.dataset.cat = sumLeg.dataset.cat;
+      box.hidden = false;
+    }
     return;
   }
   /* 环形图图例点击 → 展开该类别明细 */
@@ -3309,7 +3697,14 @@ function buildDoc(t) {
         </a>`;
       }).join('')}
     </div>`;
-  const tocHtml = lugToc + dayToc;
+  // 行程总结：目录第一项（封面后即总览），与每日行程相邻章节
+  const sumToc = `<a class="toc-item toc-main" href="#doc-sum">
+      <span class="toc-ico">📊</span>
+      <span class="toc-name">行程总结</span>
+      <span class="toc-dots"></span>
+      <span class="toc-sum">总览</span>
+    </a>`;
+  const tocHtml = sumToc + lugToc + dayToc;
 
   const daysHtml = dates.map(d => {
     const day = t.days[d];
@@ -3471,6 +3866,7 @@ function buildDoc(t) {
       <h2>📑 目录</h2>
       ${tocHtml || '<p class="doc-empty">还没有每日行程</p>'}
     </div>
+    ${summaryDocHtml(t)}
     ${clHtml}
     <div class="doc-days">${daysHtml}</div>
     <div class="doc-total">
