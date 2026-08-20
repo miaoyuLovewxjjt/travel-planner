@@ -2360,39 +2360,74 @@ function showSummary(t) {
   switchDetailView('summary');
   setTimeout(initSummaryMap, 60); // 面板可见后再量取地图尺寸
 }
-/** 单个地名解析：6 秒超时；hit=null 表示该名查无坐标，ok=false 表示网络/超时故障 */
-function geocodePlace(nm) {
-  if (geocodeCache[nm] !== undefined) return Promise.resolve({ ok: true, hit: geocodeCache[nm], cached: true });
-  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(nm);
+/** 免费免 Key 地理编码源（按解析中国地名命中率排序；某源网络不通会自动标记 down 跳过、切下一个源） */
+const GEOCODERS = [
+  {
+    key: 'photon',
+    url: n => 'https://photon.komoot.io/api/?q=' + encodeURIComponent(n) + '&limit=1', // 注意：Photon 不支持 lang=zh 参数（会返回 400）
+    parse: j => (j && j.features && j.features[0]) ? [j.features[0].geometry.coordinates[1], j.features[0].geometry.coordinates[0]] : null,
+  },
+  {
+    key: 'ometeo',
+    url: n => 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(n) + '&count=1&language=zh&format=json',
+    parse: j => (j && j.results && j.results[0]) ? [j.results[0].latitude, j.results[0].longitude] : null,
+  },
+  {
+    key: 'nominatim',
+    url: n => 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(n),
+    parse: j => (Array.isArray(j) && j[0]) ? [parseFloat(j[0].lat), parseFloat(j[0].lon)] : null,
+  },
+];
+let geocodeNetOk = false;    // 本轮是否成功连上过至少一个源（用于区分「网络不通」与「地名查不到」）
+let geocodeSourceDown = {};  // 网络连不上的源标记：本轮后续直接跳过，避免反复等超时
+/** 带超时的 JSON 请求：ok=false 表示网络/超时故障 */
+function fetchGeocode(url) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 6000);
+  const timer = setTimeout(() => ctrl.abort(), 5000);
   return fetch(url, { signal: ctrl.signal })
     .then(r => r.json())
-    .then(arr => ({ ok: true, hit: (Array.isArray(arr) && arr[0]) ? [parseFloat(arr[0].lat), parseFloat(arr[0].lon)] : null }))
-    .catch(() => ({ ok: false, hit: null }))
+    .then(data => ({ ok: true, data }))
+    .catch(() => ({ ok: false, data: null }))
     .finally(() => clearTimeout(timer));
 }
-/** 并发解析地名坐标（限 2 并发）：任一网络故障即整体放弃，避免长期卡住（离线/被墙时自动降级为示意图） */
+/** 单个地名：依次试各源，命中即返回 [lat,lng]；某源网络故障则标记 down 并跳过 */
+function geocodeName(nm) {
+  if (geocodeCache[nm] !== undefined) return Promise.resolve({ hit: geocodeCache[nm], cached: true });
+  const trySrc = i => {
+    if (i >= GEOCODERS.length) return Promise.resolve({ hit: null, cached: false });
+    const src = GEOCODERS[i];
+    if (geocodeSourceDown[src.key]) return trySrc(i + 1);
+    return fetchGeocode(src.url(nm)).then(res => {
+      if (!res.ok) { geocodeSourceDown[src.key] = true; return trySrc(i + 1); } // 该源网络不通 → 换下一个源
+      geocodeNetOk = true;
+      const hit = res.data ? src.parse(res.data) : null;
+      return hit ? Promise.resolve({ hit, cached: false }) : trySrc(i + 1);    // 该源查无 → 换下一个源
+    });
+  };
+  return trySrc(0);
+}
+/** 并发解析地名坐标（限 3 并发；多源自动切换）→ Promise<{coords, netOk}> */
 function geocodePlaces(names) {
   const results = {};
+  geocodeNetOk = false;         // 每轮重新探测网络/来源
+  geocodeSourceDown = {};       // 每轮重新探测（网络恢复后能自动切回）
   names.forEach(n => { if (geocodeCache[n] !== undefined) results[n] = geocodeCache[n]; });
   const queue = names.filter(n => geocodeCache[n] === undefined);
   return new Promise(resolve => {
-    let inflight = 0, failedNet = false;
+    let inflight = 0;
     const pump = () => {
-      while (inflight < 2 && queue.length && !failedNet) {
+      while (inflight < 3 && queue.length) {
         const nm = queue.shift();
         inflight++;
-        geocodePlace(nm).then(res => {
+        geocodeName(nm).then(res => {
           inflight--;
           if (!res.cached) { geocodeCache[nm] = res.hit; results[nm] = res.hit; }
-          if (!res.ok) failedNet = true; // 网络故障：放弃剩余解析
           pump();
         });
       }
-      if (!inflight && (failedNet || !queue.length)) {
+      if (!inflight) {
         names.forEach(n => { if (results[n] === undefined) results[n] = null; });
-        resolve(results);
+        resolve({ coords: results, netOk: geocodeNetOk });
       }
     };
     pump();
@@ -2404,10 +2439,10 @@ function initSummaryMap() {
   const tip = document.getElementById('sum-map-tip');
   const t = getTrip(currentTripId);
   if (!el || !tip || !t) return;
-  if (window.__mapFail) { tip.textContent = '⚠️ 地图库加载失败，请查看下方路线示意图。'; return; }
+  if (window.__mapFail) { tip.textContent = '⚠️ 地图瓦片加载失败（网络受限），暂时无法显示底图。'; return; }
   if (!isMapReady()) { setTimeout(initSummaryMap, 250); return; } // Leaflet 异步加载中
   const targetId = t.id;
-  tip.textContent = '⏳ 正在将地名解析为地图坐标…';
+  tip.textContent = '⏳ 正在解析地名坐标（在线地图服务）…';
   const names = [];
   Object.keys(t.days || {}).sort().forEach(d => {
     (t.days[d].segments || []).filter(s => !s.draft).forEach(s => {
@@ -2416,20 +2451,24 @@ function initSummaryMap() {
     });
   });
   const uniq = [...new Set(names)].slice(0, 40);
-  geocodePlaces(uniq).then(coords => {
+  geocodePlaces(uniq).then(({ coords, netOk }) => {
     if (!el.isConnected || currentTripId !== targetId) return; // 已离开/切换行程
+    let segTotal = 0;
     const edges = [];
     Object.keys(t.days || {}).sort().forEach(d => {
       (t.days[d].segments || []).filter(s => !s.draft && s.from && s.to).forEach(s => {
+        segTotal++;
         const a = coords[s.from.trim()], b = coords[s.to.trim()];
         if (a && b) edges.push({ a, b, transport: s.transport || '其他' });
       });
     });
     if (!edges.length) {
-      tip.textContent = '🌐 地名无法解析到坐标（可能不是真实地名或当前离线），请查看下方路线示意图。';
+      tip.textContent = netOk
+        ? '🌐 这些地点未在开放地图中解析到坐标（非标准地名/小区/门牌可能查不到），可把出发/到达改成标准地点名后重新进入本页试试。'
+        : '⚠️ 地图地名解析服务当前不可用（网络受限/被墙），网络恢复后重新进入本页即可自动连线。';
       return;
     }
-    tip.textContent = '✅ 已在真实地图上连线 ' + edges.length + ' 段路线（仅能解析坐标的地段）· 图例为交通方式。';
+    tip.textContent = '✅ 已在真实地图上连线 ' + edges.length + (segTotal > edges.length ? '/' + segTotal + ' 段路线' : ' 段路线') + '（地名来自在线解析）。';
     if (summaryMap) summaryMap.remove();
     summaryMap = L.map(el, { zoomControl: true });
     baseTileLayer().addTo(summaryMap);
