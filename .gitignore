@@ -1,24 +1,9 @@
-# 私有数据（不推送到公开仓库）
+# 私有数据（不推送）
 data/
 行程记录/
 screenshots/
 *.log
 .zcode/
-
-# APK 构建产物（需要的人自行打包）
-*.apk
-*.aab
-
-# Android 构建产物与工具链
-android-tools/
-android/android-app/.gradle/
-android/android-app/app/build/
-android/android-app-hd/.gradle/
-android/android-app-hd/app/build/
-android/android-app/local.properties
-android/android-app-hd/local.properties
-android/android-app/build.log
-android/android-app-hd/build.log
 
 # 系统文件
 .DS_Store
