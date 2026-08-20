@@ -896,16 +896,8 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .sum-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-soft);border:1px solid var(--accent-border);
   border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;color:var(--ink)}
 .sum-chip b{color:var(--accent);font-size:13.5px}
-.sum-bar{display:flex;height:26px;border-radius:99px;overflow:hidden;background:#ececf1;margin:8px 0 10px}
-.sum-bar i{display:block;height:100%;min-width:0}
-.sum-legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--sub)}
-.sum-legend .lg{display:inline-flex;align-items:center;gap:6px}
-.sum-legend .dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
-.sum-legend b{color:var(--ink)}
 .sum-map{height:280px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:#eef0f4;margin-top:6px}
 .sum-map-tip{font-size:12px;color:var(--sub);font-style:italic;margin-top:6px;line-height:1.6}
-.sum-diagram{background:#fafafc;border:1px solid var(--line);border-radius:14px;padding:12px 14px;overflow-x:auto;margin-top:4px}
-.sum-diagram svg{display:block;width:100%;height:auto}
 .sum-donut{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:6px 0}
 .sum-note{font-size:12.5px;color:var(--sub);font-style:italic;line-height:1.6}
 .sum-note b{color:var(--ink)}
@@ -1464,7 +1456,6 @@ function renderDetail(id) {
   $('#day-nav').innerHTML = `<div class="nav-titles">
   <div class="nav-title nav-link" data-nav="checklist" title="行李清单">📋 行李清单</div>
   <div class="nav-title nav-link" data-nav="daily" title="展开/折叠日期列表">📅 每日行程 <span class="nav-caret"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6 -4 6 4"/></svg></span></div>
-  <div class="nav-title nav-link" data-nav="summary" title="行程总结">📊 行程总结</div>
   </div><div class="nav-dates" id="nav-dates">` + navDates.map(d => {
     const has = !!t.days[d];
     const active = has ? 'active' : 'empty';
@@ -1474,7 +1465,7 @@ function renderDetail(id) {
       <span class="w">周${weekdayCN(d)}</span>
       ${info ? `<span class="info">${info}</span>` : ''}
     </button>`;
-  }).join('') + '</div>';
+  }).join('') + '</div>' + `<div class="nav-title nav-link" data-nav="summary" title="行程总结">📊 行程总结</div>`;
   // 恢复日期列表折叠状态（重渲染如切换物品状态后不自动展开）
   if (dailyDatesCollapsed) {
     const dT = $('#day-nav .nav-title[data-nav="daily"]');
@@ -2265,75 +2256,39 @@ function sumCatDetailRows(t, cat) {
   });
   return rows;
 }
-/** 名字截断（示意图节点标签） */
-const sumCut = (s, n = 12) => (s.length > n ? s.slice(0, n) + '…' : s);
 /** 交通段数 chips（高铁 3 段 · 火车 1 段 …） */
 function sumSegChipsHtml(list) {
   const chips = list.map(x => `<span class="sum-chip">${emojiOf(x.name)} ${esc(x.name)}<b>${x.count} 段</b></span>`).join('');
   return chips || '<div class="sum-note">还没有路线安排</div>';
 }
-/** 交通时长分布：横向堆叠条 + 图例（按总时间 天数×24h 计） */
-function sumTimeBarHtml(v) {
-  if (!v.segMin) return '<div class="sum-note">路线未填写起止时间，暂无法统计在途时长（总时长按「天数 × 24h」计）</div>';
-  const parts = v.list.filter(x => x.min > 0);
-  const bar = parts.map(x =>
-    `<i style="width:${(x.min / v.denom * 100).toFixed(2)}%;background:${transColor(x.name)}" title="${esc(x.name)} ${fmtDur(x.min)}"></i>`).join('')
-    + (v.other > 0 ? `<i style="width:${(v.other / v.denom * 100).toFixed(2)}%;background:#B0B0BC" title="其他 ${fmtDur(v.other)}"></i>` : '');
-  const legend = parts.map(x =>
-    `<span class="lg"><i class="dot" style="background:${transColor(x.name)}"></i>${emojiOf(x.name)} ${esc(x.name)} <b>${x.min ? fmtDur(x.min) : '—'}</b> · ${x.count} 段</span>`).join('')
-    + (v.other > 0 ? `<span class="lg"><i class="dot" style="background:#B0B0BC"></i>🧭 其他（休整/未标注） <b>${fmtDur(v.other)}</b></span>` : '');
-  return `<div class="sum-bar" title="总时长 ${fmtDur(v.totalMin)}">${bar}</div>
-    <div class="sum-legend">${legend}</div>
-    <div class="sum-note" style="margin-top:8px">按总时长 ${fmtDur(v.totalMin)}（${v.totalDays} 天 × 24h）计：已标注交通 ${fmtDur(v.segMin)}，其余为休整/未标注时间。</div>`;
-}
-/** 全程路线示意图（SVG 蛇形排布：节点=地点、连线=路线段、按交通方式着色；不依赖网络，PDF/离线均可用） */
-function routeDiagramHtml(t) {
-  const segs = [];
-  Object.keys(t.days || {}).sort().forEach(d => {
-    (t.days[d].segments || []).filter(s => !s.draft && ((s.from || '').trim() || (s.to || '').trim())).forEach(s => {
-      segs.push({ from: (s.from || '').trim() || '(?)', to: (s.to || '').trim() || '(?)', transport: s.transport || '其他' });
-    });
-  });
-  if (!segs.length) return '<div class="sum-note">还没有路线，画不出路线图</div>';
-  // 展开成连续节点序列：相邻段共享地点时只放一次
-  const flat = [], edges = [];
-  segs.forEach(s => {
-    if (!flat.length || flat[flat.length - 1] !== s.from) flat.push(s.from);
-    const i0 = flat.length - 1;
-    flat.push(s.to);
-    edges.push({ i0, i1: flat.length - 1, transport: s.transport });
-  });
-  const perRow = 6, CW = 168, CH = 96, R = 8;
-  const W = perRow * CW;
-  const pts = [];
-  let col = 0, row = 0, dir = 1;
-  flat.forEach((name, i) => {
-    const x = dir === 1 ? 30 + col * CW + CW / 2 : W - 30 - col * CW - CW / 2;
-    const y = 34 + row * CH;
-    pts.push({ name, x, y, row });
-    col++;
-    if (col >= perRow) { col = 0; row++; dir *= -1; }
-  });
-  const lastRow = pts.length ? pts[pts.length - 1].row : 0;
-  const H = (lastRow + 1) * CH;
-  const edgesSvg = edges.map(e => {
-    const a = pts[e.i0], b = pts[e.i1];
-    const d = a.y === b.y
-      ? `M ${a.x} ${a.y} L ${b.x} ${b.y}`
-      : `M ${a.x} ${a.y} L ${a.x} ${(a.y + b.y) / 2} L ${b.x} ${(a.y + b.y) / 2} L ${b.x} ${b.y}`;
-    const path = `<path d="${d}" fill="none" stroke="${transColor(e.transport)}" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>`;
-    const lbl = e.transport !== '其他'
-      ? `<text x="${(a.x + b.x) / 2}" y="${(a.y + b.y) / 2 - 4}" text-anchor="middle" font-size="15" style="paint-order:stroke;stroke:#fff;stroke-width:3px">${emojiOf(e.transport)}</text>`
-      : '';
-    return `<g>${path}${lbl}</g>`;
+/** 在途时长分布（环形图，与花销构成同款）：总时长=天数×24h；已标注交通按占比展示，未标注/休整/睡眠等全部计入「其他」 */
+function sumTimeDonutHtml(v) {
+  const cats = [...v.list.filter(x => x.min > 0), { name: '其他', min: v.other }].filter(x => x.min > 0);
+  const total = v.totalMin;
+  if (!cats.length) return '<div class="sum-note">没有可统计的在途时长，全部计入「其他」（睡眠/休整等）。</div>';
+  let acc = 0;
+  const stops = cats.map(c => {
+    const start = acc / total * 360;
+    acc += c.min;
+    return `${transColor(c.name)} ${start.toFixed(1)}deg ${(acc / total * 360).toFixed(1)}deg`;
+  }).join(', ');
+  // 最大余数法：百分比总和恒为 100
+  const pcts = cats.map(c => c.min / total * 100);
+  const ints = pcts.map(p => Math.floor(p));
+  let diff = 100 - ints.reduce((a, b) => a + b, 0);
+  const order = pcts.map((p, i) => ({ i, frac: p - Math.floor(p) })).sort((a, b) => b.frac - a.frac);
+  for (let k = 0; k < diff; k++) ints[order[k % order.length].i]++;
+  const legend = cats.map((c, i) => {
+    const seg = c.name === '其他' ? '未标注' : ((v.list.find(x => x.name === c.name) || {}).count + ' 段');
+    return `<span class="lg"><i class="dot" style="background:${transColor(c.name)}"></i>${c.name === '其他' ? '🧭' : emojiOf(c.name)} ${esc(c.name)} <b>${c.min ? fmtDur(c.min) : '—'}</b> · ${seg} · ${ints[i]}%</span>`;
   }).join('');
-  const nodesSvg = pts.map((p, i) =>
-    `<g>
-      <circle cx="${p.x}" cy="${p.y}" r="${R}" fill="var(--accent)" stroke="#fff" stroke-width="2"/>
-      <text x="${p.x + R + 4}" y="${p.y + 4}" font-size="9" fill="var(--sub)" text-anchor="start">${i + 1}</text>
-      <text x="${p.x}" y="${p.y + (p.row % 2 ? -R - 8 : R + 16)}" text-anchor="middle" font-size="11" fill="var(--ink)" font-weight="600">${esc(sumCut(p.name))}</text>
-    </g>`).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="行程路线示意图">${edgesSvg}${nodesSvg}</svg>`;
+  return `<div class="sum-donut">
+      <div class="donut" style="background:conic-gradient(${stops})"><div class="donut-hole"></div></div>
+      <div class="donut-side">
+        <div class="donut-legend">${legend}</div>
+      </div>
+    </div>
+    <div class="sum-note" style="margin-top:8px">按总时长 ${fmtDur(v.totalMin)}（${v.totalDays} 天 × 24h）计：已标注交通 ${fmtDur(v.segMin)}，其余计入「其他」（睡眠/休整/未标注）。</div>`;
 }
 /** 行程总结面板 HTML（进入时生成；真实地图由 initSummaryMap 异步补画） */
 function summaryPanelHtml(t) {
@@ -2377,14 +2332,12 @@ function summaryPanelHtml(t) {
       <div class="block-title" style="margin:14px 0 6px"><span class="tag">🧭</span>路线（共 ${st.segs} 段）</div>
       <div class="sum-chips">${sumSegChipsHtml(timeV.list)}</div>
       <div class="block-title" style="margin:14px 0 6px"><span class="tag">⏱️</span>在途时长分布</div>
-      ${sumTimeBarHtml(timeV)}
+      ${sumTimeDonutHtml(timeV)}
     </div>
     <div class="sub-card">
       <div class="block-title" style="margin-bottom:4px"><span class="tag">🌐</span>真实地图路线<span class="sum-auto" style="margin-left:auto">地名可解析坐标时自动连线</span></div>
       <div class="sum-map" id="sum-map"></div>
       <div class="sum-map-tip" id="sum-map-tip"></div>
-      <div class="block-title" style="margin:14px 0 6px"><span class="tag">🖌️</span>路线示意图（按到达顺序）</div>
-      <div class="sum-diagram">${routeDiagramHtml(t)}</div>
     </div>
   </section>
   <section class="sum-card">
@@ -2496,7 +2449,7 @@ function initSummaryMap() {
     });
   });
 }
-/** 行程总结章节（导出 PDF 用：不含真实地图，固定用路线示意图，打印稳定） */
+/** 行程总结章节（导出 PDF 用：不含真实地图，时长分布/花销构成均为纯 CSS 图表，打印稳定） */
 function summaryDocHtml(t) {
   const st = tripStats(t);
   const remain = st.budget - st.exp;
@@ -2522,9 +2475,7 @@ function summaryDocHtml(t) {
     </div>
     <h4 class="doc-lug-title" style="margin-top:14px">🗺️ 路程行程总结</h4>
     ${sumSegChipsHtml(timeV.list)}
-    ${sumTimeBarHtml(timeV)}
-    <h4 class="doc-lug-title" style="margin-top:16px">🖌️ 全程路线图</h4>
-    <div class="sum-diagram">${routeDiagramHtml(t)}</div>
+    ${sumTimeDonutHtml(timeV)}
     <h4 class="doc-lug-title" style="margin-top:16px">💰 花销总结</h4>
     ${donut ? `<div class="sum-donut">${donut}</div>` : '<p class="doc-empty">暂无花销记录</p>'}
   </div>`;
