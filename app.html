@@ -2261,11 +2261,11 @@ function sumSegChipsHtml(list) {
   const chips = list.map(x => `<span class="sum-chip">${emojiOf(x.name)} ${esc(x.name)}<b>${x.count} 段</b></span>`).join('');
   return chips || '<div class="sum-note">还没有路线安排</div>';
 }
-/** 在途时长分布（环形图，与花销构成同款）：总时长=天数×24h；已标注交通按占比展示，未标注/休整/睡眠等全部计入「其他」 */
+/** 在途时长分布（环形图，与花销构成同款）：只统计已标注交通——各交通按时长占在途总时长的比例，未标注时间不参与 */
 function sumTimeDonutHtml(v) {
-  const cats = [...v.list.filter(x => x.min > 0), { name: '其他', min: v.other }].filter(x => x.min > 0);
-  const total = v.totalMin;
-  if (!cats.length) return '<div class="sum-note">没有可统计的在途时长，全部计入「其他」（睡眠/休整等）。</div>';
+  const cats = v.list.filter(x => x.min > 0);
+  const total = cats.reduce((s, x) => s + x.min, 0);
+  if (!total) return '<div class="sum-note">路线未填写起止时间，暂无可统计的交通时长。</div>';
   let acc = 0;
   const stops = cats.map(c => {
     const start = acc / total * 360;
@@ -2278,17 +2278,15 @@ function sumTimeDonutHtml(v) {
   let diff = 100 - ints.reduce((a, b) => a + b, 0);
   const order = pcts.map((p, i) => ({ i, frac: p - Math.floor(p) })).sort((a, b) => b.frac - a.frac);
   for (let k = 0; k < diff; k++) ints[order[k % order.length].i]++;
-  const legend = cats.map((c, i) => {
-    const seg = c.name === '其他' ? '未标注' : ((v.list.find(x => x.name === c.name) || {}).count + ' 段');
-    return `<span class="lg"><i class="dot" style="background:${transColor(c.name)}"></i>${c.name === '其他' ? '🧭' : emojiOf(c.name)} ${esc(c.name)} <b>${c.min ? fmtDur(c.min) : '—'}</b> · ${seg} · ${ints[i]}%</span>`;
-  }).join('');
+  const legend = cats.map((c, i) =>
+    `<span class="lg"><i class="dot" style="background:${transColor(c.name)}"></i>${emojiOf(c.name)} ${esc(c.name)} <b>${fmtDur(c.min)}</b> · ${c.count} 段 · ${ints[i]}%</span>`).join('');
   return `<div class="sum-donut">
       <div class="donut" style="background:conic-gradient(${stops})"><div class="donut-hole"></div></div>
       <div class="donut-side">
         <div class="donut-legend">${legend}</div>
       </div>
     </div>
-    <div class="sum-note" style="margin-top:8px">按总时长 ${fmtDur(v.totalMin)}（${v.totalDays} 天 × 24h）计：已标注交通 ${fmtDur(v.segMin)}，其余计入「其他」（睡眠/休整/未标注）。</div>`;
+    <div class="sum-note" style="margin-top:8px">在途交通总时长 <b>${fmtDur(total)}</b>（未标注时间的部分不参与此统计）。</div>`;
 }
 /** 行程总结面板 HTML（进入时生成；真实地图由 initSummaryMap 异步补画） */
 function summaryPanelHtml(t) {
