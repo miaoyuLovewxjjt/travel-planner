@@ -2358,7 +2358,7 @@ function summaryDocHtml(t) {
  * ================================================================ */
 /** 每日行程 ↔ 行李清单 ↔ 行程总结 三面板切换：各自记住滚动位置，避免切回时跳到页面顶部 */
 let savedScrollDaily = 0, savedScrollCl = 0, savedScrollSummary = 0;
-let dailyDatesCollapsed = false; // 日期列表折叠状态（重渲染后恢复，避免切换状态时自动展开）
+let dailyDatesCollapsed = true;  // 日期列表默认折叠（每次刷新/首次打开即收起；重渲染后保持当前状态）
 function switchDetailView(panel) {
   // 先记住当前可见面板的滚动位置
   if (!$('#cl-panel').classList.contains('hidden')) savedScrollCl = window.scrollY || 0;
