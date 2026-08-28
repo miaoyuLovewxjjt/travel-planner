@@ -1,0 +1,13 @@
+// 根构建脚本：AGP 8.4.2（本地缓存已有，离线可构建）
+// 注意：buildscript 仓库需与旧缓存来源一致（腾讯云/阿里云镜像），否则离线解析不到
+buildscript {
+    repositories {
+        maven { url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.4.2'
+    }
+}

@@ -1,0 +1,28 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.zcode.travelapp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.zcode.travelapp"
+        minSdk 26
+        targetSdk 34
+        versionCode 31
+        versionName "3.1"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// 零外部依赖：全部使用 Android 框架组件（离线可构建）
+dependencies {
+}
