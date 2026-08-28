@@ -39,9 +39,20 @@ textarea{resize:vertical}
 /* 顶栏按钮纯图标（所有设备），文字隐藏；导出/导入入口在 ⚙️ 设置中 */
 #topbar .lbl{display:none}
 #btn-export,#btn-import{display:none}
-/* 顶栏图标按钮尺寸统一（纯图标、无文字） */
-#btn-back,#btn-pdf,#btn-new,#btn-data{padding:8px 12px;font-size:13.5px}
-#topbar .spacer{flex:1}
+/* 顶栏图标按钮尺寸统一（纯图标、无文字）；返回按钮与标题协调：小字号小内边距 */
+#btn-back,#btn-pdf,#btn-new,#btn-data{padding:5px 10px;font-size:12.5px}
+#btn-back .lbl{margin-left:2px}
+#topbar .spacer{flex:1;order:5}
+#topbar #btn-new{display:none}                       /* ＋新建：CSS 隐藏（不动 HTML 结构） */
+#topbar #btn-data{order:0}                            /* 设置 ⚙️ 最左 */
+#topbar #btn-back{order:1}                            /* 返回 ← 次左 */
+#topbar #btn-export{order:2}
+#topbar #btn-import{order:3}
+#topbar #btn-pdf{order:9}                             /* 导出 PDF 贴最右 */
+/* 顶栏按钮跟随行程主题色：图标/文字用主题色、边框用浅主题色，悬停加深 */
+#topbar .btn-ghost{color:var(--accent);border-color:var(--accent-border);background:#fff}
+#topbar .btn-ghost:hover{border-color:var(--accent);background:var(--accent-soft)}
+#topbar .btn-ghost .lbl{color:var(--accent)}
 #save-state{font-size:12px;color:var(--sub);margin-right:6px}
 .btn{
   display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;
@@ -102,9 +113,10 @@ textarea{resize:vertical}
 .empty-state p{font-size:15px}
 
 /* ============ 详情页 ============ */
-#view-detail{max-width:1180px;margin:0 auto;padding:0 22px 60px}
+#view-detail{max-width:1180px;margin:0 auto;padding:0 22px 60px;position:relative}
+/* 详情页标题：与页面底色完全一致（无背景无边框无吸顶） */
 .detail-head{display:flex;align-items:center;gap:14px;padding:18px 0 4px;flex-wrap:wrap}
-.detail-head h1{font-size:24px;font-weight:800;display:flex;align-items:center;gap:10px}
+.detail-head h1{font-size:24px;font-weight:800;display:flex;align-items:center;gap:10px;color:var(--ink)}
 .detail-head .sub{color:var(--sub);font-size:13px;margin-top:2px}
 .stat-strip{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0 6px}
 .stat-card{
@@ -122,8 +134,13 @@ textarea{resize:vertical}
 .stat-long .sl-div{width:1px;height:30px;background:var(--line)}
 .detail-body{display:grid;grid-template-columns:210px 1fr;gap:26px;margin-top:20px;align-items:start}
 .day-nav{position:sticky;top:76px;display:flex;flex-direction:column;gap:8px}
-/* 二级标题（左侧导航）：行李清单 / 每日行程；文字黑色，金额（日期旁￥）保持主题色 */
-.day-nav .nav-title{font-size:15px;font-weight:800;color:var(--ink);margin:8px 0 4px;padding-left:4px}
+/* 二级标题（左侧导航）：行李清单 / 每日行程 / 行程总结；三行行高一致（箭头不撑高），间距统一 */
+.day-nav .nav-title{font-size:15px;font-weight:800;color:var(--ink);margin:8px 0 4px;padding-left:4px;
+  display:flex;align-items:center;min-height:20px}
+/* 行程总结行：day-nav 的 flex gap 已提供间距，去掉叠加的 margin-top，与上方标题间距一致 */
+.day-nav > .nav-title{margin-top:0}
+/* 去掉标题容器内最后一行（每日行程）的底部 margin：避免容器把 4px 吃进高度，导致与总结行间距偏大 */
+.nav-titles .nav-title:last-child{margin-bottom:0}
 .day-nav .nav-link{cursor:pointer;border-radius:8px;padding:3px 4px}
 .day-nav .nav-link:hover{background:transparent}
 .day-nav button{
@@ -139,9 +156,9 @@ textarea{resize:vertical}
 .day-nav button.empty{opacity:.45}
 .day-nav .nav-dates.hidden{display:none}
 /* 折叠箭头：主题色钝角箭头（约110°张角）；展开朝上 ▲（收起列表）、收起朝下 ▼（展开列表），180°翻转不变形；与标题文字垂直居中 */
-.nav-caret{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:5px;flex-shrink:0;
+.nav-caret{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:4px;flex-shrink:0;
   color:var(--accent);vertical-align:middle;transition:transform .3s cubic-bezier(.4,1.4,.4,1)}
-.nav-caret svg{display:block}
+.nav-caret svg{display:block;width:14px;height:14px}
 .day-nav .nav-title.collapsed .nav-caret{transform:rotate(180deg)}
 .days-col{display:flex;flex-direction:column;gap:20px}
 
@@ -629,6 +646,7 @@ a.toc-main:hover .toc-name{color:var(--accent)}
 .toc-name{font-weight:800}
 .doc-day-no{background:linear-gradient(160deg,var(--accent),var(--accent2));color:#fff;font-size:12px;font-weight:900;padding:4px 12px;border-radius:999px;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 .doc-day-wk{color:var(--sub);font-weight:600;font-size:13px}
+.doc-day-wx{color:#4a5d78;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700}
 .doc-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0 12px}
 .doc-table th{background:#f6f6f9;text-align:left;padding:7px 10px;font-size:11px;color:var(--sub);font-weight:800;letter-spacing:.5px}
 .doc-table td{padding:7px 10px;border-bottom:1px solid #f0f0f4;vertical-align:top}
@@ -664,7 +682,7 @@ body.pad .btn { padding: 10px 18px; }
 body.pad .btn-small { padding: 8px 14px; }
 body.pad #btn-export, body.pad #btn-import { display: none; }              /* 导出/导入在 ⚙️ 面板 */
 body.pad #btn-back .lbl, body.pad #btn-pdf .lbl, body.pad #btn-new .lbl { display: none; } /* 顶栏纯图标 */
-body.pad #btn-back, body.pad #btn-pdf, body.pad #btn-new, body.pad #btn-data { padding: 10px 12px; }
+body.pad #btn-back, body.pad #btn-pdf, body.pad #btn-new, body.pad #btn-data { padding: 7px 10px; }
 body.pad #view-list { max-width: 1200px; padding: 0 24px; }
 body.pad .trip-cover { height: 130px; }
 body.pad .stat-card { min-width: 130px; padding: 12px 20px; }
@@ -808,6 +826,18 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .pk-cat{font-size:12px;color:var(--sub);background:#f0f0f5;border-radius:8px;padding:2px 8px;white-space:nowrap;flex-shrink:0}
 .pk-name{font-weight:600;font-size:14px;min-width:0;flex:1}
 .pk-imp{font-size:11px;border-radius:99px;padding:1px 8px;white-space:nowrap;flex-shrink:0}
+.pk-bag-sel{
+  -webkit-appearance:none;appearance:none;
+  font-size:12px;color:#4a5d78;background:#f0f6ff;
+  border:1px solid #d8e6fa;border-radius:99px;
+  padding:3px 22px 3px 10px;flex-shrink:0;font-family:inherit;max-width:140px;
+  line-height:1.4;height:24px;cursor:pointer;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%234a5d78'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  box-shadow:none;transition:none;
+}
+.pk-bag-sel:focus{outline:none;border-color:var(--accent)}
+.pk-bag-sel option{color:#333;background:#fff}
 .pk-imp[data-imp="必需品"]{background:#ffe9e9;color:#c0392b}
 .pk-imp[data-imp="非必需"]{background:#eef2f7;color:#5b6b7f}
 .pk-imp[data-imp="待定"]{background:#f4f1e8;color:#8a7a45}
@@ -912,7 +942,8 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
   <button class="btn btn-ghost btn-small" id="btn-export" title="导出数据（备份/迁移）">📤 <span class="lbl">导出</span></button>
   <button class="btn btn-ghost btn-small" id="btn-import" title="导入数据">📥 <span class="lbl">导入</span></button>
   <button class="btn btn-ghost" id="btn-data" title="设置">⚙️</button>
-  <button class="btn btn-ghost" id="btn-back" hidden>← <span class="lbl">返回列表</span></button>
+  <button class="btn btn-ghost" id="btn-back" hidden title="回到主页">🏠 <span class="lbl">主页</span></button>
+  <span class="spacer"></span>
   <button class="btn btn-ghost" id="btn-pdf" hidden>📄<span class="lbl"> 生成 PDF 文档</span></button>
   <button class="btn btn-primary" id="btn-new">＋<span class="lbl"> 新建出行计划</span></button>
 </header>
@@ -1368,6 +1399,7 @@ function renderDetail(id) {
   const t = getTrip(id);
   if (!t) { location.hash = '#/'; return; }
   applyTripTheme($('#view-detail'), t.color); // 行程独立配色：详情页整体跟随该行程颜色
+  applyTripTheme(document.body, t.color);      // 全局（顶栏返回/PDF/新建等按钮）也跟随行程主题色
   $('#view-detail').classList.toggle('wall-gradient', t.wall === 'gradient'); // 行程级渐变壁纸（跟随行程主题色）
   $('#view-list').classList.add('hidden');
   $('#view-detail').classList.remove('hidden');
@@ -1411,7 +1443,7 @@ function renderDetail(id) {
 
   $('#day-nav').innerHTML = `<div class="nav-titles">
   <div class="nav-title nav-link" data-nav="checklist" title="行李清单">📋 行李清单</div>
-  <div class="nav-title nav-link" data-nav="daily" title="展开/折叠日期列表">📅 每日行程 <span class="nav-caret"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6 -4 6 4"/></svg></span></div>
+  <div class="nav-title nav-link" data-nav="daily" title="展开/折叠日期列表">📅 每日行程 <span class="nav-caret"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></div>
   </div><div class="nav-dates" id="nav-dates">` + navDates.map(d => {
     const has = !!t.days[d];
     const active = has ? 'active' : 'empty';
@@ -1609,7 +1641,10 @@ function checklistPanelHtml(t) {
         </div>
         <div class="ef-line">
           <select data-path="__pk.${it.id}.importance">${PACK_IMPORTANCE.map(v => `<option value="${v}" ${it.importance === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
-          <select data-path="__pk.${it.id}.status">${PACK_STATUS.map(v => `<option value="${v}" ${it.status === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          <select data-path="__pk.${it.id}.bag" title="放入哪个行李袋（未放入=未携带）">
+            <option value="">未携带</option>
+            ${(t.luggageBags || []).map(b => `<option value="${esc(b.id)}" ${it.bag === b.id ? 'selected' : ''}>${esc(b.icon)} ${esc(b.name)}</option>`).join('')}
+          </select>
           <input data-path="__pk.${it.id}.notes" maxlength="80" placeholder="备注（可选）" value="${esc(it.notes || '')}">
           <span class="ef-actions">
             <button class="done-btn" data-action="pk-done" data-id="${it.id}" title="确认保存">✓</button>
@@ -1625,8 +1660,7 @@ function checklistPanelHtml(t) {
       <span class="pk-cat"><i class="ic">${packCatIcon(c)}</i>${esc(c)}</span>
       <span class="pk-name">${esc(it.name)}</span>
       <span class="pk-imp" data-imp="${it.importance}">${it.importance}</span>
-      <span class="pk-status ${it.status === '已携带' ? 'on' : ''}" data-action="pk-toggle-status" data-id="${it.id}" title="点击切换 已携带/未携带">${it.status === '已携带' ? '☑ 已携带' : '☐ 未携带'}</span>
-      ${bag ? `<span class="pk-bag-tag">${bag.icon} ${esc(bag.name)}</span>` : ''}
+      <span class="pk-bag-tag" title="在「编辑」中可修改放入的行李袋">${bag ? `${esc(bag.icon)} ${esc(bag.name)}` : '未携带'}</span>
       ${it.notes ? `<span class="pk-note">💬 ${esc(it.notes)}</span>` : ''}
       <span class="pk-actions">
         <button class="icon-btn" data-action="pk-edit" data-id="${it.id}" title="编辑">${pencilIcon()}</button>
@@ -2308,7 +2342,6 @@ function summaryPanelHtml(t) {
         ${stat(fmtMoney(st.exp), '总花费')}
         ${stat(st.budget ? fmtMoney(st.budget) : '—', '总预算')}
         ${stat(st.budget ? fmtMoney(remain) : '—', '预算结余', '', remain < 0)}
-        ${st.budget > 0 ? stat(budgetPct + '%', '预算使用', `<div class="bar"><i style="width:${budgetPct}%"></i></div>`) : ''}
       </div>
       <div class="block-title" style="margin:14px 0 8px"><span class="tag">🧾</span>消费构成</div>
       ${donut ? `<div class="sum-donut">${donut}</div><div class="sum-cat-detail" hidden></div>`
@@ -2441,7 +2474,7 @@ $('#view-detail').addEventListener('click', async e => {
       if (cancelEdit(it)) { t.packing.splice(i, 1); t.packingOrder = (t.packingOrder || []).filter(x => x !== it.id); }
     } else if (act === 'pk-edit') { editSnap(it); it.draft = true; }
     else if (act === 'pk-del') { t.packing.splice(i, 1); t.packingOrder = (t.packingOrder || []).filter(x => x !== it.id); }
-    else if (act === 'pk-toggle-status') { it.status = it.status === '已携带' ? '未携带' : '已携带'; }
+    // 袋选择已收进编辑行（pk-edit 内 data-path=...bag），行内袋名是可点击只读标签（进入编辑），无下拉闪烁问题
     pkSaveAndRender(t);
     return;
   }
@@ -2778,13 +2811,20 @@ $('#view-detail').addEventListener('input', e => {
 $('#cl-panel').addEventListener('change', e => {
   const sel = e.target.closest('select[data-path]');
   if (!sel) return;
-  const m = (sel.dataset.path || '').match(/^__pk\.([^.]+)\.category$/);
+  const m = (sel.dataset.path || '').match(/^__pk\.([^.]+)\.(category|bag)$/);
   if (!m) return;
   const t = getTrip(currentTripId);
   if (!t) return;
   ensurePacking(t);
   const it = t.packing.find(p => p.id === m[1]);
   if (!it) return;
+  if (m[2] === 'bag') {
+    // 袋选择即状态：放入袋=已携带，不放入=未携带（与手机版一致，无独立状态字段）
+    it.bag = sel.value || null;
+    it.status = sel.value ? '已携带' : '未携带';
+    scheduleSave();
+    return;
+  }
   const customInp = sel.closest('.pk-edit') ? sel.closest('.pk-edit').querySelector('[data-custom-cat]') : null;
   if (sel.value === '__custom__') {
     it.category = '';
@@ -3618,7 +3658,7 @@ function buildDoc(t) {
       + tails.reduce((a, tl) => a + tl.dur, 0);
 
     return `<section class="doc-day" id="doc-day-${d}">
-      <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span></h2>
+      <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span>${day.weather && day.weather.cond ? `<span class="doc-day-wx">${wxEmoji(day.weather.cond)} ${esc(day.weather.cond)}${num(day.weather.low) != null ? ' ' + Math.round(num(day.weather.low)) + '°' : ''}~${num(day.weather.high) != null ? Math.round(num(day.weather.high)) + '°' : ''}</span>` : ''}</h2>
       ${day.notes ? `<div class="doc-day-note">📝 ${escNL(day.notes)}</div>` : ''}
       ${remRows ? `<table class="doc-table rem"><thead><tr><th>提醒时间</th><th>提醒内容</th></tr></thead><tbody>${remRows}</tbody></table>` : ''}
       ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次</th><th>乘客</th><th>座位</th><th>价格</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
