@@ -73,7 +73,7 @@ public class TripListActivity extends Activity {
         ScrollView sv = new ScrollView(this);
         sv.setFillViewport(true);
         listBox = Util.vBox(this);
-        listBox.setPadding(Util.dp(this, 16), Util.dp(this, 14), Util.dp(this, 16), Util.dp(this, 30));
+        listBox.setPadding(Util.dp(this, 16) + Util.hPad(this), Util.dp(this, 14), Util.dp(this, 16) + Util.hPad(this), Util.dp(this, 30)); // 平板限宽居中
         emptyTip = Util.text(this, "", 14, Util.MUTE);
         emptyTip.setGravity(Gravity.CENTER);
         emptyTip.setPadding(0, Util.dp(this, 70), 0, 0);

@@ -125,10 +125,10 @@ public class TripDetailActivity extends Activity {
         dayScroll = new ScrollView(this);
         dayScroll.setFillViewport(true);
         dayBox = Util.vBox(this);
-        dayBox.setPadding(Util.dp(this, 16), Util.dp(this, 12), Util.dp(this, 16), Util.dp(this, 30));
+        dayBox.setPadding(Util.dp(this, 16) + Util.hPad(this), Util.dp(this, 12), Util.dp(this, 16) + Util.hPad(this), Util.dp(this, 30)); // 平板限宽居中
         headerBox = Util.vBox(this);
         LinearLayout.LayoutParams chp = new LinearLayout.LayoutParams(-1, -2);
-        chp.setMargins(Util.dp(this, 16), Util.dp(this, 8), Util.dp(this, 16), 0); // 概览卡与顶栏之间留间距
+        chp.setMargins(Util.dp(this, 16) + Util.hPad(this), Util.dp(this, 8), Util.dp(this, 16) + Util.hPad(this), 0); // 概览卡与顶栏之间留间距 + 平板限宽
         headerBox.setLayoutParams(chp);
         LinearLayout content = Util.vBox(this);
         content.addView(headerBox);

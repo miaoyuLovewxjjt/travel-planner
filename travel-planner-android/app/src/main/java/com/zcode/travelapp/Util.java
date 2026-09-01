@@ -59,6 +59,22 @@ final class Util {
 
     private Util() {}
 
+    /** 平板适配（sw>=600dp 为平板，官方标准）：判定与 UI 放大系数 */
+    static boolean isTablet(Context c) {
+        return c.getResources().getConfiguration().smallestScreenWidthDp >= 600;
+    }
+
+    /** 平板 UI 放大系数：手机 1.0、平板 1.25（字号/图标/圆角/间距整体放大） */
+    static float k(Context c) { return isTablet(c) ? 1.25f : 1f; }
+
+    /** 平板限宽：内容最大 960dp 并水平居中（手机返回 0=不限制） */
+    static int hPad(Context c) {
+        if (!isTablet(c)) return 0;
+        int sw = c.getResources().getDisplayMetrics().widthPixels;
+        int maxW = dp(c, 960);
+        return Math.max(0, (sw - maxW) / 2);
+    }
+
     static int dp(Context c, float v) { return (int) (c.getResources().getDisplayMetrics().density * v); }
     static int sp(Context c, float v) { return (int) (c.getResources().getDisplayMetrics().scaledDensity * v); }
 
@@ -208,7 +224,7 @@ final class Util {
     static GradientDrawable cardBg(int color, float radiusDp, Context c) {
         GradientDrawable g = new GradientDrawable();
         g.setColor(color);
-        g.setCornerRadius(dp(c, radiusDp));
+        g.setCornerRadius(dp(c, radiusDp * k(c)));
         return g;
     }
 
@@ -263,7 +279,7 @@ final class Util {
     /** 主按钮：主题色胶囊白字加粗 */
     static void stylePrimary(Button b, int accent, Context c) {
         b.setTextColor(0xFFFFFFFF);
-        b.setTextSize(13);
+        b.setTextSize(13 * k(c));
         b.setAllCaps(false);
         b.setTypeface(Typeface.DEFAULT_BOLD);
         GradientDrawable g = new GradientDrawable();
@@ -279,7 +295,7 @@ final class Util {
     /** 次要按钮：浅底圆角胶囊 */
     static void styleSoft(Button b, int textColor, int bgColor, Context c) {
         b.setTextColor(textColor);
-        b.setTextSize(13);
+        b.setTextSize(13 * k(c));
         b.setAllCaps(false);
         b.setTypeface(Typeface.DEFAULT_BOLD);
         GradientDrawable g = new GradientDrawable();
@@ -295,7 +311,7 @@ final class Util {
     /** 文字按钮（顶栏取消/保存） */
     static void styleTextButton(Button b, int color, Context c) {
         b.setTextColor(color);
-        b.setTextSize(14);
+        b.setTextSize(14 * k(c));
         b.setAllCaps(false);
         b.setBackgroundColor(0x00000000);
         b.setMinWidth(0);
@@ -306,7 +322,7 @@ final class Util {
     /** 虚线"添加"按钮（全宽，网页版风格） */
     static void styleDashedAdd(Button b, int accent, Context c) {
         b.setTextColor(accent);
-        b.setTextSize(14);
+        b.setTextSize(14 * k(c));
         b.setAllCaps(false);
         b.setTypeface(Typeface.DEFAULT_BOLD);
         GradientDrawable g = new GradientDrawable();
@@ -322,7 +338,7 @@ final class Util {
     static TextView sectionTitle(Context c, String s, int accent) {
         TextView t = new TextView(c);
         t.setText(s);
-        t.setTextSize(15);
+        t.setTextSize(15 * k(c));
         t.setTextColor(INK);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         return t;
@@ -332,12 +348,13 @@ final class Util {
     static TextView roundBadge(Context c, String emoji, int bgColor, int radiusDp) {
         TextView t = new TextView(c);
         t.setText(emoji);
-        t.setTextSize(14);
+        t.setTextSize(14 * k(c));
         t.setIncludeFontPadding(false); // emoji 垂直居中（部分 emoji 字体 metrics 偏下，去掉字体内边距后居中）
         t.setGravity(Gravity.CENTER);
-        t.setBackground(chipBg(bgColor, radiusDp, c));
-        t.setMinWidth(dp(c, radiusDp * 2));
-        t.setMinHeight(dp(c, radiusDp * 2));
+        float kk = k(c);
+        t.setBackground(chipBg(bgColor, Math.round(radiusDp * kk), c));
+        t.setMinWidth(dp(c, radiusDp * 2 * kk));
+        t.setMinHeight(dp(c, radiusDp * 2 * kk));
         return t;
     }
 
@@ -345,7 +362,7 @@ final class Util {
     static TextView timeBadge(Context c, String time, int accent) {
         TextView t = new TextView(c);
         t.setText(time);
-        t.setTextSize(12.5f);
+        t.setTextSize(12.5f * k(c));
         t.setTextColor(accent);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         t.setBackground(chipBg(accentSoft(accent, c), 8, c));
@@ -378,7 +395,7 @@ final class Util {
     private static Button iconBtn(Context c, String glyph, int color, String desc) {
         Button b = new Button(c);
         b.setText(glyph);
-        b.setTextSize(14);
+        b.setTextSize(14 * k(c));
         b.setTypeface(Typeface.DEFAULT);
         b.setTextColor(color);
         b.setGravity(Gravity.CENTER);
@@ -398,7 +415,7 @@ final class Util {
     static Button iconCircle(Context c, String glyph, int color, int bgColor, int sizeDp) {
         Button b = new Button(c);
         b.setText(glyph);
-        b.setTextSize(13);
+        b.setTextSize(13 * k(c));
         b.setTextColor(color);
         b.setGravity(Gravity.CENTER);
         b.setBackground(chipBg(bgColor, sizeDp / 2f, c));
@@ -416,10 +433,11 @@ final class Util {
     static TextView chip(Context c, String s, int textColor, int bgColor) {
         TextView t = new TextView(c);
         t.setText(s);
-        t.setTextSize(12);
+        t.setTextSize(12 * k(c));
         t.setTextColor(textColor);
-        t.setBackground(chipBg(bgColor, 9, c));
-        t.setPadding(dp(c, 8), dp(c, 3), dp(c, 8), dp(c, 3));
+        float kk = k(c);
+        t.setBackground(chipBg(bgColor, Math.round(9 * kk), c));
+        t.setPadding(dp(c, 8 * kk), dp(c, 3 * kk), dp(c, 8 * kk), dp(c, 3 * kk));
         return t;
     }
 
@@ -443,7 +461,7 @@ final class Util {
     static TextView label(Context c, String text, int color) {
         TextView t = new TextView(c);
         t.setText(text);
-        t.setTextSize(12);
+        t.setTextSize(12 * k(c));
         t.setTextColor(color);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         t.setPadding(0, 0, 0, dp(c, 2));
@@ -454,7 +472,7 @@ final class Util {
     static TextView text(Context c, String s, float sizeSp, int color) {
         TextView t = new TextView(c);
         t.setText(s);
-        t.setTextSize(sizeSp);
+        t.setTextSize(sizeSp * k(c));
         t.setTextColor(color);
         return t;
     }

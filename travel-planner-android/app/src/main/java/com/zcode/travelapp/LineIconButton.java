@@ -176,7 +176,7 @@ public class LineIconButton extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int s = (int) dp(sizeDp); // 尺寸由 sized() 指定的 sizeDp 决定（顶栏 36dp / 行内 28dp）
+        int s = (int) dp(sizeDp * Util.k(getContext())); // 平板放大：尺寸由 sized() 指定值 × 平板系数
         setMeasuredDimension(s, s);
     }
 
