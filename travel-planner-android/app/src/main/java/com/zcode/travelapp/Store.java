@@ -58,11 +58,121 @@ final class Store {
                 trips = nt;
                 save(c, trips);
             }
+            // 日期归一化：手工编辑/外部导入可能带来 "2026-9-30" 这类非补零值，会让天序号、周末、
+            // PDF 全部算错 → 补零并写回（与网页版 loadData 的 normTrips 同源，自愈一次）
+            boolean dateFixed = false;
+            for (int i = 0; i < trips.length(); i++) {
+                JSONObject t = trips.optJSONObject(i);
+                if (t == null) continue;
+                String s = t.optString("startDate"), e = t.optString("endDate");
+                String ns = Util.normDate(s), ne = Util.normDate(e);
+                if (!ns.equals(s)) { t.put("startDate", ns); dateFixed = true; }
+                if (!ne.equals(e)) { t.put("endDate", ne); dateFixed = true; }
+            }
+            if (dateFixed) save(c, trips);
+            // 名字一次性自愈：把「a、b」这种一条塞了多人的 出行人/乘客 拆开（与网页版 splitTripNames 同源）
+            // 单独 try 包住：万一出问题也不能让整次 load 失败把行程读成空
+            boolean nameFixed = false;
+            try { nameFixed = splitNamesInTrips(trips); }
+            catch (Exception ex) { Log.e(TAG, "split names failed", ex); }
+            if (nameFixed) save(c, trips);
             return trips;
         } catch (Exception e) {
             Log.e(TAG, "load trips failed", e);
             return new JSONArray();
         }
+    }
+
+    // ===================== 名字一次性拆分（历史数据自愈） =====================
+
+    /** 名字分隔符：顿号/半角逗号/全角逗号一视同仁（与网页版 splitNames 同口径）。
+     *  显示时乘客是用「、」拼的，从显示里复制过来粘进输入框也要能正确拆开 */
+    static String[] splitNames(String v) {
+        if (v == null) return new String[0];
+        String[] parts = v.trim().split("[、,，]");
+        int n = 0;
+        for (String p : parts) if (!p.trim().isEmpty()) n++;
+        String[] out = new String[n];
+        int i = 0;
+        for (String p : parts) { String t = p.trim(); if (!t.isEmpty()) out[i++] = t; }
+        return out;
+    }
+
+    /** 字符串数组字段（travelers）按分隔符拆开 + 去重保序；只有确实含分隔符才动 */
+    private static boolean fixNameArray(JSONObject obj, String key) throws Exception {
+        JSONArray arr = obj.optJSONArray(key);
+        if (arr == null || arr.length() == 0) return false;
+        boolean need = false;
+        for (int i = 0; i < arr.length(); i++) {
+            if (splitNames(arr.optString(i)).length > 1) { need = true; break; }
+        }
+        if (!need) return false;                       // 没分隔符 → 一个字节都不动
+        java.util.LinkedHashSet<String> out = new java.util.LinkedHashSet<>();
+        for (int i = 0; i < arr.length(); i++) {
+            for (String s : splitNames(arr.optString(i))) out.add(s);
+        }
+        JSONArray na = new JSONArray();
+        for (String s : out) na.put(s);
+        obj.put(key, na);
+        return true;
+    }
+
+    private static String paxName(Object o) {
+        if (o instanceof JSONObject) return ((JSONObject) o).optString("name");
+        return o == null ? "" : String.valueOf(o);
+    }
+
+    private static String paxSeat(Object o) {
+        return o instanceof JSONObject ? ((JSONObject) o).optString("seat") : "";
+    }
+
+    /** 一次性自愈：把 出行人/乘客 里含分隔符的名字拆开。
+     *  乘客带座位时座位归第一个拆出的名字（不丢信息）；返回是否有改动 */
+    private static boolean splitNamesInTrips(JSONArray trips) throws Exception {
+        boolean changed = false;
+        for (int i = 0; i < trips.length(); i++) {
+            JSONObject t = trips.optJSONObject(i);
+            if (t == null) continue;
+            if (fixNameArray(t, "travelers")) changed = true;
+            JSONObject days = t.optJSONObject("days");
+            if (days == null) continue;
+            java.util.Iterator<String> it = days.keys();
+            while (it.hasNext()) {
+                JSONObject day = days.optJSONObject(it.next());
+                if (day == null) continue;
+                if (fixNameArray(day, "travelers")) changed = true;
+                JSONArray segs = day.optJSONArray("segments");
+                if (segs == null) continue;
+                for (int j = 0; j < segs.length(); j++) {
+                    JSONObject seg = segs.optJSONObject(j);
+                    if (seg == null) continue;
+                    JSONArray ps = seg.optJSONArray("passengers");
+                    if (ps == null || ps.length() == 0) continue;
+                    boolean need = false;
+                    for (int k = 0; k < ps.length(); k++) {
+                        if (splitNames(paxName(ps.opt(k))).length > 1) { need = true; break; }
+                    }
+                    if (!need) continue;
+                    JSONArray out = new JSONArray();
+                    java.util.LinkedHashSet<String> seen = new java.util.LinkedHashSet<>();
+                    for (int k = 0; k < ps.length(); k++) {
+                        Object o = ps.opt(k);
+                        String seat = paxSeat(o);
+                        String[] parts = splitNames(paxName(o));
+                        for (int q = 0; q < parts.length; q++) {
+                            if (!seen.add(parts[q])) continue;
+                            JSONObject np = new JSONObject();
+                            np.put("name", parts[q]);
+                            np.put("seat", q == 0 ? seat : "");
+                            out.put(np);
+                        }
+                    }
+                    seg.put("passengers", out);
+                    changed = true;
+                }
+            }
+        }
+        return changed;
     }
 
     /** 保存 { "trips": [...] }，原子写入（先写临时文件再改名） */

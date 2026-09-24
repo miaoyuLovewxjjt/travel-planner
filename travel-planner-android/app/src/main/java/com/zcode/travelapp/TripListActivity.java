@@ -34,6 +34,7 @@ public class TripListActivity extends Activity {
     private JSONArray trips;
     private LinearLayout listBox;
     private TextView emptyTip;
+    private ScrollView listSv;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -70,17 +71,28 @@ public class TripListActivity extends Activity {
 
 
         // ---- 列表区 ----
-        ScrollView sv = new ScrollView(this);
-        sv.setFillViewport(true);
+        listSv = new ScrollView(this);
+        listSv.setFillViewport(true);
         listBox = Util.vBox(this);
         listBox.setPadding(Util.dp(this, 16) + Util.hPad(this), Util.dp(this, 14), Util.dp(this, 16) + Util.hPad(this), Util.dp(this, 30)); // 平板限宽居中
         emptyTip = Util.text(this, "", 14, Util.MUTE);
         emptyTip.setGravity(Gravity.CENTER);
         emptyTip.setPadding(0, Util.dp(this, 70), 0, 0);
-        sv.addView(listBox);
-        root.addView(sv, new LinearLayout.LayoutParams(-1, -1));
-
+        listSv.addView(listBox);
+        root.addView(listSv, new LinearLayout.LayoutParams(-1, -1));
         render();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 详情页是普通 startActivity 打开的，改完账目/路线返回时不会走 onActivityResult，
+        // 而本页只在 onCreate 读过一次盘 → 卡片上的花费/结余会停在旧值。
+        // 与详情页同款处理（TripDetailActivity.onActivityResult）：回前台就强制从磁盘重载再渲染。
+        trips = Store.load(this);
+        int keepY = listSv.getScrollY(); // 重渲染会重置滚动位置，保住用户的浏览位置
+        render();
+        listSv.scrollTo(0, keepY);
     }
 
     private void render() {

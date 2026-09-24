@@ -56,6 +56,18 @@ final class PdfExport {
         }
     }
 
+    /** 天气文案：'🌧️ 雨 13°~22°'；缺一侧时 '🌧️ 雨 13°' / '🌧️ 雨 ~22°'；无天气返回空串。
+     *  与 TripDetailActivity.wxText / 网页版 wxText 同款。注意用 isNull 判缺失——optInt 对缺失返回 0 */
+    private static String wxText(JSONObject w) {
+        if (w == null || w.optString("cond").isEmpty()) return "";
+        Integer lo = w.isNull("low") ? null : w.optInt("low");
+        Integer hi = w.isNull("high") ? null : w.optInt("high");
+        String temps = lo != null && hi != null ? " " + lo + "°~" + hi + "°"
+                : lo != null ? " " + lo + "°"
+                : hi != null ? " ~" + hi + "°" : "";
+        return wxEmoji(w.optString("cond")) + " " + w.optString("cond") + temps;
+    }
+
     /** PDF 内容预览（导出前展示）：与 build() 同一数据源，不省略任何文字，逐章节生成文本行 */
     static List<String> preview(JSONObject trip) {
         List<String> ls = new ArrayList<>();
@@ -80,17 +92,11 @@ final class PdfExport {
             JSONObject day = trip.optJSONObject("days").optJSONObject(d);
             if (day == null) continue;
             StringBuilder title = new StringBuilder("Day " + (i + 1) + "  " + Util.displayDate(d));
+            String place = day.optString("place").trim(); // 当天主要游玩地点（在日期后、天气前）
+            if (!place.isEmpty()) title.append("  📍 ").append(place);
             JSONObject wx = day.optJSONObject("weather");
-            if (wx != null && !wx.optString("cond").isEmpty()) {
-                title.append("  ").append(wxEmoji(wx.optString("cond"))).append(" ").append(wx.optString("cond"));
-                boolean hasLow = !wx.isNull("low"), hasHigh = !wx.isNull("high");
-                if (hasLow || hasHigh) {
-                    if (hasLow) title.append("  ").append(wx.optInt("low"));
-                    title.append("°~");
-                    if (hasHigh) title.append(wx.optInt("high"));
-                    title.append("°");
-                }
-            }
+            String wxs = wxText(wx);
+            if (!wxs.isEmpty()) title.append("  ").append(wxs);
             ls.add(title.toString());
             String notes = day.optString("notes");
             if (!notes.isEmpty()) ls.add("  📝 备注 " + notes);
@@ -165,13 +171,48 @@ final class PdfExport {
             ls.add("");
         }
 
-        // 行程总结
+        // 行程总结（与 build() 的章节保持一致：概览 → 天气一览 → 交通明细 → 花销明细）
         ls.add("[📊 行程总结]");
         double spent = Util.totalSpent(trip);
         double budget = trip.optDouble("budget", 0);
         ls.add("  💰 总花费 ¥" + Util.fmtMoney(spent)
                 + (budget > 0 ? " ／ 总预算 ¥" + Util.fmtMoney(budget)
                 + " ／ 结余 ¥" + Util.fmtMoney(budget - spent) : ""));
+        ls.add("  ── 🌤️ 天气一览 ──");
+        for (String d : days) {
+            JSONObject day = trip.optJSONObject("days").optJSONObject(d);
+            String place = day != null ? day.optString("place").trim() : "";
+            String wx = day != null ? wxText(day.optJSONObject("weather")) : "";
+            ls.add("  " + Util.displayDate(d) + "  ·  " + (place.isEmpty() ? "—" : place)
+                    + "  ·  " + (wx.isEmpty() ? "—" : wx));
+        }
+        ls.add("  ── 🧭 交通方式明细 ──");
+        {
+            boolean any = false;
+            for (Map.Entry<String, int[]> en : transportStats(trip).entrySet()) {
+                Util.DetailList dl = Util.transDetailRows(trip, en.getKey());
+                if (dl.rows.isEmpty()) continue;
+                any = true;
+                ls.add("  " + Util.transEmoji(en.getKey()) + " " + en.getKey() + " · 共 " + dl.size() + " 段"
+                        + (dl.total > 0 ? " · 全程 " + Util.fmtMin(dl.total) : ""));
+                for (String[] r : dl.rows) ls.add("     " + r[0] + "  " + r[2] + "  " + r[1]
+                        + (r[3].isEmpty() ? "" : "  " + r[3]));
+            }
+            if (!any) ls.add("  （还没有路线安排）");
+        }
+        ls.add("  ── 🧾 花销明细 ──");
+        {
+            boolean any = false;
+            for (Map.Entry<String, Double> en : categorySum(trip).entrySet()) {
+                Util.DetailList dl = Util.catDetailRows(trip, en.getKey());
+                if (dl.rows.isEmpty()) continue;
+                any = true;
+                ls.add("  " + Util.catEmoji(en.getKey()) + " " + en.getKey() + " · 共 " + dl.size() + " 笔"
+                        + " · 小计 ¥" + Util.fmtMoney(dl.total));
+                for (String[] r : dl.rows) ls.add("     " + r[0] + "  " + r[1] + r[3] + "  " + r[2]);
+            }
+            if (!any) ls.add("  （暂无花销明细）");
+        }
         ls.add("");
         return ls;
     }
@@ -229,32 +270,88 @@ final class PdfExport {
         ctx.text("预算使用：" + budgetText(spentAll, budget), BODY, SUB);
         ctx.gap(4);
 
+        // 天气一览（与屏幕总结页同位置：紧跟概览）。表格交给 drawTable 自身分页
+        ctx.sectionLabel("🌤️ 天气一览", accent);
+        {
+            List<String[]> wxRows = new ArrayList<>();
+            for (String d : days) {
+                JSONObject day = trip.optJSONObject("days").optJSONObject(d);
+                String place = day != null ? day.optString("place").trim() : "";
+                String wx = day != null ? wxText(day.optJSONObject("weather")) : "";
+                wxRows.add(new String[]{Util.displayDate(d),
+                        place.isEmpty() ? "—" : place,
+                        wx.isEmpty() ? "—" : wx});
+            }
+            if (wxRows.isEmpty()) ctx.text("还没有每日行程", BODY, MUTE2);
+            else ctx.drawTable(new int[]{130, 190, 190}, new String[]{"日期", "地点", "天气"}, wxRows,
+                    new boolean[]{false, false, false});
+        }
+        ctx.gap(4);
+
         ctx.sectionLabel("交通汇总", accent);
         Map<String, int[]> stats = transportStats(trip);
         long totalMin = 0;
         for (int[] v : stats.values()) totalMin += v[1];
-        long tripMin = (long) days.size() * 1440;
         List<String[]> sumRows = new ArrayList<>();
         for (Map.Entry<String, int[]> en : stats.entrySet()) {
             int[] v = en.getValue();
+            // 占比分母 = 各交通时长之和（不再掺「全程 天数×24h」，那个数没参考价值，也与网页版同口径）
             String pct = totalMin > 0 ? String.format("%.0f%%", v[1] * 100.0 / totalMin) : "—";
             sumRows.add(new String[]{Util.transEmoji(en.getKey()) + " " + en.getKey(),
-                    String.valueOf(v[0]), v[1] > 0 ? fmtMin(v[1]) : "—", pct});
+                    String.valueOf(v[0]), v[1] > 0 ? Util.fmtMin(v[1]) : "—", pct});
         }
-        if (tripMin - totalMin > 0)
-            sumRows.add(new String[]{"其他（未标注交通）", "—", fmtMin(tripMin - totalMin),
-                    String.format("%.0f%%", (tripMin - totalMin) * 100.0 / tripMin)});
         if (!sumRows.isEmpty()) {
             ctx.drawTable(SUM_W, new String[]{"交通方式", "段数", "在途时长", "占比"}, sumRows,
                     new boolean[]{false, false, false, true});
         }
-        ctx.text("在途总时长：" + fmtMin(totalMin) + " ／ 全程 " + fmtMin(tripMin), BODY, accent);
+        ctx.text("在途总时长：" + Util.fmtMin(totalMin), BODY, accent);
+        ctx.gap(4);
+
+        // 交通方式明细：按交通方式分组逐段铺开（行数据来自 Util.transDetailRows，与屏幕上 chip 展开同源）
+        ctx.sectionLabel("🧭 交通方式明细", accent);
+        {
+            boolean anyTrans = false;
+            for (Map.Entry<String, int[]> en : stats.entrySet()) {
+                String tr = en.getKey();
+                Util.DetailList dl = Util.transDetailRows(trip, tr);
+                if (dl.rows.isEmpty()) continue;
+                anyTrans = true;
+                ctx.text(Util.transEmoji(tr) + " " + tr + " · 共 " + dl.size() + " 段"
+                        + (dl.total > 0 ? " · 全程 " + Util.fmtMin(dl.total) : ""), BODY, INK);
+                ctx.drawTable(new int[]{80, 260, 120, 90},
+                        new String[]{"日期", "路线", "时间", "时长"}, dl.rows,
+                        new boolean[]{false, false, false, true});
+            }
+            if (!anyTrans) ctx.text("还没有路线安排", BODY, MUTE2);
+        }
         ctx.gap(4);
 
         ctx.sectionLabel("消费构成", accent);
         LinkedHashMap<String, Double> cats = categorySum(trip);
         for (Map.Entry<String, Double> en : cats.entrySet()) {
             ctx.text(Util.catEmoji(en.getKey()) + " " + en.getKey() + "：¥" + Util.fmtMoney(en.getValue()), BODY, SUB);
+        }
+        ctx.gap(4);
+
+        // 花销明细：按类别分组跨日逐笔（行数据来自 Util.catDetailRows，与屏幕图例展开同源）
+        ctx.sectionLabel("🧾 花销明细", accent);
+        {
+            boolean anyCat = false;
+            for (Map.Entry<String, Double> en : cats.entrySet()) {
+                String cat = en.getKey();
+                Util.DetailList dl = Util.catDetailRows(trip, cat);
+                if (dl.rows.isEmpty()) continue;
+                anyCat = true;
+                ctx.text(Util.catEmoji(cat) + " " + cat + " · 共 " + dl.size() + " 笔"
+                        + " · 小计 ¥" + Util.fmtMoney(dl.total), BODY, INK);
+                // 第三列给「描述」补回来源后缀（（路线）/（住宿）），避免与手动记账混淆
+                List<String[]> rows = new ArrayList<>();
+                for (String[] r : dl.rows) rows.add(new String[]{r[0], r[1] + r[3], r[2]});
+                ctx.drawTable(new int[]{90, 300, 120},
+                        new String[]{"日期", "项目", "金额"}, rows,
+                        new boolean[]{false, false, true});
+            }
+            if (!anyCat) ctx.text("暂无花销明细", BODY, MUTE2);
         }
         ctx.gap(6);
 
@@ -328,15 +425,10 @@ final class PdfExport {
             JSONObject wx = day.optJSONObject("weather");
             StringBuilder dayTitle = new StringBuilder("Day " + dayNo(days, d) + "  " + Util.displayDate(d)
                     + "  ·  " + d);
+            String place = day.optString("place").trim(); // 当天主要游玩地点（在日期后、天气前）
+            if (!place.isEmpty()) dayTitle.append("   📍 ").append(place);
             if (wx != null && !wx.optString("cond").isEmpty()) {
-                dayTitle.append("   ").append(wxEmoji(wx.optString("cond"))).append(" ").append(wx.optString("cond"));
-                boolean hasLow = !wx.isNull("low"), hasHigh = !wx.isNull("high");
-                if (hasLow || hasHigh) {
-                    if (hasLow) dayTitle.append("  ").append(wx.optInt("low"));
-                    dayTitle.append("°~");
-                    if (hasHigh) dayTitle.append(wx.optInt("high"));
-                    dayTitle.append("°");
-                }
+                dayTitle.append("   ").append(wxText(wx));
             }
             ctx.title(dayTitle.toString(), 14, accent, 8);
 
@@ -368,7 +460,7 @@ final class PdfExport {
                 for (int i = 0; i < segs.length(); i++) {
                     JSONObject sg = segs.optJSONObject(i);
                     if (sg == null) continue;
-                    int cross = crossDays(sg);
+                    int cross = Util.crossDays(sg);
                     String time = sg.optString("departTime", "") + "-" + sg.optString("arriveTime", "")
                             + (cross > 0 ? "(+" + cross + ")" : "");
                     String path = sg.optString("from") + " → " + sg.optString("to");
@@ -453,7 +545,7 @@ final class PdfExport {
             if (dayPax.isEmpty()) dayPax = travelers;
             List<String> sumParts = new ArrayList<>();
             sumParts.add("花费 ¥" + Util.fmtMoney(daySpent));
-            if (dm > 0) sumParts.add("在途 " + fmtMin(dm));
+            if (dm > 0) sumParts.add("在途 " + Util.fmtMin(dm));
             JSONObject lodgeDay = day.optJSONObject("lodging");
             sumParts.add((lodgeDay != null && !lodgeDay.optString("name").isEmpty())
                     ? "住宿：有" : "无住宿");
@@ -543,7 +635,7 @@ final class PdfExport {
         if (segs == null) return 0;
         for (int i = 0; i < segs.length(); i++) {
             JSONObject s = segs.optJSONObject(i);
-            if (s != null) m += segMinutes(s);
+            if (s != null) m += Util.segMinutes(s);
         }
         return m;
     }
@@ -562,20 +654,10 @@ final class PdfExport {
                 int[] v = m.get(t);
                 if (v == null) { v = new int[]{0, 0}; m.put(t, v); }
                 v[0]++;
-                v[1] += segMinutes(s);
+                v[1] += Util.segMinutes(s);
             }
         }
         return m;
-    }
-
-    private static int segMinutes(JSONObject s) {
-        String dep = s.optString("departTime"), arr = s.optString("arriveTime");
-        if (dep.length() < 5 || arr.length() < 5) return 0;
-        try {
-            int a = Integer.parseInt(dep.substring(0, 2)) * 60 + Integer.parseInt(dep.substring(3, 5));
-            int b = Integer.parseInt(arr.substring(0, 2)) * 60 + Integer.parseInt(arr.substring(3, 5));
-            return b - a + crossDays(s) * 1440;
-        } catch (Exception e) { return 0; }
     }
 
     private static LinkedHashMap<String, Double> categorySum(JSONObject trip) {
@@ -611,19 +693,6 @@ final class PdfExport {
         double pct = spent / budget * 100;
         return "已花费 ¥" + Util.fmtMoney(spent) + " ／ 预算 ¥" + Util.fmtMoney(budget)
                 + "（" + String.format("%.0f", pct) + "%）" + (spent > budget ? "，⚠️ 超支" : "");
-    }
-
-    private static int crossDays(JSONObject s) {
-        int cd = s.optInt("crossDays", 0);
-        if (cd > 1) return cd;
-        String dep = s.optString("departTime"), arr = s.optString("arriveTime");
-        if (dep.length() == 5 && arr.length() == 5 && arr.compareTo(dep) < 0) return cd > 0 ? cd : 1;
-        return 0;
-    }
-
-    private static String fmtMin(long min) {
-        long h = min / 60, m = min % 60;
-        return h > 0 ? (m > 0 ? h + " 小时 " + m + " 分" : h + " 小时") : m + " 分钟";
     }
 
     private static String join(JSONArray arr) {

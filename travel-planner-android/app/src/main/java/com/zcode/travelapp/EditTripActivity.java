@@ -74,7 +74,7 @@ public class EditTripActivity extends Activity {
         endEt.setOnClickListener(v -> pickDate(false));
 
         budgetEt = field("总预算（元，可不填）", "数字，如 5000", false, true);
-        travelersEt = field("出行人（逗号分隔）", "如：我、爸爸、妈妈", false, false);
+        travelersEt = field("出行人（逗号或顿号分隔）", "如：我、小美、老王", false, false);
         // 主题色（网页版 PRESET_COLORS 10 预设）
         LinearLayout colorWrap = Util.vBox(this);
         colorWrap.setPadding(0, Util.dp(this, 12), 0, 0);
@@ -190,8 +190,12 @@ public class EditTripActivity extends Activity {
         if (t == null) { finish(); return; }
         nameEt.setText(t.optString("name"));
         emojiEt.setText(t.optString("emoji"));
-        try { startD = LocalDate.parse(t.optString("startDate")); } catch (Exception e) {}
-        try { endD = LocalDate.parse(t.optString("endDate")); } catch (Exception e) {}
+        // 宽松解析：脏日期（如 "2026-9-30"）也能正确读入；解析失败才保留默认值
+        // （历史坑：直接用 LocalDate.parse 会抛异常被吞掉，日期静默变成“今天”，一保存就把用户数据改掉）
+        LocalDate ps = Util.parseDate(t.optString("startDate"));
+        LocalDate pe = Util.parseDate(t.optString("endDate"));
+        if (ps != null) startD = ps;
+        if (pe != null) endD = pe;
         startEt.setText(startD.format(Util.FMT_DATE));
         endEt.setText(endD.format(Util.FMT_DATE));
         budgetEt.setText(t.optDouble("budget", 0) > 0 ? Util.fmtMoney(t.optDouble("budget", 0)) : "");
@@ -220,7 +224,7 @@ public class EditTripActivity extends Activity {
         }
         JSONArray trips = Store.load(this);
         JSONArray travelers = new JSONArray();
-        for (String s : travelersEt.getText().toString().split("[,，]")) {
+        for (String s : travelersEt.getText().toString().split("[、,，]")) {
             s = s.trim();
             if (!s.isEmpty()) travelers.put(s);
         }
