@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -140,6 +141,150 @@ final class Util {
         }
         java.util.Collections.sort(keys);
         return keys;
+    }
+
+    /** 当天游玩地点候选：聚合全行程已有地点 —— 先收各天已填的 place（按日期序），
+     *  再收路线起终点与住宿名/地址；trim + 去重保序（与网页版 dayPlaceOptions 同口径） */
+    static List<String> placeCandidates(JSONObject trip) {
+        LinkedHashSet<String> out = new LinkedHashSet<>();
+        List<String> days = dayKeys(trip);
+        JSONObject daysObj = trip.optJSONObject("days");
+        if (daysObj == null) return new ArrayList<>();
+        for (String d : days) {                       // 已填的地点优先，最可能被再次选中
+            JSONObject day = daysObj.optJSONObject(d);
+            if (day != null) addPlace(out, day.optString("place"));
+        }
+        for (String d : days) {
+            JSONObject day = daysObj.optJSONObject(d);
+            if (day == null) continue;
+            JSONArray segs = day.optJSONArray("segments");
+            if (segs != null) for (int i = 0; i < segs.length(); i++) {
+                JSONObject s = segs.optJSONObject(i);
+                if (s != null) { addPlace(out, s.optString("from")); addPlace(out, s.optString("to")); }
+            }
+            JSONObject lg = day.optJSONObject("lodging");
+            if (lg != null) { addPlace(out, lg.optString("name")); addPlace(out, lg.optString("location")); }
+        }
+        return new ArrayList<>(out);
+    }
+
+    private static void addPlace(LinkedHashSet<String> out, String v) {
+        String s = v == null ? "" : v.trim();
+        if (!s.isEmpty()) out.add(s);
+    }
+
+    /* ===================== 路线段时长 / 跨天（屏幕与 PDF 共用，此前两边各有一份副本） ===================== */
+
+    /** 段的分钟数：优先结构化 departTime/arriveTime（含跨天 +N 天）；无有效时间返回 0 */
+    static int segMinutes(JSONObject s) {
+        String dep = s.optString("departTime"), arr = s.optString("arriveTime");
+        if (dep.length() < 5 || arr.length() < 5) return 0;
+        try {
+            int a = Integer.parseInt(dep.substring(0, 2)) * 60 + Integer.parseInt(dep.substring(3, 5));
+            int b = Integer.parseInt(arr.substring(0, 2)) * 60 + Integer.parseInt(arr.substring(3, 5));
+            return b - a + crossDays(s) * 1440;
+        } catch (Exception e) { return 0; }
+    }
+
+    /** 跨天天数：显式 crossDays>1 优先；到达时间早于出发时间视为 +1 */
+    static int crossDays(JSONObject s) {
+        int cd = s.optInt("crossDays", 0);
+        if (cd > 1) return cd;
+        String dep = s.optString("departTime"), arr = s.optString("arriveTime");
+        if (dep.length() == 5 && arr.length() == 5 && arr.compareTo(dep) < 0) return cd > 0 ? cd : 1;
+        return 0;
+    }
+
+    /** 时间段文本：dep-arr（跨天追加 (+N)）；无结构化时间时回退 time 文本 */
+    static String segTimeText(JSONObject s) {
+        String dep = s.optString("departTime"), arr = s.optString("arriveTime");
+        if (!dep.isEmpty() || !arr.isEmpty()) {
+            String base = dep.isEmpty() ? arr : (arr.isEmpty() ? dep : dep + "-" + arr);
+            int cd = crossDays(s);
+            return cd > 0 ? base + " (+" + cd + ")" : base;
+        }
+        String t = s.optString("time");
+        return t.isEmpty() ? "—" : t;
+    }
+
+    /** 分钟 → "4 小时 30 分" / "45 分钟" */
+    static String fmtMin(long min) {
+        long h = min / 60, m = min % 60;
+        return h > 0 ? (m > 0 ? h + " 小时 " + m + " 分" : h + " 小时") : m + " 分钟";
+    }
+
+    /** 明细行集合：rows 逐行，total 为合计（交通=分钟数；花销=金额） */
+    static final class DetailList {
+        final List<String[]> rows = new ArrayList<>();
+        long total = 0;
+        int size() { return rows.size(); }
+    }
+
+    /** 某类交通的实际行程明细（跳过草稿段；未填出发/到达地不展示）。
+     *  屏幕的交通 chip 展开与 PDF 的「交通方式明细」共用，保证两处口径一致。
+     *  每行 = {日期, 时间段, 路径, 时长文本} */
+    static DetailList transDetailRows(JSONObject trip, String tr) {
+        DetailList out = new DetailList();
+        JSONObject days = trip.optJSONObject("days");
+        if (days == null) return out;
+        for (String d : dayKeys(trip)) {
+            JSONObject day = days.optJSONObject(d);
+            JSONArray segs = day != null ? day.optJSONArray("segments") : null;
+            if (segs == null) continue;
+            for (int i = 0; i < segs.length(); i++) {
+                JSONObject s = segs.optJSONObject(i);
+                if (s == null || s.optBoolean("draft")) continue;
+                String t = s.optString("transport");
+                if (t.isEmpty()) t = "其他";
+                if (!tr.equals(t)) continue;
+                String from = s.optString("from"), to = s.optString("to");
+                if (from.isEmpty() || to.isEmpty()) continue;
+                long m = segMinutes(s);
+                out.total += m;
+                out.rows.add(new String[]{displayDate(d), segTimeText(s), from + " → " + to,
+                        m > 0 ? fmtMin(m) : ""});
+            }
+        }
+        return out;
+    }
+
+    /** 某类别的跨日明细（与屏幕消费构成图例展开同口径）。
+     *  每行 = {日期, 描述, 金额文本, 后缀}；后缀为「（路线）」「（住宿）」或空，
+     *  屏幕拼成「日期 描述 金额后缀」，PDF 用前三列做表格 */
+    static DetailList catDetailRows(JSONObject trip, String cat) {
+        DetailList out = new DetailList();
+        JSONObject days = trip.optJSONObject("days");
+        if (days == null) return out;
+        for (String d : dayKeys(trip)) {
+            JSONObject day = days.optJSONObject(d);
+            if (day == null) continue;
+            String dayLabel = displayDate(d);
+            JSONArray segs = day.optJSONArray("segments");
+            if (segs != null && "交通".equals(cat)) for (int i = 0; i < segs.length(); i++) {
+                JSONObject s = segs.optJSONObject(i);
+                if (s == null) continue;
+                double p = s.optDouble("price", 0);
+                if (p <= 0) continue;
+                out.total += p;
+                out.rows.add(new String[]{dayLabel, s.optString("from") + "→" + s.optString("to"),
+                        "¥" + fmtMoney(p), "（路线）"});
+            }
+            JSONObject lg = day.optJSONObject("lodging");
+            if (lg != null && "住宿".equals(cat) && lg.optDouble("pricePerNight", 0) > 0) {
+                double p = lg.optDouble("pricePerNight", 0);
+                out.total += p;
+                out.rows.add(new String[]{dayLabel, lg.optString("name"), "¥" + fmtMoney(p), "（住宿）"});
+            }
+            JSONArray exps = day.optJSONArray("expenses");
+            if (exps != null) for (int i = 0; i < exps.length(); i++) {
+                JSONObject e = exps.optJSONObject(i);
+                if (e == null || !cat.equals(e.optString("category", "其他"))) continue;
+                double a = e.optDouble("amount", 0);
+                out.total += a;
+                out.rows.add(new String[]{dayLabel, e.optString("item"), "¥" + fmtMoney(a), ""});
+            }
+        }
+        return out;
     }
 
     static String fmtMoney(double v) {
@@ -491,15 +636,32 @@ final class Util {
         p.height = dp(c, dpVal);
     }
 
+    /** 宽松日期解析：兼容 "2026-9-30" 这类月/日未补零的脏值（与网页版 normDate 同源）；无法解析返回 null */
+    static LocalDate parseDate(String date) {
+        String s = date == null ? "" : date.trim();
+        String[] p = s.split("-");
+        try {
+            if (p.length == 3) return LocalDate.of(Integer.parseInt(p[0]), Integer.parseInt(p[1]), Integer.parseInt(p[2]));
+            return LocalDate.parse(s);
+        } catch (Exception e) { return null; }
+    }
+
+    /** 日期归一化为 yyyy-MM-dd（补零）；无法解析时原样返回，不做破坏性改动 */
+    static String normDate(String date) {
+        LocalDate d = parseDate(date);
+        if (d == null) return date == null ? "" : date;
+        return d.format(FMT_DATE);
+    }
+
     /** 周几 */
     static String weekday(String date) {
-        try { return WEEK_CN[LocalDate.parse(date).getDayOfWeek().getValue() % 7]; } catch (Exception e) { return ""; }
+        LocalDate d = parseDate(date);
+        return d == null ? "" : WEEK_CN[d.getDayOfWeek().getValue() % 7];
     }
 
     static String displayDate(String date) {
-        try {
-            LocalDate d = LocalDate.parse(date);
-            return (d.getMonthValue()) + "月" + d.getDayOfMonth() + "日 " + WEEK_CN[d.getDayOfWeek().getValue() % 7];
-        } catch (Exception e) { return date; }
+        LocalDate d = parseDate(date);
+        if (d == null) return date == null ? "" : date;
+        return d.getMonthValue() + "月" + d.getDayOfMonth() + "日 " + WEEK_CN[d.getDayOfWeek().getValue() % 7];
     }
 }

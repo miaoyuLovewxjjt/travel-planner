@@ -287,7 +287,41 @@ public class TripDetailActivity extends Activity {
         statCard.addView(statTv);
         dayBox.addView(statCard);
 
+        // 1.5) 天气一览：逐日「日期 · 地点 · 天气」，缺的写「—」（与网页版 sumWeatherHtml 同口径，方便截图问穿搭）
+        LinearLayout wxCard = card();
+        wxCard.addView(summaryTitle("🌤️ 天气一览"));
+        List<String> wxDays = Util.dayKeys(trip);
+        if (wxDays.isEmpty()) {
+            TextView wxEmpty = Util.text(this, "还没有每日行程", 13, Util.MUTE);
+            wxEmpty.setPadding(0, Util.dp(this, 8), 0, 0);
+            wxCard.addView(wxEmpty);
+        } else {
+            for (String d : wxDays) {
+                JSONObject day = trip.optJSONObject("days").optJSONObject(d);
+                String place = day != null ? day.optString("place").trim() : "";
+                String wx = day != null ? wxText(day.optJSONObject("weather")) : "";
+                LinearLayout wxRow = Util.hBox(this);
+                wxRow.setPadding(0, Util.dp(this, 3), 0, Util.dp(this, 3));
+                TextView dTv = Util.text(this, Util.displayDate(d), 12.5f, Util.INK);
+                dTv.setTypeface(Typeface.DEFAULT_BOLD);
+                dTv.setContentDescription("WXD-" + d); // 供冒烟测试定位
+                wxRow.addView(dTv);
+                // 地点可收缩换行（长地名永不截断），天气固定不换行
+                TextView pTv = Util.text(this, place.isEmpty() ? "—" : place, 12.5f, Util.SUB);
+                LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(0, -2, 1);
+                pp.leftMargin = Util.dp(this, 10);
+                wxRow.addView(pTv, pp);
+                TextView tTv = Util.text(this, wx.isEmpty() ? "—" : wx, 12.5f, Util.SUB);
+                LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(-2, -2);
+                tp.leftMargin = Util.dp(this, 10);
+                wxRow.addView(tTv, tp);
+                wxCard.addView(wxRow);
+            }
+        }
+        dayBox.addView(wxCard);
+
         // 2) 交通方式统计 + 在途时长占比条
+        // 与网页版 sumSegAgg 同口径：跳过草稿段；未标注交通方式的段记入「其他」（此前是直接丢弃，两端统计对不上）
         Map<String, long[]> transStats = new java.util.LinkedHashMap<>();
         for (String d : Util.dayKeys(trip)) {
             JSONObject day = trip.optJSONObject("days").optJSONObject(d);
@@ -295,17 +329,17 @@ public class TripDetailActivity extends Activity {
             if (segs == null) continue;
             for (int i = 0; i < segs.length(); i++) {
                 JSONObject s = segs.optJSONObject(i);
-                if (s == null || s.optString("transport").isEmpty()) continue;
+                if (s == null || s.optBoolean("draft")) continue;
                 String t = s.optString("transport");
+                if (t.isEmpty()) t = "其他";
                 long[] v = transStats.get(t);
                 if (v == null) { v = new long[]{0, 0}; transStats.put(t, v); }
                 v[0]++;
-                v[1] += segMinutes(s);
+                v[1] += Util.segMinutes(s);
             }
         }
         long totalMin = 0;
         for (long[] v : transStats.values()) totalMin += v[1];
-        long tripMin = (long) Util.dayKeys(trip).size() * 1440;
 
         LinearLayout transCard = card();
         transCard.addView(summaryTitle("🚗 交通方式"));
@@ -317,42 +351,41 @@ public class TripDetailActivity extends Activity {
             LinearLayout bar = new LinearLayout(this);
             bar.setOrientation(LinearLayout.HORIZONTAL);
             bar.setPadding(0, Util.dp(this, 8), 0, Util.dp(this, 8));
-            final double[] acc = {0};
+            // 占比分母 = 各交通时长之和（不再用「全程 天数×24h」）：
+            // 用全程做分母时未在途的时间会占掉大半，彩色段被挤成细线，比例看不出名堂。
+            // 没填时间的交通权重为 0、不进占比（与网页版环图 filter(min>0) 同口径）
             for (Map.Entry<String, long[]> en : transStats.entrySet()) {
                 long v1 = en.getValue()[1];
+                if (v1 <= 0) continue;
                 View seg = new View(this);
                 seg.setBackground(Util.chipBg(Util.transColor(en.getKey(), accent), 3, this));
-                LinearLayout.LayoutParams segP = new LinearLayout.LayoutParams(0, Util.dp(this, 8),
-                        (float) (acc[0] + v1 > 0 ? v1 : 0));
-                if (v1 > 0) acc[0] += v1;
-                seg.setLayoutParams(segP);
+                seg.setLayoutParams(new LinearLayout.LayoutParams(0, Util.dp(this, 8), (float) v1));
                 bar.addView(seg);
             }
-            if (totalMin < tripMin) {
-                View rest = new View(this);
-                rest.setBackground(Util.chipBg(0xFFE4E6EC, 3, this));
-                LinearLayout.LayoutParams restP = new LinearLayout.LayoutParams(0, Util.dp(this, 8),
-                        Math.max(0, (float) (tripMin - totalMin)));
-                rest.setLayoutParams(restP);
-                bar.addView(rest);
+            if (totalMin > 0) {                    // 一个带时间的交通都没有 → 不画空条
+                bar.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
+                transCard.addView(bar);
             }
-            bar.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
-            transCard.addView(bar);
             FlowLayout chips = new FlowLayout(this);
             chips.setGaps(6, 6, this);
+            // 点任一交通 chip → 就地展开该类交通的实际行程（对齐网页版在途时长环图图例的点击行为）
+            final LinearLayout transDetailBox = Util.vBox(this);
+            transDetailBox.setPadding(0, Util.dp(this, 2), 0, 0);
             for (Map.Entry<String, long[]> en : transStats.entrySet()) {
                 int color = Util.transColor(en.getKey(), accent);
                 String t = en.getKey();
                 long[] v = en.getValue();
                 TextView chip = Util.text(this, Util.transEmoji(t) + " " + t + " " + v[0] + " 段"
-                        + (v[1] > 0 ? " · " + fmtMin(v[1]) : ""), 12, Util.INK);
+                        + (v[1] > 0 ? " · " + Util.fmtMin(v[1]) : ""), 12, Util.INK);
                 chip.setBackground(Util.chipBg(Util.blend(color, 0xFFFFFFFF, 0.88f), 9, this));
                 chip.setPadding(Util.dp(this, 9), Util.dp(this, 4), Util.dp(this, 9), Util.dp(this, 4));
+                chip.setOnClickListener(click -> expandTransInline(transDetailBox, t));
                 chips.addView(chip);
             }
             transCard.addView(chips);
-            TextView totalTv = Util.text(this, "⏱️ 在途总时长 " + fmtMin(totalMin)
-                    + (tripMin > totalMin ? " ／ 全程 " + fmtMin(tripMin) : ""), 13, accent);
+            transCard.addView(transDetailBox);
+            // 只报在途总时长；不再附「／ 全程 天数×24h」——那个数没参考价值（与网页版同款，网页也没有）
+            TextView totalTv = Util.text(this, "⏱️ 在途总时长 " + Util.fmtMin(totalMin), 13, accent);
             totalTv.setTypeface(Typeface.DEFAULT_BOLD);
             totalTv.setPadding(0, Util.dp(this, 6), 0, 0);
             transCard.addView(totalTv);
@@ -420,7 +453,7 @@ public class TripDetailActivity extends Activity {
         dayBox.addView(expCard);
     }
 
-    /** 总结图例点击：就地展开/收起该分类的跨日明细（对齐每日记账的展开交互） */
+    /** 总结图例点击：就地展开/收起该分类的跨日明细（行数据来自 Util.catDetailRows，与 PDF 同源） */
     private void expandCatInline(LinearLayout box, String cat) {
         if (box.getChildCount() > 0 && cat.equals(box.getTag())) {
             box.removeAllViews();
@@ -428,36 +461,53 @@ public class TripDetailActivity extends Activity {
             return;
         }
         box.removeAllViews();
-        List<String> lines = new ArrayList<>();
-        for (String d : Util.dayKeys(trip)) {
-            JSONObject day = trip.optJSONObject("days").optJSONObject(d);
-            if (day == null) continue;
-            String dayLabel = Util.displayDate(d);
-            JSONArray segsD = day.optJSONArray("segments");
-            if (segsD != null && "交通".equals(cat)) for (int i = 0; i < segsD.length(); i++) {
-                JSONObject sg = segsD.optJSONObject(i);
-                if (sg != null && sg.optDouble("price", 0) > 0)
-                    lines.add(dayLabel + " " + sg.optString("from") + "→" + sg.optString("to")
-                            + " ¥" + Util.fmtMoney(sg.optDouble("price", 0)) + "（路线）");
-            }
-            JSONObject lg = day.optJSONObject("lodging");
-            if (lg != null && "住宿".equals(cat) && lg.optDouble("pricePerNight", 0) > 0)
-                lines.add(dayLabel + " " + lg.optString("name")
-                        + " ¥" + Util.fmtMoney(lg.optDouble("pricePerNight", 0)) + "（住宿）");
-            JSONArray expsB = day.optJSONArray("expenses");
-            if (expsB != null) for (int i = 0; i < expsB.length(); i++) {
-                JSONObject e = expsB.optJSONObject(i);
-                if (e != null && cat.equals(e.optString("category", "其他")))
-                    lines.add(dayLabel + " " + e.optString("item")
-                            + " ¥" + Util.fmtMoney(e.optDouble("amount", 0)));
-            }
-        }
-        if (lines.isEmpty()) lines.add("该分类暂无明细");
         box.setTag(cat);
-        for (String ln : lines) {
-            TextView t = Util.text(this, "• " + ln, 11f, Util.MUTE);
+        Util.DetailList d = Util.catDetailRows(trip, cat);
+        if (d.rows.isEmpty()) {
+            box.addView(Util.text(this, "• 该分类暂无明细", 11f, Util.MUTE));
+            return;
+        }
+        for (String[] r : d.rows) {
+            TextView t = Util.text(this, "• " + r[0] + " " + r[1] + " " + r[2] + r[3], 11f, Util.MUTE);
             t.setPadding(0, Util.dp(this, 1), 0, Util.dp(this, 1));
             box.addView(t);
+        }
+    }
+
+    /** 交通方式 chip 点击：就地展开/收起该类交通的实际行程（行数据来自 Util.transDetailRows，与 PDF 同源） */
+    private void expandTransInline(LinearLayout box, String tr) {
+        if (box.getChildCount() > 0 && tr.equals(box.getTag())) { // 再点同一项 → 收起
+            box.removeAllViews();
+            box.setTag(null);
+            return;
+        }
+        box.removeAllViews();
+        box.setTag(tr);
+        Util.DetailList d = Util.transDetailRows(trip, tr);
+        if (d.rows.isEmpty()) {
+            TextView empty = Util.text(this, "暂无可展示的行程", 12f, Util.MUTE);
+            empty.setPadding(0, Util.dp(this, 2), 0, Util.dp(this, 2));
+            box.addView(empty);
+            return;
+        }
+        TextView head = Util.text(this, Util.transEmoji(tr) + " " + tr + "行程 · 共 " + d.size() + " 段"
+                + (d.total > 0 ? " · 全程 " + Util.fmtMin(d.total) : ""), 12f, Util.INK);
+        head.setTypeface(Typeface.DEFAULT_BOLD);
+        head.setPadding(0, Util.dp(this, 2), 0, Util.dp(this, 2));
+        box.addView(head);
+        for (String[] r : d.rows) {
+            LinearLayout row = Util.hBox(this);
+            row.setPadding(0, Util.dp(this, 1), 0, Util.dp(this, 1));
+            // 左列可收缩换行（长地名永不截断），右列时长固定不换行
+            TextView left = Util.text(this, r[0] + " " + r[1] + " " + r[2], 12f, Util.SUB);
+            row.addView(left, new LinearLayout.LayoutParams(0, -2, 1));
+            if (!r[3].isEmpty()) {
+                TextView right = Util.text(this, r[3], 12f, Util.INK);
+                right.setTypeface(Typeface.DEFAULT_BOLD);
+                right.setPadding(Util.dp(this, 8), 0, 0, 0);
+                row.addView(right);
+            }
+            box.addView(row);
         }
     }
 
@@ -500,16 +550,6 @@ public class TripDetailActivity extends Activity {
     }
 
     // 统计口径（与网页一致）
-    private int segMinutes(JSONObject s) {
-        String dep = s.optString("departTime"), arr = s.optString("arriveTime");
-        if (dep.length() < 5 || arr.length() < 5) return 0;
-        try {
-            int a = Integer.parseInt(dep.substring(0, 2)) * 60 + Integer.parseInt(dep.substring(3, 5));
-            int b = Integer.parseInt(arr.substring(0, 2)) * 60 + Integer.parseInt(arr.substring(3, 5));
-            return b - a + crossDays(s) * 1440;
-        } catch (Exception e) { return 0; }
-    }
-
     private LinkedHashMap<String, Double> categorySum() {
         LinkedHashMap<String, Double> m = new LinkedHashMap<>();
         for (String[] c : Util.CATS) m.put(c[0], 0.0);
@@ -536,11 +576,6 @@ public class TripDetailActivity extends Activity {
         java.util.Iterator<Map.Entry<String, Double>> it = m.entrySet().iterator();
         while (it.hasNext()) if (it.next().getValue() <= 0) it.remove();
         return m;
-    }
-
-    private String fmtMin(long min) {
-        long h = min / 60, m = min % 60;
-        return h > 0 ? (m > 0 ? h + " 小时 " + m + " 分" : h + " 小时") : m + " 分钟";
     }
 
     // ===================== 每日视图 =====================
@@ -577,7 +612,8 @@ public class TripDetailActivity extends Activity {
     }
 
     private String dayNum(String date) {
-        try { return String.valueOf(java.time.LocalDate.parse(date).getDayOfMonth()); } catch (Exception e) { return ""; }
+        java.time.LocalDate d = Util.parseDate(date); // 宽松解析，脏日期也能取到日号
+        return d == null ? "" : String.valueOf(d.getDayOfMonth());
     }
 
     private JSONObject dayObj() { return trip.optJSONObject("days").optJSONObject(selectedDay); }
@@ -593,11 +629,24 @@ public class TripDetailActivity extends Activity {
         return "🌤️";
     }
 
-    /** 天气徽章行：有天气→"☀️ 晴 10°~20°"；无→"＋ 天气"占位；点击打开设置 */
-    private View weatherRow(final JSONObject day) {
+    /** 天气文案：'🌧️ 雨 13°~22°'；缺一侧时 '🌧️ 雨 13°' / '🌧️ 雨 ~22°'；无天气返回空串。
+     *  日头部徽章与总结「天气一览」共用（文案与网页版 wxText 完全同款）。
+     *  注意用 isNull 判缺失——optInt 对缺失返回 0，会把"没填高温"显示成 0° */
+    private String wxText(JSONObject w) {
+        if (w == null || w.optString("cond").isEmpty()) return "";
+        Integer lo = w.isNull("low") ? null : w.optInt("low");
+        Integer hi = w.isNull("high") ? null : w.optInt("high");
+        String temps = lo != null && hi != null ? " " + lo + "°~" + hi + "°"
+                : lo != null ? " " + lo + "°"
+                : hi != null ? " ~" + hi + "°" : "";
+        return wxEmoji(w.optString("cond")) + " " + w.optString("cond") + temps;
+    }
+
+    /** 日期行：9/26 周六 + 当天游玩地点 + 天气；两个徽章都可点开设置（顺序与网页版一致：日期 → 地点 → 天气） */
+    private View dayHeadRow(final JSONObject day) {
         LinearLayout wrap = Util.hBox(this);
         wrap.setPadding(0, Util.dp(this, 4), 0, Util.dp(this, 2));
-        // 左侧：日期 + 周几（如 9/26 周六），天气徽章跟在后面，整行不再空荡
+        // 左侧：日期 + 周几（如 9/26 周六），徽章跟在后面，整行不再空荡
         String wxDate = "";
         try {
             String[] p = selectedDay.split("-");
@@ -611,19 +660,24 @@ public class TripDetailActivity extends Activity {
             dateTv.setPadding(0, Util.dp(this, 1), 0, 0);
             dateTv.setContentDescription("WX-" + wxDate + "-" + wkd);
             wrap.addView(dateTv);
-            TextView gapTv = Util.text(this, "  ", 14, Util.INK);
-            wrap.addView(gapTv);
+            wrap.addView(Util.text(this, "  ", 14, Util.INK));
         }
+        // 当天主要游玩地点（可选字段 day.place；未填则虚线占位）
+        String place = day.optString("place").trim();
+        TextView placeBadge = place.isEmpty()
+                ? Util.chip(this, "＋ 地点", Util.MUTE, 0xFFF2F3F7)
+                : Util.chip(this, "📍 " + place, accent, Util.accentSoft(accent, this));
+        if (!place.isEmpty()) placeBadge.setTypeface(Typeface.DEFAULT_BOLD);
+        placeBadge.setPadding(Util.dp(this, 10), Util.dp(this, 5), Util.dp(this, 10), Util.dp(this, 5));
+        placeBadge.setClickable(true);
+        placeBadge.setOnClickListener(v -> openPlaceDialog(day));
+        wrap.addView(placeBadge);
+        wrap.addView(Util.text(this, "  ", 14, Util.INK));
+        // 天气
         JSONObject wx = day.optJSONObject("weather");
         TextView badge;
         if (wx != null && !wx.optString("cond").isEmpty()) {
-            StringBuilder t = new StringBuilder(wxEmoji(wx.optString("cond")) + " " + wx.optString("cond"));
-            boolean hasLow = !wx.isNull("low");
-            boolean hasHigh = !wx.isNull("high");
-            if (hasLow && hasHigh) t.append(" ").append(wx.optInt("low")).append("°~").append(wx.optInt("high")).append("°");
-            else if (hasLow) t.append(" ").append(wx.optInt("low")).append("°");
-            else if (hasHigh) t.append(" ~").append(wx.optInt("high")).append("°");
-            badge = Util.chip(this, t.toString(), accent, Util.accentSoft(accent, this));
+            badge = Util.chip(this, wxText(wx), accent, Util.accentSoft(accent, this));
             badge.setTypeface(Typeface.DEFAULT_BOLD);
         } else {
             badge = Util.chip(this, "＋ 天气", Util.MUTE, 0xFFF2F3F7);
@@ -707,6 +761,79 @@ public class TripDetailActivity extends Activity {
         }
     }
 
+    /** 当天游玩地点弹窗（对齐网页版：下拉选已有地点，或切「＋ 自定义…」自己填；可删除） */
+    private void openPlaceDialog(final JSONObject day) {
+        final String cur = day.optString("place").trim();
+        final List<String> items = new ArrayList<>(); // 下拉显示文本
+        final List<String> vals = new ArrayList<>();  // 对应取值（自定义项用哨兵 __custom__）
+        for (String p : Util.placeCandidates(trip)) { items.add(p); vals.add(p); }
+        items.add("＋ 自定义…");
+        vals.add("__custom__");
+        LinearLayout form = Util.vBox(this);
+        int pad = Util.dp(this, 18);
+        form.setPadding(pad, 0, pad, 0);
+        Spinner placeSp = new Spinner(this);
+        ArrayAdapter<String> placeAd = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        placeAd.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        placeSp.setAdapter(placeAd);
+        // 已填值必然在候选里（placeCandidates 会收各天 place）；没填过则默认第一个候选，
+        // 候选为空时第一个就是「＋ 自定义…」→ 自动展开输入框（与网页版默认项一致）
+        int sel = cur.isEmpty() ? 0 : vals.indexOf(cur);
+        if (sel < 0) sel = 0;
+        placeSp.setSelection(sel);
+        form.addView(placeSp);
+        final EditText customEt = new EditText(this);
+        EditTripActivity.Style.input(customEt);
+        customEt.setHint("自定义地点（如：禾木村）");
+        customEt.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(20)});
+        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-1, -2);
+        cp.topMargin = Util.dp(this, 8);
+        customEt.setLayoutParams(cp);
+        form.addView(customEt);
+        // 只有选中「＋ 自定义…」时才显示输入框（安卓用 setVisibility，没有网页那套 hidden 被 CSS 压过的坑）
+        customEt.setVisibility(vals.get(sel).equals("__custom__") ? View.VISIBLE : View.GONE);
+        placeSp.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(android.widget.AdapterView<?> p, android.view.View v, int pos, long id) {
+                customEt.setVisibility(vals.get(pos).equals("__custom__") ? View.VISIBLE : View.GONE);
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> p) {}
+        });
+        AlertDialog dlg = new AlertDialog.Builder(this)
+                .setTitle("📍 设置当天游玩地点")
+                .setView(form)
+                .setPositiveButton("保存", null)
+                .setNegativeButton("取消", null)
+                .create();
+        dlg.setOnShowListener(d -> dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            try {
+                String picked = vals.get(placeSp.getSelectedItemPosition());
+                String v2 = ("__custom__".equals(picked) ? customEt.getText().toString() : picked).trim();
+                if (v2.isEmpty()) day.remove("place"); else day.put("place", v2);
+                saveDay();
+                renderDay();
+                dlg.dismiss();
+            } catch (Exception e) { toast(e); }
+        }));
+        dlg.show();
+        // 已填过才给「删除地点」（与网页版一致）
+        if (!cur.isEmpty()) {
+            Button delPlace = new Button(this);
+            delPlace.setText("删除地点");
+            delPlace.setTextSize(13);
+            Util.styleTextButton(delPlace, 0xFFE5484D, this);
+            delPlace.setOnClickListener(v -> {
+                day.remove("place");
+                saveDay();
+                renderDay();
+                dlg.dismiss();
+            });
+            LinearLayout.LayoutParams dp2 = new LinearLayout.LayoutParams(-2, -2);
+            dp2.leftMargin = Util.dp(this, 18);
+            dp2.topMargin = Util.dp(this, 2);
+            form.addView(delPlace, dp2);
+        }
+    }
+
     private Integer parseIntOpt(String s) {
         try { return Integer.valueOf(s.trim()); } catch (Exception e) { return null; }
     }
@@ -716,7 +843,7 @@ public class TripDetailActivity extends Activity {
         JSONObject day = dayObj();
 
         // 天气（每日可设置，徽章在备注上方；字段与网页版一致：cond + low/high）
-        dayBox.addView(weatherRow(day));
+        dayBox.addView(dayHeadRow(day));
 
         // 备注（可编辑、可一键清空）
         LinearLayout notesCard = sectionCard("📝 当日备注", () -> editNotes(day));
@@ -1075,7 +1202,7 @@ public class TripDetailActivity extends Activity {
         LinearLayout row = Util.vBox(this);
         row.setPadding(0, Util.dp(this, 4), 0, Util.dp(this, 4));
         LinearLayout head = Util.hBox(this);
-        int cross = crossDays(s);
+        int cross = Util.crossDays(s);
         String time = s.optString("departTime", "") + "-" + s.optString("arriveTime", "");
         head.addView(Util.timeBadge(this, time, accent));
         if (cross > 0) {
@@ -1131,14 +1258,6 @@ public class TripDetailActivity extends Activity {
             row.addView(noteTv);
         }
         return row;
-    }
-
-    private int crossDays(JSONObject s) {
-        int cd = s.optInt("crossDays", 0);
-        if (cd > 1) return cd;
-        String dep = s.optString("departTime"), arr = s.optString("arriveTime");
-        if (dep.length() == 5 && arr.length() == 5 && arr.compareTo(dep) < 0) return cd > 0 ? cd : 1;
-        return 0;
     }
 
     private void openSegment(int index) {

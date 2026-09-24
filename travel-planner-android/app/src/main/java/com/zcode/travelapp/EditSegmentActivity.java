@@ -193,7 +193,7 @@ public class EditSegmentActivity extends Activity {
         custom.setPadding(0, Util.dp(this, 6), 0, 0);
         EditText customEt = new EditText(this);
         EditTripActivity.Style.input(customEt);
-        customEt.setHint("输入其他乘客姓名");
+        customEt.setHint("乘客姓名（多个用、或,分隔）");
         customEt.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(30)});
         custom.addView(customEt, new LinearLayout.LayoutParams(0, -2, 1));
         Button addBtn = new Button(this);
@@ -205,16 +205,16 @@ public class EditSegmentActivity extends Activity {
         custom.addView(addBtn);
         panel.addView(custom);
         addBtn.setOnClickListener(v -> {
-            String n = customEt.getText().toString().trim();
-            if (n.isEmpty()) return;
-            if (!selPax.containsKey(n)) {
-                selPax.put(n, "");
-                boolean dup = false;
+            // 支持一次填多人：「a、b」「a,b」「a，b」都拆成两个乘客
+            for (final String n : customEt.getText().toString().split("[、,，]")) {
+                final String nm = n.trim();
+                if (nm.isEmpty() || selPax.containsKey(nm)) continue;
+                selPax.put(nm, "");
                 // 追加一个选中 chip
-                final TextView c = chipFor(n, true);
+                final TextView c = chipFor(nm, true);
                 c.setOnClickListener(v2 -> {
-                    if (selPax.containsKey(n)) { selPax.remove(n); styleChip(c, false); }
-                    else { selPax.put(n, ""); styleChip(c, true); }
+                    if (selPax.containsKey(nm)) { selPax.remove(nm); styleChip(c, false); }
+                    else { selPax.put(nm, ""); styleChip(c, true); }
                     renderSeats(panel);
                 });
                 chips.addView(c);
@@ -362,8 +362,20 @@ public class EditSegmentActivity extends Activity {
             if (day == null) { finish(); return; }
             JSONArray segs = day.optJSONArray("segments");
             if (segs == null) { segs = new JSONArray(); day.put("segments", segs); }
-            if (segIndex >= 0 && segIndex < segs.length()) segs.put(segIndex, s);
-            else segs.put(s);
+            if (segIndex >= 0 && segIndex < segs.length()) {
+                segs.put(segIndex, s);   // 编辑已有段：原地替换，不动顺序
+            } else {
+                // 新增段：按出发时间插到正确位置（与网页版 placeSegByTime 同口径）；
+                // 没填时间的排到末尾，其余段的顺序一律不变
+                int ins = insertIndexByTime(segs, s.optString("departTime"));
+                JSONArray out = new JSONArray();
+                for (int i = 0; i < segs.length(); i++) {
+                    if (i == ins) out.put(s);
+                    out.put(segs.optJSONObject(i));
+                }
+                if (ins >= segs.length()) out.put(s);
+                day.put("segments", out);
+            }
             Store.save(this, trips);
 
             Intent it = new Intent();
@@ -377,6 +389,34 @@ public class EditSegmentActivity extends Activity {
     }
 
     // ---- UI 构建辅助 ----
+    /** 'HH:MM' → 分钟数；非法/为空返回 null。兼容不补零的旧值（'9:00'），故按数值比而非字符串比 */
+    private static Integer hhmmToMin(String v) {
+        if (v == null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d{1,2}):(\\d{2})$").matcher(v.trim());
+        if (!m.matches()) return null;
+        int h = Integer.parseInt(m.group(1)), mi = Integer.parseInt(m.group(2));
+        return (h > 23 || mi > 59) ? null : h * 60 + mi;
+    }
+
+    /** 新增段按出发时间定位：返回应插入的下标。没填时间 → 末尾；
+     *  无时间的既有段会被跳过，因此仍在末尾（与网页版 placeSegByTime 同规则） */
+    private static int insertIndexByTime(JSONArray segs, String dep) {
+        Integer t = hhmmToMin(dep);
+        if (t == null) return segs.length();
+        for (int i = 0; i < segs.length(); i++) {
+            JSONObject x = segs.optJSONObject(i);
+            Integer v = hhmmToMin(x != null ? x.optString("departTime") : null);
+            if (v != null && v > t) return i;          // 第一个更晚的段之前
+        }
+        int last = -1;
+        for (int i = 0; i < segs.length(); i++) {
+            JSONObject x = segs.optJSONObject(i);
+            Integer v = hhmmToMin(x != null ? x.optString("departTime") : null);
+            if (v != null && v <= t) last = i;
+        }
+        return last + 1;   // 没有更晚的 → 放到最后一个「≤ 本段」的之后
+    }
+
     private EditText field(String label, String hint) {
         LinearLayout wrap = Util.vBox(this);
         wrap.setPadding(0, Util.dp(this, 12), 0, 0);
