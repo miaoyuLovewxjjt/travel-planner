@@ -184,10 +184,10 @@ textarea{resize:vertical}
 .day-head .day-info h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0}
 .day-head .day-info h3 .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .day-head .day-cost{text-align:right;align-self:flex-end;padding-bottom:2px}
-/* 天气徽章：胶囊浅底，悬停主题色；空态虚线占位 */
-.wx-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#55556a;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:999px;padding:2px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
-.wx-badge:hover{border-color:var(--accent);color:var(--accent)}
-.wx-badge.wx-empty{background:#fafafc;border-style:dashed;color:var(--sub);font-weight:400}
+/* 天气/地点徽章：胶囊浅底，悬停主题色；空态虚线占位（两者同款，地点在日期后、天气前） */
+.wx-badge,.place-badge{display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:12px;font-weight:600;color:#55556a;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:999px;padding:2px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.wx-badge:hover,.place-badge:hover{border-color:var(--accent);color:var(--accent)}
+.wx-badge.wx-empty,.place-badge.place-empty{background:#fafafc;border-style:dashed;color:var(--sub);font-weight:400}
 
 /* 俏皮日期选择器：触发条（虚线）+ 自绘日历面板 */
 .dp-trigger{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:13px;color:var(--ink);background:#fff;transition:border-color .15s}
@@ -647,6 +647,10 @@ a.toc-main:hover .toc-name{color:var(--accent)}
 .doc-day-no{background:linear-gradient(160deg,var(--accent),var(--accent2));color:#fff;font-size:12px;font-weight:900;padding:4px 12px;border-radius:999px;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 .doc-day-wk{color:var(--sub);font-weight:600;font-size:13px}
 .doc-day-wx{color:#4a5d78;background:#f0f6ff;border:1px solid #d8e6fa;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700}
+.doc-day-place{color:#3f6b52;background:#f0faf4;border:1px solid #d3ecdd;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700}
+/* PDF 总结里的「全量明细」分组标题：与其下的表格保持同页（避免标题孤零零留在页尾） */
+.doc-detail-head{font-size:13px;font-weight:800;color:var(--ink);margin:12px 0 5px;page-break-after:avoid;break-after:avoid}
+.doc-detail-head b{color:var(--accent)}
 .doc-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0 12px}
 .doc-table th{background:#f6f6f9;text-align:left;padding:7px 10px;font-size:11px;color:var(--sub);font-weight:800;letter-spacing:.5px}
 .doc-table td{padding:7px 10px;border-bottom:1px solid #f0f0f4;vertical-align:top}
@@ -908,6 +912,12 @@ body.pad .day-nav .nav-title, body.phone .day-nav .nav-title { margin-left: -2px
 .sum-donut{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:6px 0}
 .sum-note{font-size:12.5px;color:var(--sub);font-style:italic;line-height:1.6}
 .sum-note b{color:var(--ink)}
+/* 天气一览：日期 | 地点 | 天气 三列（供截图问穿搭） */
+.wx-row{display:flex;gap:12px;align-items:baseline;font-size:12.5px;color:#55556a;padding:4px 0;border-bottom:1px dashed var(--line)}
+.wx-row:last-child{border-bottom:none}
+.wx-row .wx-d{font-weight:700;color:var(--ink);white-space:nowrap;flex-shrink:0;min-width:106px}
+.wx-row .wx-p{flex:1;min-width:0}            /* 长地名自动换行，永不截断（铁律3） */
+.wx-row .wx-t{white-space:nowrap;flex-shrink:0}
 /* PDF 行程总结 */
 .doc-sum-row{display:flex;flex-wrap:wrap;gap:6px 22px;color:var(--sub);font-size:13px;margin:2px 0 4px}
 .doc-sum-row b{color:var(--ink)}
@@ -1015,10 +1025,74 @@ const fmtMoneyShort = v => {
   return fmtMoney(n);
 };
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
+/** 日期归一化为 YYYY-MM-DD（月/日补零）。手工编辑或外部导入可能带来 "2026-9-30" 这类非补零值，
+ *  它会让固定下标切片解析出 NaN、让字符串范围比较判错 —— 故在加载/导入时统一纠正（无损） */
+const normDate = s => {
+  const raw = s == null ? '' : String(s).trim();
+  const m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  return m ? `${m[1]}-${pad2(Number(m[2]))}-${pad2(Number(m[3]))}` : raw;
+};
+/** 行程数组归一化；返回是否有改动（供自愈保存判断） */
+const normTrips = trips => {
+  let changed = false;
+  (Array.isArray(trips) ? trips : []).forEach(t => {
+    if (!t) return;
+    const s = normDate(t.startDate), e = normDate(t.endDate);
+    if (s !== t.startDate) { t.startDate = s; changed = true; }
+    if (e !== t.endDate) { t.endDate = e; changed = true; }
+  });
+  return changed;
+};
+/** 名字分隔符：顿号/半角逗号/全角逗号一视同仁。
+ *  显示时乘客是用「、」拼的（paxText），从显示里复制过来粘进输入框也能正确拆开 */
+const NAME_SEP = /[、,，]/;
+const splitNames = v => String(v == null ? '' : v).split(NAME_SEP).map(s => s.trim()).filter(Boolean);
+/** 名字去重保序（出行人/乘客都按名字做身份标识，重复会导致改名联动错乱） */
+const uniqNames = arr => { const out = []; (arr || []).forEach(n => { if (n && !out.includes(n)) out.push(n); }); return out; };
+/** 一次性自愈：把历史数据里「a、b」这种一条塞了多人的名字拆开。
+ *  只处理确实含分隔符的条目，其余原样不动；乘客带座位时座位归第一个拆出的名字（不丢信息） */
+const splitTripNames = trips => {
+  let changed = false;
+  const fixList = obj => {                    // travelers 是纯字符串数组
+    if (!Array.isArray(obj.travelers)) return;
+    if (!obj.travelers.some(n => splitNames(n).length > 1)) return;
+    obj.travelers = uniqNames(obj.travelers.flatMap(splitNames));
+    changed = true;
+  };
+  (Array.isArray(trips) ? trips : []).forEach(t => {
+    if (!t) return;
+    fixList(t);
+    Object.values(t.days || {}).forEach(day => {
+      if (!day) return;
+      fixList(day);
+      (day.segments || []).forEach(seg => {
+        if (!Array.isArray(seg.passengers) || !seg.passengers.length) return;
+        const ps = normPax(seg);
+        if (!ps.some(p => splitNames(p.name).length > 1)) return;   // 没分隔符 → 一个字节都不动
+        const out = [];
+        ps.forEach(p => splitNames(p.name).forEach((nm, i) => {
+          if (!out.some(x => x.name === nm)) out.push({ name: nm, seat: i === 0 ? (p.seat || '') : '' });
+        }));
+        seg.passengers = out;
+        changed = true;
+      });
+    });
+  });
+  return changed;
+};
+/** 日期分段解析：所有展示统一走它，不再用固定下标切片（脏数据也只显示原样，不出 NaN） */
+const dateParts = d => {
+  const p = String(d == null ? '' : d).split('-');
+  return p.length === 3 && p[0] && p[1] && p[2] ? { y: Number(p[0]), m: Number(p[1]), d: Number(p[2]) } : null;
+};
+const mdText = d => { const p = dateParts(d); return p ? `${p.m}/${p.d}` : '—'; };
 const addDays = (s, n) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
-const diffDays = (a, b) => Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 86400000);
-const weekdayCN = d => '日一二三四五六'[new Date(d + 'T00:00:00').getDay()];
-const fmtDateCN = d => { const [y, m, dd] = d.split('-'); return `${Number(m)}月${Number(dd)}日`; };
+const diffDays = (a, b) => {
+  const x = new Date(a + 'T00:00:00'), y = new Date(b + 'T00:00:00');
+  return (isNaN(x) || isNaN(y)) ? 0 : Math.round((y - x) / 86400000);
+};
+const weekdayCN = d => { const t = new Date(d + 'T00:00:00'); return isNaN(t) ? '' : '日一二三四五六'[t.getDay()]; };
+const fmtDateCN = d => { const p = dateParts(d); return p ? `${p.m}月${p.d}日` : String(d || '—'); };
 const isInRange = (trip, d) => trip.startDate <= d && d <= trip.endDate;
 const dayNo = (trip, d) => isInRange(trip, d) ? diffDays(trip.startDate, d) + 1 : '—';
 
@@ -1081,6 +1155,10 @@ async function loadData() {
     } catch (_) { state = { trips: [] }; }
     if (!Array.isArray(state.trips)) state = { trips: [] };
   }
+  // 加载时自愈：日期补零 + 把「a、b」这种一条塞了多人的名字拆开（有改动才写回）
+  const fixedDate = normTrips(state.trips);
+  const fixedName = splitTripNames(state.trips);
+  if (fixedDate || fixedName) scheduleSave();
   render();
   // App 启动后重新同步提醒到系统闹钟（覆盖已过期的）
   (state.trips || []).forEach(t => syncReminders(t));
@@ -1195,6 +1273,8 @@ function importData(file) {
     try {
       const d = JSON.parse(reader.result);
       if (!d || !Array.isArray(d.trips)) throw new Error('格式不对');
+      normTrips(d.trips); // 导入的日期一并归一化，挡住外部脏值
+      splitTripNames(d.trips); // 导入的名字同样按分隔符拆开
       state = d;
       if (dataMode === 'local') localStorage.setItem('trips-data', JSON.stringify(state));
       else scheduleSave();
@@ -1421,7 +1501,7 @@ function renderDetail(id) {
   // 统计长框：日期 / 天数 / 出行人 / 总预算 / 总花费 / 预算结余（自适应长度）
   $('#stat-strip').innerHTML = `
     <div class="stat-card stat-long">
-      <div class="sl-item"><span class="num">${Number(t.startDate.slice(5,7))}/${Number(t.startDate.slice(8,10))} ~ ${Number(t.endDate.slice(5,7))}/${Number(t.endDate.slice(8,10))}</span><span class="lbl">行程日期</span></div>
+      <div class="sl-item"><span class="num">${mdText(t.startDate)} ~ ${mdText(t.endDate)}</span><span class="lbl">行程日期</span></div>
       <div class="sl-div"></div>
       <div class="sl-item"><span class="num">${st.days} 天</span><span class="lbl">行程天数</span></div>
       <div class="sl-div"></div>
@@ -1449,7 +1529,7 @@ function renderDetail(id) {
     const active = has ? 'active' : 'empty';
     const info = has ? '￥' + Math.round(dayStats(t.days[d]).exp).toLocaleString('zh-CN') : '';
     return `<button class="${active}" data-date="${d}" title="${fmtDateCN(d)} · 周${weekdayCN(d)}">
-      <span class="d">${Number(d.slice(5,7))}/${Number(d.slice(8,10))}</span>
+      <span class="d">${mdText(d)}</span>
       <span class="w">周${weekdayCN(d)}</span>
       ${info ? `<span class="info">${info}</span>` : ''}
     </button>`;
@@ -1509,6 +1589,20 @@ window.addEventListener('resize', () => {
 /* 天气：气候+最低+最高温度（每日可设置，徽章显示于卡片标题后） */
 const WEATHERS = [['☀️', '晴'], ['🌤️', '多云'], ['☁️', '阴'], ['🌧️', '雨'], ['⛈️', '雷阵雨'], ['❄️', '雪'], ['🌫️', '雾'], ['🌬️', '风']];
 const wxEmoji = c => (WEATHERS.find(x => x[1] === c) || WEATHERS[0])[0];
+/** 温度取值：兼容 null / 缺键 / 字符串数字；无值返回 null。
+ *  注意不能用 num()——它对 null/undefined 返回 0，会把"没填高温"显示成 0° */
+const wxNum = v => (v === null || v === undefined || String(v).trim() === '' || isNaN(parseFloat(v)))
+  ? null : Math.round(parseFloat(v));
+/** 天气文案 '🌧️ 雨 13°~22°'；缺一侧时 '🌧️ 雨 13°' / '🌧️ 雨 ~22°'；无天气返回空串。
+ *  日卡片徽章与行程总结「天气一览」共用，保证两处文案永远一致（并与网页 PDF、安卓端同款） */
+const wxText = w => {
+  if (!w || !w.cond) return '';
+  const lo = wxNum(w.low), hi = wxNum(w.high);
+  const temps = lo !== null && hi !== null ? ` ${lo}°~${hi}°`
+    : lo !== null ? ` ${lo}°`
+      : hi !== null ? ` ~${hi}°` : '';
+  return `${wxEmoji(w.cond)} ${esc(w.cond)}${temps}`;
+};
 /** 天气设置弹窗 */
 function openWxModal(d) {
   const t = getTrip(currentTripId);
@@ -1524,7 +1618,7 @@ function openWxModal(d) {
       <div class="form-field"><label>最高温度（℃）</label><input id="wx-high" type="number" value="${num(w.high)}" placeholder="如 30"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="wx-del"${w.cond ? '' : ' hidden'}>删除天气</button>
+      <button class="btn btn-ghost${w.cond ? '' : ' hidden'}" id="wx-del">删除天气</button>
       <button class="btn btn-ghost" id="wx-cancel">取消</button>
       <button class="btn btn-primary" id="wx-save">保存</button>
     </div>`;
@@ -1549,6 +1643,60 @@ function openWxModal(d) {
   });
 }
 
+/** 当天游玩地点设置弹窗（交互与天气同构）：下拉选已有地点，或切「＋ 自定义」自己填 */
+function openPlaceModal(d) {
+  const t = getTrip(currentTripId);
+  if (!t) return;
+  const cur = ((t.days[d] || {}).place || '').trim();
+  const opts = dayPlaceOptions(t);
+  // 候选里必然包含当天已填的值（dayPlaceOptions 会收各天 place），所以只有当整个行程一个地点都没有时才需要默认展开输入框
+  const needCustom = opts.length === 0;
+  $('#modal-box').innerHTML = `
+    <h2>📍 设置当天游玩地点</h2>
+    <div class="form-grid">
+      <div class="form-field full"><label>地点</label><select id="pl-select">
+        ${opts.map(o => `<option value="${esc(o)}"${o === cur ? ' selected' : ''}>${esc(o)}</option>`).join('')}
+        <option value="__custom__"${needCustom ? ' selected' : ''}>＋ 自定义…</option>
+      </select></div>
+      <div class="form-field full${needCustom ? '' : ' hidden'}" id="pl-custom-wrap"><label>自定义地点</label>
+        <input id="pl-custom" maxlength="20" value="" placeholder="如：禾木村">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost${cur ? '' : ' hidden'}" id="pl-del">删除地点</button>
+      <button class="btn btn-ghost" id="pl-cancel">取消</button>
+      <button class="btn btn-primary" id="pl-save">保存</button>
+    </div>`;
+  $('#modal-root').classList.remove('hidden');
+  // 切到「＋ 自定义…」时才展开输入框（与行李分类同款交互）
+  // 注意：必须用 .hidden 类而非 hidden 属性 —— .form-field/.btn 自带 display，
+  // 会压过 UA 的 [hidden]{display:none}，属性写法等于没隐藏（踩过的坑）
+  const customWrap = $('#pl-custom-wrap');
+  $('#pl-select').addEventListener('change', e => {
+    const c = e.target.value === '__custom__';
+    customWrap.classList.toggle('hidden', !c);
+    if (c) $('#pl-custom').focus();
+  });
+  $('#pl-cancel').addEventListener('click', closeModal);
+  $('#pl-save').addEventListener('click', () => {
+    const t2 = getTrip(currentTripId);
+    if (!t2) return;
+    ensureDay(t2, d);
+    const sel = $('#pl-select').value;
+    const v = (sel === '__custom__' ? $('#pl-custom').value : sel).trim();
+    if (v) t2.days[d].place = v;
+    else delete t2.days[d].place;
+    closeModal();
+    saveAndRender(t2);
+  });
+  $('#pl-del').addEventListener('click', () => {
+    const t2 = getTrip(currentTripId);
+    if (t2 && t2.days[d]) delete t2.days[d].place;
+    closeModal();
+    saveAndRender(t2);
+  });
+}
+
 /* ================================================================
  * 行李清单（正式版）：① 计划携带物品 ② 行李携带可行性模拟
  * 数据模型（挂在 trip 上，随 state 整体保存/导出）：
@@ -1567,6 +1715,20 @@ function packCatOptions(t) {
   const opts = PACK_CATS.slice();
   used.forEach(c => opts.push(['📦', c]));
   return opts;
+}
+/** 当天游玩地点候选：聚合全行程已有地点 —— 先收各天已填的 place（按日期序），
+ *  再收路线起终点与住宿名/地址；trim + 去重保序（与安卓 Util.placeCandidates 同口径） */
+function dayPlaceOptions(t) {
+  const out = [];
+  const push = v => { const s = String(v == null ? '' : v).trim(); if (s && !out.includes(s)) out.push(s); };
+  const days = Object.keys(t.days || {}).sort();
+  days.forEach(d => push((t.days[d] || {}).place)); // 已填的地点优先，最可能被再次选中
+  days.forEach(d => {
+    const day = t.days[d] || {};
+    (day.segments || []).forEach(s => { push(s.from); push(s.to); });
+    if (day.lodging) { push(day.lodging.name); push(day.lodging.location); }
+  });
+  return out;
 }
 /** 惰性初始化：老 demo 清单(t.checklist) 一次性迁移为物品（其他/待定/未携带）；补全 id/字段 */
 function ensurePacking(t) {
@@ -1748,8 +1910,8 @@ function checklistPanelHtml(t) {
     </div>`;
 }
 
-/** 公共交通（显示车次/座位/乘客详情的交通方式） */
-const PUB_TRANSPORTS = ['高铁', '飞机', '地铁', '公交', '游船'];
+/** 公共交通（显示车次/座位/乘客详情的交通方式；火车=普速列车，与高铁同级；游船即轮船） */
+const PUB_TRANSPORTS = ['高铁', '火车', '飞机', '地铁', '公交', '游船'];
 const LODGE_TYPES = ['酒店', '民宿', '青旅', '其他'];
 const lodgeEmoji = ty => ({ '酒店': '🏨', '民宿': '🏡', '青旅': '🛏️', '其他': '🏠' })[ty] || '🏨';
 
@@ -1785,7 +1947,7 @@ function crossDays(seg) {
 }
 const isCrossDay = seg => crossDays(seg) > 0;
 /** 跨天可编辑的交通方式（长途交通可调 +1~+4；步行/地铁/公交等默认 +1 固定） */
-const CROSS_EDITABLE = ['飞机', '高铁', '自驾', '租车'];
+const CROSS_EDITABLE = ['飞机', '高铁', '火车', '游船', '自驾', '租车'];
 /** 跨天段的后续接续段（dayOffset=1..N）：全天接续 + 到达日 00:00→到达 */
 function nextDayTails(day) {
   const tails = [];
@@ -1839,6 +2001,36 @@ const TRANS_COLORS = {
   '骑行': '#F0619B', '其他': '#8A8A9A',
 };
 const transColor = tr => TRANS_COLORS[tr] || '#8A8A9A';
+/** 'HH:MM' → 分钟数；非法/为空返回 null（兼容旧的 '9:00' 不补零写法，故按数值比而非字符串比） */
+function hhmmToMin(v) {
+  const m = String(v == null ? '' : v).trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = Number(m[1]), mi = Number(m[2]);
+  return (h > 23 || mi > 59) ? null : h * 60 + mi;
+}
+/** 新增路线段按出发时间就位：插到第一个比它晚的段之前；没填时间的留在末尾。
+ *  只用于「新增」——编辑已有段不调用，避免覆盖用户拖拽排好的顺序 */
+function placeSegByTime(segs, seg) {
+  const cur = segs.indexOf(seg);
+  if (cur < 0) return;
+  const t = hhmmToMin(seg.departTime);
+  if (t == null) return;            // 没填出发时间 → 留在末尾
+  segs.splice(cur, 1);
+  let idx = -1;
+  for (let i = 0; i < segs.length; i++) {
+    const v = hhmmToMin(segs[i].departTime);
+    if (v != null && v > t) { idx = i; break; }   // 第一个更晚的（草稿/无时间的段会被跳过）
+  }
+  if (idx < 0) {
+    // 没有更晚的 → 放到最后一个「时间 ≤ 本段」的段之后（无时间的段因此仍在末尾）
+    for (let i = segs.length - 1; i >= 0; i--) {
+      const v = hhmmToMin(segs[i].departTime);
+      if (v != null && v <= t) { idx = i + 1; break; }
+    }
+    if (idx < 0) idx = 0;           // 全都没填时间 → 放最前
+  }
+  segs.splice(idx, 0, seg);
+}
 /** 计算路线段时长（分钟）：优先结构化时间（含跨天 +N 天），兼容 time 文本与 "4h" 写法 */
 function segDuration(seg) {
   if (seg.departTime && seg.arriveTime) {
@@ -1891,8 +2083,9 @@ function renderDayCard(t, d) {
     if (s.draft) {
       // —— 编辑态：填写中，✓ 确认 / ✕ 取消 ——
       const tm = segTimes(s);
-      // 高铁/飞机几乎总要填班次+乘客座位 → 自动展开；其余公共交通（地铁/公交/游船）默认收起可点开
-      const autoOpen = pub && ['高铁', '飞机'].includes(s.transport);
+      // 高铁/火车/飞机/轮船（游船）这类长途公共交通几乎总要填班次+乘客座位 → 自动展开；
+      // 其余公共交通（地铁/公交）默认收起可点开
+      const autoOpen = pub && ['高铁', '火车', '飞机', '游船'].includes(s.transport);
       const hasDetail = !!(s.vehicleNo || normPax(s).length); // 已有内容也自动展开
       const detailCls = (autoOpen || hasDetail) ? ' open' : '';
       const paxChips = normPax(s).map(p =>
@@ -2153,11 +2346,14 @@ function renderDayCard(t, d) {
 
   return `<section class="day-card" id="day-${d}">
     <div class="day-head">
-      <div class="day-badge"><span class="n">${Number(d.slice(8,10))}</span><span class="w">${Number(d.slice(5,7))}月</span></div>
+      <div class="day-badge"><span class="n">${dateParts(d) ? dateParts(d).d : ''}</span><span class="w">${dateParts(d) ? dateParts(d).m : ''}月</span></div>
       <div class="day-info">
         <h3><span class="t">${no === '—' ? '额外行程' : '第' + no + '天'} · ${fmtDateCN(d)} 星期${weekdayCN(d)}</span>
+          ${day.place
+            ? `<button type="button" class="place-badge" data-action="set-place" data-date="${d}" title="点击设置当天游玩地点">📍 ${esc(day.place)}</button>`
+            : `<button type="button" class="place-badge place-empty" data-action="set-place" data-date="${d}" title="设置当天游玩地点">＋ 地点</button>`}
           ${day.weather && day.weather.cond
-            ? `<span class="wx-badge" data-action="set-wx" data-date="${d}" title="点击设置天气">${wxEmoji(day.weather.cond)} ${esc(day.weather.cond)}${num(day.weather.low) != null ? ' ' + Math.round(num(day.weather.low)) + '°' : ''}~${num(day.weather.high) != null ? Math.round(num(day.weather.high)) + '°' : ''}</span>`
+            ? `<span class="wx-badge" data-action="set-wx" data-date="${d}" title="点击设置天气">${wxText(day.weather)}</span>`
             : `<span class="wx-badge wx-empty" data-action="set-wx" data-date="${d}" title="设置天气">＋ 天气</span>`}
         </h3>
       </div>
@@ -2244,13 +2440,30 @@ function sumCatDetailRows(t, cat) {
   });
   return rows;
 }
+/** 行程总结·天气一览：逐日「日期 · 地点 · 天气」，缺的写「—」（方便截图问穿搭）。
+ *  与安卓端 renderSummary 的天气卡片同口径 */
+function sumWeatherHtml(t) {
+  const days = Object.keys(t.days || {}).sort();
+  if (!days.length) return '<div class="sum-note">还没有每日行程</div>';
+  return days.map(d => {
+    const day = t.days[d] || {};
+    const place = String(day.place || '').trim();
+    return `<div class="wx-row">`
+      + `<span class="wx-d">${fmtDateCN(d)} 周${weekdayCN(d)}</span>`
+      + `<span class="wx-p">${place ? esc(place) : '—'}</span>`
+      + `<span class="wx-t">${wxText(day.weather) || '—'}</span>`
+      + `</div>`;
+  }).join('');
+}
 /** 交通段数 chips（高铁 3 段 · 火车 1 段 …） */
 function sumSegChipsHtml(list) {
   const chips = list.map(x => `<span class="sum-chip">${emojiOf(x.name)} ${esc(x.name)}<b>${x.count} 段</b></span>`).join('');
   return chips || '<div class="sum-note">还没有路线安排</div>';
 }
-/** 在途时长分布（环形图，与花销构成同款）：只统计已标注交通——各交通按时长占在途总时长的比例，未标注时间不参与 */
-function sumTimeDonutHtml(v) {
+/** 在途时长分布（环形图，与花销构成同款）：只统计已标注交通——各交通按时长占在途总时长的比例，未标注时间不参与
+ *  withDetailBox=false 供 PDF 用：PDF 里明细是直接铺开的表格，不需要屏幕那个"点击展开"的空容器
+ *  （该容器靠 .sum-cat-detail 的 display:flex 覆盖 hidden 属性，留着会在 PDF 里画出一条多余虚线） */
+function sumTimeDonutHtml(v, withDetailBox = true) {
   const cats = v.list.filter(x => x.min > 0);
   const total = cats.reduce((s, x) => s + x.min, 0);
   if (!total) return '<div class="sum-note">路线未填写起止时间，暂无可统计的交通时长。</div>';
@@ -2274,7 +2487,7 @@ function sumTimeDonutHtml(v) {
         <div class="donut-legend">${legend}</div>
       </div>
     </div>
-    <div class="sum-cat-detail" hidden></div>
+    ${withDetailBox ? '<div class="sum-cat-detail" hidden></div>' : ''}
     <div class="sum-note" style="margin-top:8px">在途交通总时长 <b>${fmtDur(total)}</b>（未标注时间的部分不参与此统计）。</div>`;
 }
 /** 某类交通的实际行程明细（跨天聚合），供在途时长环形图图例点击展开 */
@@ -2324,6 +2537,10 @@ function summaryPanelHtml(t) {
     </div>
   </section>
   <section class="sum-card">
+    <div class="block-title"><span class="tag">🌤️</span>天气一览</div>
+    ${sumWeatherHtml(t)}
+  </section>
+  <section class="sum-card">
     <div class="block-title"><span class="tag">🗺️</span>路程行程总结</div>
     <div class="sub-card">
       <div class="block-title" style="margin-bottom:4px"><span class="tag">🏠</span>住宿</div>
@@ -2354,6 +2571,53 @@ function showSummary(t) {
   $('#sum-panel').innerHTML = summaryPanelHtml(t);
   switchDetailView('summary');
 }
+/**
+ * ============ PDF 用「全量明细」渲染器 ============
+ * 屏幕上这些内容要点图例才展开（sumTimeDetailRows / sumCatDetailRows）；PDF 里直接全量铺开，
+ * 复用同一批纯函数取数，保证屏幕与 PDF 的口径永远一致。
+ */
+/** 天气一览表：日期 | 地点 | 天气 */
+function wxDocTableHtml(t) {
+  const days = Object.keys(t.days || {}).sort();
+  if (!days.length) return '<p class="doc-empty">还没有每日行程</p>';
+  const rows = days.map(d => {
+    const day = t.days[d] || {};
+    const place = String(day.place || '').trim();
+    return `<tr><td class="d-time">${fmtDateCN(d)} 周${weekdayCN(d)}</td>`
+      + `<td class="d-path">${place ? esc(place) : '—'}</td>`
+      + `<td>${wxText(day.weather) || '—'}</td></tr>`;
+  }).join('');
+  return `<table class="doc-table"><thead><tr><th>日期</th><th>地点</th><th>天气</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+/** 交通方式明细：按交通方式分组，逐段列出实际行程 + 每组合计 */
+function transDetailDocHtml(t, list) {
+  if (!list.length) return '<p class="doc-empty">还没有路线安排</p>';
+  return list.map(x => {
+    const { rows, totalMin } = sumTimeDetailRows(t, x.name);
+    const head = `<div class="doc-detail-head">${emojiOf(x.name)} ${esc(x.name)} · 共 <b>${rows.length}</b> 段`
+      + (totalMin > 0 ? ` · 全程 <b>${fmtDur(totalMin)}</b>` : '') + `</div>`;
+    if (!rows.length) return head + '<p class="doc-empty">暂无可展示的行程</p>';
+    const trs = rows.map(r => `<tr><td class="d-time">${fmtDateCN(r.d)}</td>`
+      + `<td class="d-path">${esc(r.s.from)} → ${esc(r.s.to)}</td>`
+      + `<td class="d-det">${esc(timeRange(r.s))}</td>`
+      + `<td class="d-price">${fmtDur(r.min) || '—'}</td></tr>`).join('');
+    return head + `<table class="doc-table"><thead><tr><th>日期</th><th>路线</th><th>时间</th><th>时长</th></tr></thead><tbody>${trs}</tbody></table>`;
+  }).join('');
+}
+/** 花销明细：按类别分组，跨日逐笔列出 + 每组小计 */
+function catDetailDocHtml(t, cats) {
+  const groups = cats.map(c => ({ c, rows: sumCatDetailRows(t, c) })).filter(g => g.rows.length);
+  if (!groups.length) return '<p class="doc-empty">暂无花销明细</p>';
+  return groups.map(g => {
+    const subtotal = g.rows.reduce((s, r) => s + r.amt, 0);
+    const head = `<div class="doc-detail-head">${catEmoji(g.c)} ${esc(g.c)} · 共 <b>${g.rows.length}</b> 笔`
+      + ` · 小计 <b>¥${Math.round(subtotal).toLocaleString('zh-CN')}</b></div>`;
+    const trs = g.rows.map(r => `<tr><td class="d-time">${fmtDateCN(r.d)}</td>`
+      + `<td class="d-path">${esc(r.label)}</td>`
+      + `<td class="d-amt">${fmtMoney(r.amt)}</td></tr>`).join('');
+    return head + `<table class="doc-table"><thead><tr><th>日期</th><th>项目</th><th>金额</th></tr></thead><tbody>${trs}</tbody></table>`;
+  }).join('');
+}
 /** 行程总结章节（导出 PDF 用：时长分布/花销构成均为纯 CSS 图表，打印稳定） */
 function summaryDocHtml(t) {
   const st = tripStats(t);
@@ -2378,11 +2642,17 @@ function summaryDocHtml(t) {
       <div class="doc-sum-box">住宿<b>${st.lodges} 晚</b></div>
       <div class="doc-sum-box">路线<b>${st.segs} 段</b></div>
     </div>
-    <h4 class="doc-lug-title" style="margin-top:14px">🗺️ 路程行程总结</h4>
+    <h4 class="doc-lug-title" style="margin-top:14px">🌤️ 天气一览</h4>
+    ${wxDocTableHtml(t)}
+    <h4 class="doc-lug-title" style="margin-top:16px">🗺️ 路程行程总结</h4>
     ${sumSegChipsHtml(timeV.list)}
-    ${sumTimeDonutHtml(timeV)}
+    ${sumTimeDonutHtml(timeV, false)}
+    <h4 class="doc-lug-title" style="margin-top:16px">🧭 交通方式明细</h4>
+    ${transDetailDocHtml(t, timeV.list)}
     <h4 class="doc-lug-title" style="margin-top:16px">💰 花销总结</h4>
     ${donut ? `<div class="sum-donut">${donut}</div>` : '<p class="doc-empty">暂无花销记录</p>'}
+    <h4 class="doc-lug-title" style="margin-top:16px">🧾 花销明细</h4>
+    ${catDetailDocHtml(t, Object.keys(expByCat))}
   </div>`;
 }
 
@@ -2411,6 +2681,10 @@ $('#view-detail').addEventListener('click', async e => {
   // 天气徽章：打开天气设置
   const wxBtn = e.target.closest('[data-action="set-wx"]');
   if (wxBtn) { openWxModal(wxBtn.dataset.date); return; }
+
+  // 地点徽章：打开当天游玩地点设置
+  const plBtn = e.target.closest('[data-action="set-place"]');
+  if (plBtn) { openPlaceModal(plBtn.dataset.date); return; }
   // 左侧二级标题导航：行李清单（页内切换）/ 每日行程（返回日期视图）
   // 每日行程右侧的折叠图标：只负责折叠/展开下面的日期列表，不跳转、不切换面板（在清单页点它也不跳回每日行程）
   const navCaret = e.target.closest('.day-nav .nav-caret');
@@ -2712,7 +2986,11 @@ $('#view-detail').addEventListener('click', async e => {
       const empty = !(s.from || '').trim() && !(s.to || '').trim() && !(s.time || '').trim() &&
         !(s.notes || '').trim() && !(s.vehicleNo || '').trim() && !(s.seat || '').trim() && !(s.passengers || []).length && !num(s.price);
       if (empty) segs.splice(i, 1);   // 空记录确认 → 直接删除
-      else delete s.draft;            // 确认保存 → 展示态
+      else {
+        delete s.draft;               // 确认保存 → 展示态
+        // 只对「新增」按出发时间就位；编辑已有段（有 _snap）保持原位，不覆盖用户拖拽排好的顺序
+        if (!s._snap) placeSegByTime(segs, s);
+      }
     } else if (act === 'seg-cancel') { if (cancelEdit(segs[i])) segs.splice(i, 1); }
     else if (act === 'seg-edit') { editSnap(segs[i]); segs[i].draft = true; }
     else if (act === 'seg-del') segs.splice(i, 1);   // 单条记录直接删除，不弹窗
@@ -2969,7 +3247,7 @@ function openPaxPanel(t, date, idx) {
           : '<span class="lodge-none">出行计划还没有出行人，可以直接在下方输入乘客名字</span>'}
       </div>
       <div class="pax-custom">
-        <input id="pax-custom-name" maxlength="30" placeholder="输入其他乘客姓名">
+        <input id="pax-custom-name" maxlength="30" placeholder="乘客姓名（多个用、或,分隔）">
         <button class="btn btn-ghost" id="pax-add-custom">＋ 添加</button>
       </div>
       <div class="pax-seats" id="pax-seats"></div>
@@ -3002,9 +3280,11 @@ function openPaxPanel(t, date, idx) {
     }
   });
   $('#pax-add-custom').addEventListener('click', () => {
-    const v = $('#pax-custom-name').value.trim();
-    if (!v) return;
-    if (!sel.has(v)) {
+    // 支持一次填多人：「a、b」「a,b」「a，b」都拆成两个乘客
+    const names = splitNames($('#pax-custom-name').value);
+    if (!names.length) return;
+    names.forEach(v => {
+      if (sel.has(v)) return;
       const dup = [...document.querySelectorAll('.pax-opt')].some(el => el.dataset.n === v);
       if (!dup) {
         const s = document.createElement('span');
@@ -3014,7 +3294,7 @@ function openPaxPanel(t, date, idx) {
         $('#pax-list').appendChild(s);
       }
       sel.set(v, '');
-    }
+    });
     $('#pax-custom-name').value = '';
     renderSeats();
   });
@@ -3291,7 +3571,7 @@ function openTripModal(trip) {
         <div class="dp-trigger" data-for="m-end" id="dp-end"></div>
         <input type="hidden" id="m-end" value="${esc(t.endDate)}">
       </div>
-      <div class="form-field"><label>出行人（逗号分隔）</label><input id="m-travelers" maxlength="30" value="${esc(t.travelers.join('，'))}" placeholder="我，小美，老王"></div>
+      <div class="form-field"><label>出行人（逗号或顿号分隔）</label><input id="m-travelers" maxlength="30" value="${esc(t.travelers.join('，'))}" placeholder="如：我、小美、老王"></div>
       <div class="form-field"><label>总预算（元）</label><input id="m-budget" type="number" min="0" value="${num(t.budget)}" placeholder="0 = 不设预算"></div>
       <div class="form-field full"><label>行程备注</label><textarea id="m-notes" maxlength="80" rows="2" placeholder="旅行主题、注意事项…">${esc(t.notes)}</textarea></div>
       <div class="form-field full"><label>主题色</label><div class="color-row" id="m-colors">
@@ -3338,11 +3618,11 @@ function openTripModal(trip) {
   updateDpTrigger('m-end', $('#m-end').value);
   $('#m-ok').addEventListener('click', () => {
     const name = $('#m-name').value.trim();
-    const start = $('#m-start').value, end = $('#m-end').value;
+    const start = normDate($('#m-start').value), end = normDate($('#m-end').value); // 保存前归一化，杜绝把非补零日期写回
     if (!name) { showToast('请填写行程名称'); return; }
     if (!start || !end) { showToast('请选择起止日期'); return; }
     if (end < start) { showToast('结束日期不能早于开始日期'); return; }
-    const travelers = $('#m-travelers').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    const travelers = splitNames($('#m-travelers').value);
     const emoji = $('#m-emoji').value.trim();
     if (trip) {
       const oldT = (trip.travelers || []).slice();
@@ -3572,7 +3852,7 @@ function buildDoc(t) {
       ${dates.map(d => {
         const s = dayStats(t.days[d]);
         return `<a class="toc-item toc-sub" href="#doc-day-${d}">
-          <span class="toc-date">${Number(d.slice(5,7))}/${Number(d.slice(8,10))} 周${weekdayCN(d)}</span>
+          <span class="toc-date">${mdText(d)} 周${weekdayCN(d)}</span>
           <span class="toc-dots"></span>
           <span class="toc-sum">￥${Math.round(s.exp).toLocaleString('zh-CN')}</span>
         </a>`;
@@ -3658,7 +3938,7 @@ function buildDoc(t) {
       + tails.reduce((a, tl) => a + tl.dur, 0);
 
     return `<section class="doc-day" id="doc-day-${d}">
-      <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span>${day.weather && day.weather.cond ? `<span class="doc-day-wx">${wxEmoji(day.weather.cond)} ${esc(day.weather.cond)}${num(day.weather.low) != null ? ' ' + Math.round(num(day.weather.low)) + '°' : ''}~${num(day.weather.high) != null ? Math.round(num(day.weather.high)) + '°' : ''}</span>` : ''}</h2>
+      <h2 class="doc-day-title"><span class="doc-day-no">Day ${dayNo(t, d)}</span> ${fmtDateCN(d)} <span class="doc-day-wk">周${weekdayCN(d)} · ${d}</span>${day.place ? `<span class="doc-day-place">📍 ${esc(day.place)}</span>` : ''}${day.weather && day.weather.cond ? `<span class="doc-day-wx">${wxText(day.weather)}</span>` : ''}</h2>
       ${day.notes ? `<div class="doc-day-note">📝 ${escNL(day.notes)}</div>` : ''}
       ${remRows ? `<table class="doc-table rem"><thead><tr><th>提醒时间</th><th>提醒内容</th></tr></thead><tbody>${remRows}</tbody></table>` : ''}
       ${segRows ? `<table class="doc-table"><thead><tr><th>时间</th><th>路线</th><th>交通</th><th>班次</th><th>乘客</th><th>座位</th><th>价格</th><th>备注</th></tr></thead><tbody>${segRows}</tbody></table>` : '<p class="doc-empty">当日暂无路线安排</p>'}
